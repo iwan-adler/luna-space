@@ -67,7 +67,7 @@ tools/docs-pdf/     PDF builder for the specifications
 ## Contributing
 
 One issue → one branch (`feat/<issue>-<slug>`) → one small pull request, squash-merged after CI
-passes. See the PR checklist in `.github/pull_request_template.md` and `CLAUDE.md` for coding
+passes. See the PR checklist in `.github/pull_request_template.md` and `AGENTS.md` for coding
 rules.
 
 ## Phase 0 checklist
@@ -78,7 +78,7 @@ rules.
 - [x] Supabase CLI config, migration 0001 (extensions, `private` schema), pgTAP tests incl. RLS guard
 - [x] Supabase client with safe env handling
 - [x] CI: lint, types, tests, build, bundle secret scan, e2e, database tests, gitleaks
-- [x] CLAUDE.md, PR template, issue templates, Dependabot
+- [x] AGENTS.md, PR template, issue templates, Dependabot
 - [ ] GitHub remote, branch protection, labels and milestones
 - [ ] Supabase production project linked; migrations pushed
 - [ ] Static host (Cloudflare Pages) connected with preview deployments

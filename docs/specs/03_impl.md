@@ -1,6 +1,6 @@
 ## How to read this document
 
-This plan explains **how Luna Space is built, in what order, and how each step is verified**. It is written for a small team of beginner-to-intermediate developers working with Claude as a coding assistant.
+This plan explains **how Luna Space is built, in what order, and how each step is verified**. It is written for a small team of beginner-to-intermediate developers working with an AI coding assistant.
 
 - Scope and release assignment come from the PRD (01). Technical choices come from the TRD (04). Table names and migrations come from the Backend Schema (06).
 - Work is divided into **phases** (P0–P17) grouped into **releases** (R1–R4). Each phase lists objective, features, technical tasks, dependencies, deliverables, acceptance criteria and testing requirements.
@@ -66,7 +66,7 @@ flowchart TD
 | 2.3 | Add Tailwind CSS, ESLint (typescript-eslint), Prettier, Vitest, Testing Library, Playwright. | `npm run lint`, `npm test`, `npm run e2e` work. |
 | 2.4 | Add runtime libraries listed in TRD §3 (React Router, TanStack Query, Zod, React Hook Form, date-fns + date-fns-tz, supabase-js, vite-plugin-pwa, dnd-kit, FullCalendar standard packages, Dexie, react-markdown + rehype-sanitize). | Dependencies pinned in `package-lock.json`. |
 | 2.5 | Install Supabase CLI and initialise `supabase/` folder (`supabase init`). | `supabase/config.toml` committed. |
-| 2.6 | Add `CLAUDE.md` (see §16), `README.md`, `.env.example`, `docs/` with the six specifications in Markdown. | Shared context for people and Claude. |
+| 2.6 | Add `AGENTS.md` (see §16), `README.md`, `.env.example`, `docs/` with the six specifications in Markdown. | Shared context for people and the coding assistant. |
 | 2.7 | Configure CI (GitHub Actions): lint, type-check, unit tests, database tests, build, secret scan. | Green CI on `main`. |
 
 ## 3. GitHub repository workflow
@@ -96,7 +96,7 @@ gitGraph
 | Commits | Conventional Commits (`feat(opp): add review screen`). |
 | Merging | Squash-merge; PR title becomes the commit message. |
 | Releases | Git tags `v0.x.y` per phase milestone; `v1.0.0` = R1. Release notes generated from PR titles. |
-| Reviews | The partner reviews; for solo periods, use a self-review checklist plus Claude review of the diff. |
+| Reviews | The partner reviews; for solo periods, use a self-review checklist plus an AI-assisted review of the diff. |
 
 ### 3.2 Pull request checklist (template)
 
@@ -200,7 +200,7 @@ luna-space/
 │  ├─ tests/                  # pgTAP: rls_*.test.sql, constraints_*.test.sql
 │  └─ seed.sql                # two test users, one workspace, sample data (local only)
 ├─ tests/e2e/                 # Playwright specs with two browser contexts (member A and B)
-├─ CLAUDE.md                  # instructions for Claude (see §16)
+├─ AGENTS.md                  # instructions for coding assistants (see §16)
 ├─ .env.example
 └─ package.json
 ```
@@ -217,7 +217,7 @@ Each phase below follows the same structure. "AC" lines refer to PRD acceptance 
 |---|---|
 | Objective | A deployed "hello" app that signs in against Supabase, with CI, tests and docs in place. |
 | Features | None user-facing beyond sign-in placeholder. |
-| Technical tasks | S: scaffold Vite app · S: Tailwind + tokens from UI spec §4–6 · S: ESLint/Prettier/strict TS · S: Supabase CLI init + first migration (extensions) · S: Supabase client in `lib/` · S: CI workflow · S: host project connected to GitHub with preview deployments · S: `CLAUDE.md`, PR template, issue templates · S: Playwright smoke test. |
+| Technical tasks | S: scaffold Vite app · S: Tailwind + tokens from UI spec §4–6 · S: ESLint/Prettier/strict TS · S: Supabase CLI init + first migration (extensions) · S: Supabase client in `lib/` · S: CI workflow · S: host project connected to GitHub with preview deployments · S: `AGENTS.md`, PR template, issue templates · S: Playwright smoke test. |
 | Dependencies | Accounts: GitHub, Supabase, static host. |
 | Deliverables | Deployed URL; green CI; docs folder. |
 | Acceptance criteria | Opening production URL shows the app shell; CI runs lint, types, unit, build on each PR; secret scan passes. |
@@ -507,12 +507,12 @@ flowchart TD
 | 9 | Free-tier usage below 60 % of each limit | Organizer |
 | 10 | Release notes and docs updated; version tag created | Both |
 
-## 16. Coding-agent workflow using Claude
+## 16. Coding-assistant workflow
 
-### 16.1 `CLAUDE.md` contents (proposed)
+### 16.1 `AGENTS.md` contents (proposed)
 
 ```markdown
-# Luna Space — instructions for Claude
+# Luna Space — instructions for coding assistants
 - Specs live in docs/01..06. Read the relevant sections before coding; cite requirement IDs in PRs.
 - Stack: React + TS (strict) + Vite + Tailwind; Supabase (Postgres, Auth, Realtime, Storage, Edge Functions).
 - Order of work: migration → RLS → pgTAP tests → types → hooks → UI → e2e.
@@ -529,11 +529,11 @@ flowchart TD
 
 ```mermaid
 flowchart TD
-  I[Pick one GitHub issue] --> C[Start Claude session<br/>paste issue + relevant doc sections]
+  I[Pick one GitHub issue] --> C[Start an assistant session<br/>paste issue + relevant doc sections]
   C --> PL[Ask for a plan first<br/>files, migration, tests]
   PL --> RV{Plan matches specs?}
   RV -- No --> C
-  RV -- Yes --> IM[Claude implements on a branch<br/>tests first for SQL & utilities]
+  RV -- Yes --> IM[Assistant implements on a branch<br/>tests first for SQL & utilities]
   IM --> T[Run tests locally]
   T --> H[Human reviews diff line by line<br/>esp. SQL, RLS, auth, secrets]
   H --> PR[Open PR with checklist]
@@ -542,9 +542,9 @@ flowchart TD
 
 | Do | Don't |
 |---|---|
-| Give Claude one issue at a time with acceptance criteria | Ask for "build the whole calendar" in one session |
+| Give the assistant one issue at a time with acceptance criteria | Ask for "build the whole calendar" in one session |
 | Ask for tests that fail before the fix | Accept code that has not been run |
-| Ask Claude to explain every RLS policy in plain language | Merge security code you do not understand |
+| Ask the assistant to explain every RLS policy in plain language | Merge security code you do not understand |
 | Paste error messages and logs verbatim | Paste real secrets, tokens or personal data |
 | Ask for a review of your own diff against the PR checklist | Let generated migrations drop or rename columns without a data plan |
 
@@ -553,7 +553,7 @@ flowchart TD
 ```text
 Context: Luna Space, see docs/06 §<n> (tables) and docs/01 <FR IDs>.
 Task: <issue title>. Acceptance criteria: <list>.
-Constraints: follow CLAUDE.md; small PR; include pgTAP/Vitest tests.
+Constraints: follow AGENTS.md; small PR; include pgTAP/Vitest tests.
 First: propose a plan (files to add/change, migration name, tests). Wait for approval.
 ```
 
@@ -597,7 +597,7 @@ The backlog below covers **R1 in full**, broken into small tasks. Later releases
 | 7 | CI workflow: lint, typecheck, test, build, gitleaks | S | 4 |
 | 8 | Static host connected; preview deployments | S | 7 |
 | 9 | Playwright smoke test | S | 8 |
-| 10 | CLAUDE.md, PR template, issue templates, docs folder | S | 1 |
+| 10 | AGENTS.md, PR template, issue templates, docs folder | S | 1 |
 
 ### 18.2 Phase 1 — Foundation
 

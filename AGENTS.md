@@ -1,4 +1,4 @@
-# Luna Space — instructions for Claude
+# Luna Space — instructions for coding assistants
 
 Luna Space is a private workspace for exactly two collaborators (hackathons, opportunities,
 projects, calendar, chat, knowledge). The specifications are the source of truth:

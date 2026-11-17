@@ -27,5 +27,5 @@
 
 ## Consequences
 
-Each later phase's first PR installs its own libraries and records them in `CLAUDE.md` if they
+Each later phase's first PR installs its own libraries and records them in `AGENTS.md` if they
 change conventions.

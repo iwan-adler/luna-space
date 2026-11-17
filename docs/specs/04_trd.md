@@ -47,7 +47,7 @@ The browser talks to Supabase only with the member's own JWT; every row it can r
 | Layer | Choice | Justification | Alternatives considered |
 |---|---|---|---|
 | Language | TypeScript (strict) | One language for frontend and Edge Functions; type safety with generated DB types | JavaScript (less safe) |
-| UI framework | React 18+ | Mature ecosystem, required by brief, good Claude support | Svelte, Vue |
+| UI framework | React 18+ | Mature ecosystem, required by brief, good AI coding-assistant support | Svelte, Vue |
 | Build | Vite | Fast dev server, simple config, PWA plugin | Next.js (server features unnecessary on a static host) |
 | Styling | Tailwind CSS + CSS variables for tokens | Consistent design system, dark mode via tokens | CSS modules |
 | Accessible primitives | Radix UI primitives (or equivalent headless library) | Keyboard and screen-reader behaviour for dialogs, menus, tabs | Hand-written (risky) |
