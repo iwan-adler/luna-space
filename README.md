@@ -64,11 +64,31 @@ docs/specs/         the six specifications (Markdown)
 tools/docs-pdf/     PDF builder for the specifications
 ```
 
+## Deployment
+
+The frontend is a static build (`dist/`) hosted on **Cloudflare Pages**; every push to `main`
+deploys production and every pull request gets a preview URL.
+
+| Setting                                        | Value                                         |
+| ---------------------------------------------- | --------------------------------------------- |
+| Production branch                              | `main`                                        |
+| Build command                                  | `npm run build`                               |
+| Build output directory                         | `dist`                                        |
+| Node version                                   | from `.node-version` (22)                     |
+| Environment variables (Production and Preview) | `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY` |
+
+- Response headers (CSP, HSTS, Permissions-Policy, caching) live in `public/_headers`.
+  `vite preview` serves the same headers, and an e2e test fails on any CSP violation.
+- Without the `VITE_SUPABASE_*` variables the site still deploys and shows "Not configured".
+- Database migrations are **not** deployed by the host; they are pushed to Supabase separately
+  (Implementation Plan §13).
+
 ## Contributing
 
-One issue → one branch (`feat/<issue>-<slug>`) → one small pull request, squash-merged after CI
-passes. See the PR checklist in `.github/pull_request_template.md` and `AGENTS.md` for coding
-rules.
+`main` is protected: changes land through a pull request with all four CI checks green
+(squash-merge only, linear history, no force-pushes). One issue → one branch
+(`feat/<issue>-<slug>`) → one small pull request. See the PR checklist in
+`.github/pull_request_template.md` and `AGENTS.md` for coding rules.
 
 ## Phase 0 checklist
 
@@ -79,6 +99,7 @@ rules.
 - [x] Supabase client with safe env handling
 - [x] CI: lint, types, tests, build, bundle secret scan, e2e, database tests, gitleaks
 - [x] AGENTS.md, PR template, issue templates, Dependabot
-- [ ] GitHub remote, branch protection, labels and milestones
-- [ ] Supabase production project linked; migrations pushed
+- [x] GitHub remote, branch protection, labels and milestones
+- [x] Production security headers (`public/_headers`) tested under CSP
 - [ ] Static host (Cloudflare Pages) connected with preview deployments
+- [ ] Supabase production project linked; migrations pushed
