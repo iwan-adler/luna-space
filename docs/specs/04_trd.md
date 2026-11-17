@@ -184,6 +184,8 @@ flowchart LR
 | A user is in ≤ 1 workspace | Unique constraint on `workspace_members.user_id` |
 | Children inherit parent access (comments of a task, items of a checklist) | RLS policies join to parent via helper functions |
 | Privileged operations (invitation accept, export, purge) | Edge Functions using service role after explicit checks |
+| Project guests reach only their room's guest-visible rows | Separate permissive guest policies using `private.guest_role(project_id)`; every other table has no guest policy, so guests get nothing (§24) |
+| Guests never hold a workspace seat | Guest rows live in `project_guest_memberships`; `workspace_members` is untouched by guest flows |
 
 
 **TR-AUTH-01** The anon key is the only key in the frontend; it grants nothing without RLS policies.
@@ -200,6 +202,8 @@ flowchart LR
 |---|---|---|---|---|
 | `invite-create` | App | JWT (member) | Create/revoke invitation, return link once | <span class="tag r1">R1</span> |
 | `invite-accept` | App | JWT (any signed-in user) | Validate token, add seat 2 | <span class="tag r1">R1</span> |
+| `project-invite-create` | App | JWT (member or guest Project Admin of the room) | Create a room invitation, return the fragment link once | <span class="tag r1">R1</span> |
+| `project-invite-accept` | App | JWT (any signed-in user) | Validate a room token, create a guest membership | <span class="tag r1">R1</span> |
 | `extract-opportunity` | App | JWT (member) | Safe fetch + parse + store run & fields | <span class="tag r1">R1</span> |
 | `fetch-link-preview` | App | JWT (member) | Title/description for bookmarks via safe fetch | <span class="tag r1">R1</span> |
 | `dispatch-notifications` | pg_cron (5 min) | Shared secret header | Turn due reminders into notifications + Web Push | <span class="tag r1">R1</span> |
@@ -211,6 +215,8 @@ flowchart LR
 | `discovery-poll` | pg_cron (6 h) | Shared secret | Fetch RSS/Atom feeds chosen by members | <span class="tag r3">R3</span> |
 | `turn-credentials` | App | JWT (member) | Short-lived TURN credentials | <span class="tag r4">R4</span> |
 | `ai-assist` | App | JWT (member) | Proxy to member-configured AI provider | <span class="tag r4">R4</span> |
+| `google-oauth` | App / Google redirect | JWT (member) for start; `state` + PKCE for callback | Connect/disconnect a member's Google account; store refresh token in Vault | <span class="tag r3">R3</span> |
+| `google-meet` | App | JWT (member with Google connected) | Create, update or cancel the Google Calendar event / Meet space behind a meeting | <span class="tag r3">R3</span> |
 
 ### 7.2 Function design rules
 
@@ -319,6 +325,7 @@ sequenceDiagram
 | Notifications badge | Postgres Changes on `notifications` filtered by recipient | `user:<uid>` | |
 | Call signalling (R4) | Broadcast on **private** channel with Realtime authorization | `ws:<id>:call:<call_id>` | SDP offers/answers, ICE candidates |
 | Location sharing (R3) | Postgres Changes on `location_shares` | `ws:<id>:location` | Latest point only |
+| Room for guests (R1) | Postgres Changes on `tasks`, `task_comments`, `checklist_items`, `project_meetings` filtered by `project_id` | `project:<project_id>` | RLS filters every change event, so a guest receives only guest-visible rows and nothing after removal |
 
 **Reconnection:** on reconnect, the client refetches the affected queries (since Realtime does not replay missed events) and then resumes subscriptions.
 
@@ -358,6 +365,7 @@ flowchart LR
 | Quiet hours | Per user (default 23:00–07:00 local); push deferred, in-app unaffected; deadline-day reminders exempt if the user chooses. |
 | Push payload | Minimal: title, short body, deep-link path, notification id. No private content beyond the title for lock-screen privacy (configurable). |
 | Platforms | Windows Chrome/Edge; Android Chrome (PWA installed or not). iOS out of scope. |
+| Guests and meetings | Guests receive in-app and push notifications only for their rooms (assignment, comment mention, role change, removal, meeting scheduled/changed/cancelled, meeting reminders). Meeting push payloads never contain the Meet link. |
 
 
 **TR-NOT-01** Reminder delivery within 5 min of due time (p99) while the backend is up.
@@ -505,6 +513,10 @@ sequenceDiagram
 | TR-SEC-14 | Markdown sanitised (rehype-sanitize; no raw HTML; links `rel="noopener noreferrer"`, `javascript:` blocked) | Client |
 | TR-SEC-15 | Dependency hygiene: Dependabot, `npm audit` in CI, lockfile committed | GitHub |
 | TR-SEC-16 | HTTPS everywhere; HSTS on host | Host |
+| TR-SEC-17 | Guest isolation: deny-by-default for guests; guest policies only on room tables and only for `guest_visible` rows; guard trigger blocks guests from changing `project_id`, `workspace_id`, `owner_id`, `visibility`, un-hiding items or deleting members' items (§24.4) | Postgres |
+| TR-SEC-18 | Room invitation tokens: 32 random bytes, SHA-256 hash only, fragment delivery, expiry ≤ 30 days, optional max uses with row lock, revocable, generic errors, rate limits (§24.3) | `project-invite-*`, Postgres |
+| TR-SEC-19 | Google OAuth: authorization code flow with PKCE and single-use `state` (10 min), minimal scopes, refresh token in Vault, revoke on disconnect, no Google token in any client response (§25) | `google-oauth`, `google-meet` |
+| TR-SEC-20 | Meeting URLs validated as `https://meet.google.com/<code>` without query or fragment; links open with `rel="noopener noreferrer"` | Postgres check + client |
 
 ## 18. Privacy requirements
 
@@ -517,6 +529,8 @@ sequenceDiagram
 | TR-PRIV-05 | Export and departure (PRD PRIV-11, 12) | `export-data`, `leave_workspace` RPC (R3) |
 | TR-PRIV-06 | Lock-screen privacy option for push payloads | Notification preferences |
 | TR-PRIV-07 | Logs exclude message bodies, note content, coordinates and tokens | Logging helper redaction list |
+| TR-PRIV-08 | Guests see members only through `project_directory()` (display name, avatar, role) — never email, time zone or settings | RPC + RLS on `profiles` |
+| TR-PRIV-09 | No Google recordings, transcripts, participant logs or attendee emails are stored or sent by default | Schema + `google-meet` |
 
 ## 19. Performance and scalability
 
@@ -593,8 +607,156 @@ sequenceDiagram
 | GitHub API | Thousands of requests/hour per token | Small | Low | Caching |
 | TURN relay (R4) | Free tiers exist with monthly bandwidth caps; video is bandwidth-heavy | Hours of calls during hackathons | **High** | Audio-first; lower video resolution; self-hosted coturn; external meeting fallback |
 | AI providers (R4) | Free tiers vary and change; local models are free but need hardware | Optional | Medium | AI optional; BYO key or local model |
+| Google Meet (the call) | Free for personal Google accounts, with Google's own limits on meeting length and size for free accounts | Team calls during hackathons | Low | Limits are Google's; Luna Space only stores the link |
+| Google Calendar API / Meet REST API | No charge; per-project and per-user request quotas (far above a few meetings a day) | A few calls per meeting | Low | Optional feature; manual fallback |
+| Google OAuth app in Testing status | Up to 100 test users; refresh tokens expire 7 days after consent | Two members connect | **Medium** | Reconnect prompt, or publish unverified (warning screen); verification may require an owned domain and privacy policy — a custom domain is a cost, so avoid unless needed |
+| Guests | Each guest is an auth user (50k MAU limit) and adds Realtime connections | ≤ 25 per room | Low | Per-room guest cap |
 
-**Features that may incur cost or hit limits:** large file libraries (storage), video calls (TURN bandwidth), email notifications (SMTP caps), AI features (provider pricing), heavy CI usage (Actions minutes), and any future move to Supabase Pro for backups or to avoid pausing.
+**Features that may incur cost or hit limits:** Google OAuth app verification if ever required (an owned domain), large file libraries (storage), video calls (TURN bandwidth), email notifications (SMTP caps), AI features (provider pricing), heavy CI usage (Actions minutes), and any future move to Supabase Pro for backups or to avoid pausing.
+
+## 24. Project guest access architecture
+
+> **Proposed:** Room-scoped guest access added in v1.1 of this package. It does not change the two-member workspace model (§6, Schema §15).
+
+### 24.1 Identity model
+
+| Kind | Authentication | Authorization source | Counts toward workspace limit? |
+|---|---|---|---|
+| Workspace member | Supabase Auth account | `workspace_members` (seat 1/2) → `private.current_workspace_id()` | Yes (max 2) |
+| Project guest | The same Supabase Auth (email + password or magic link, email confirmed); no special guest login and no anonymous sessions | `project_guest_memberships` (active row for that project) → `private.guest_role(project_id)` | **No** |
+| Meeting participant | Member or guest account | `meeting_participants` + the meeting's room access | No |
+
+A guest's JWT is an ordinary authenticated JWT. Nothing in the token says "guest"; the database decides per request from membership rows, so role changes and removal apply immediately without re-issuing tokens.
+
+### 24.2 Room-scoped authorization
+
+```mermaid
+flowchart TD
+  Q[Request on a room table<br/>with user JWT] --> M{workspace_id =<br/>current_workspace_id?}
+  M -- yes --> MEM[Member policies<br/>shared/private rules apply]
+  M -- no --> G{guest_role project_id<br/>is not null?}
+  G -- no --> DENY[No rows / write rejected]
+  G -- yes --> V{Row guest_visible<br/>and not deleted?}
+  V -- no --> DENY
+  V -- yes --> R{Operation allowed<br/>for role + room settings?}
+  R -- no --> DENY
+  R -- yes --> GT[Guard trigger checks columns<br/>then write succeeds]
+```
+
+- `private.guest_role(project_id)` is a `stable security definer` function returning the caller's active role (`viewer` < `collaborator` < `project_admin`) or `null`. It reads `project_guest_memberships` directly, so policies never recurse.
+- Member policies and guest policies are **separate permissive policies**; Postgres ORs them. A guest can never satisfy a member policy because `private.current_workspace_id()` returns their own workspace (or null), never the host workspace.
+- Tables with **no** guest policy (opportunities, calendar_events, messages, vault folders outside rooms, goals, habits, academics, trips, portfolio, contacts, workspace tables, notifications of others…) are automatically closed to guests.
+
+### 24.3 Invitation security
+
+| Control | Specification |
+|---|---|
+| Token | 32 bytes from `crypto.getRandomValues`, base64url; only `sha256(token)` stored (`project_guest_invitations.token_hash`, column not selectable by clients). |
+| Delivery | `https://<app>/join#<token>`. The fragment is never sent to the static host or to Supabase in a URL; the page reads it, stores it in `sessionStorage`, removes it from the address bar (`history.replaceState`) and POSTs it to `project-invite-accept`. |
+| Expiry | Chosen at creation: 1 h, 24 h, 7 d (default), 30 d (maximum, check constraint). |
+| Use limit | Optional `max_uses` 1–25; `use_count` incremented in the same transaction as the membership insert, under `select … for update` on the invitation row, so concurrent accepts cannot exceed it. |
+| Revocation | `revoked_at` set by RPC; checked on every accept. |
+| Role ceiling | A guest Project Admin may create invitations only for Viewer or Collaborator. |
+| Rate limits | Create 20/h per project; accept 10/h per user (failures included); management RPCs 30/h per user. |
+| Errors | Invalid, expired, revoked and used-up tokens return one generic `INVITE_INVALID`; full room returns `ROOM_FULL`. |
+| Audit | Created, accepted, revoked, role changed, removed and left events written to `activity_log` (security category for revocations and removals). |
+
+### 24.4 RLS and guard triggers (summary; DDL in Schema §31)
+
+| Table | Guest SELECT | Guest INSERT / UPDATE | Notes |
+|---|---|---|---|
+| `projects` | Own rooms (not deleted) | Project Admin: update allowed columns only | No delete; cannot change visibility, owner, workspace, opportunity link |
+| `tasks` | `guest_visible` tasks of the room | Collaborator+: create (forced visible, owner = self), update visible tasks; soft-delete own (admin: any guest-created) | Assignee must be a member or active guest of the room |
+| `task_comments` | Comments on visible tasks | Collaborator+ (Viewer if room allows): create; edit own | — |
+| `checklists`, `checklist_items` | Visible project checklists | Collaborator+: tick and add items | — |
+| `notes`, `bookmarks` | `visibility = 'shared'` and `guest_visible` in the room | Collaborator+: create (forced visible), edit visible notes | Version check still applies |
+| `files` + `storage.objects` | Visible room files | Collaborator+ if room allows uploads | Storage read/insert policies already delegate to `files` RLS |
+| `activity_log` | `guest_visible` entries of the room if room allows | Server only | — |
+| `project_guest_memberships`, `project_guest_invitations` | Own membership; Project Admin sees the room's lists (no token hash) | Only via Edge Functions / security-definer RPCs | — |
+| `project_meetings`, `meeting_participants`, `meeting_action_items` (R2) | Visible meetings of the room | Collaborator+ if room allows scheduling (manual links only) | Guests cannot call `google-meet` |
+| `profiles` | Own row only | Own row | Other people via `project_directory()` |
+
+`private.guard_guest_write()` runs `before insert or update` on the guest-writable tables. When the caller is not a member of the row's workspace it rejects changes to `workspace_id`, `project_id`, `owner_id`, `visibility`, setting `guest_visible = false`, setting `deleted_at` on rows the guest did not create (unless Project Admin and the row is guest-created), and any column outside the allowed list for `projects`.
+
+### 24.5 Lifecycle effects
+
+| Event | Effect |
+|---|---|
+| Accept | Membership row; activity; notify room members. |
+| Role change | Applies on the next request; notify guest. |
+| Remove / leave | `removed_at` set; open assignments in the room cleared; future meeting participation removed; pending reminders cancelled; notify guest; access ends immediately. |
+| Guest becomes a workspace member of the same workspace | Guest memberships in that workspace's rooms end automatically (members already have access). |
+| Project deleted (soft) | Guests lose access at once; memberships ended with reason `project_deleted` at purge. |
+| Guest account deleted | Membership rows cascade; authored content keeps `owner_id = null` ("former guest"). |
+
+## 25. Google Meet integration
+
+> **Proposed:** Google is optional. Without it, meetings work with manually pasted Meet links (R2). The API path is R3.
+
+### 25.1 What is and is not possible
+
+- Google Meet cannot be recreated or embedded in Luna Space: Meet pages refuse to load in frames, and Google's Meet add-on SDK embeds apps **into** Meet, not Meet into other apps. Luna Space therefore stores the meeting link and opens it in a new tab or the Meet app.
+- Google offers two supported ways to obtain a Meet link programmatically: a **Google Calendar event with a Meet conference**, or a **Meet "space"** from the Meet REST API.
+
+### 25.2 Integration options
+
+| | Option A — Calendar API (recommended default) | Option B — Meet REST API |
+|---|---|---|
+| Call | `POST calendar/v3/calendars/primary/events?conferenceDataVersion=1` with `conferenceData.createRequest = {requestId: <meeting id>, conferenceSolutionKey: {type: "hangoutsMeet"}}` | `POST meet/v2/spaces` |
+| Link returned | `hangoutLink` / `conferenceData.entryPoints[type=video].uri`; creation can return status `pending` → re-read the event (max 3 times, 2 s apart) | `space.meetingUri` |
+| Schedule on Google | Yes — event at the meeting time in the organizer's Google Calendar; reschedule = `events.patch`, cancel = `events.delete` | No time attached; Luna Space keeps the schedule |
+| Scope (both **sensitive**) | `https://www.googleapis.com/auth/calendar.events` (evaluate narrower Calendar scopes available at build time, e.g. app-created-calendar scopes, only if they support conference creation) | `https://www.googleapis.com/auth/meetings.space.created` |
+| Works with personal Gmail | Yes (well established) | **To verify** before choosing |
+| Stored reference | `google_event_id` | `google_space_name` (e.g. `spaces/abc…`) |
+
+**Decision needed (before Phase 15b):** default to Option A; keep Option B behind the same `google-meet` function interface if it proves simpler or the narrower scope is preferred.
+
+**Attendees:** by default the Google event has **no attendees** — participants' email addresses are not sent to Google and Google sends no invitations. Luna Space notifications plus "Add to my calendar" links distribute the meeting. Adding attendees to the Google event is an **Unresolved** option that would need explicit opt-in per participant.
+
+### 25.3 OAuth flow
+
+```mermaid
+sequenceDiagram
+  autonumber
+  actor M as Member
+  participant UI as App
+  participant GO as google-oauth
+  participant GA as Google OAuth
+  participant V as Vault + google_connections
+  M->>UI: Settings → Integrations → Connect Google
+  UI->>GO: start (JWT)
+  GO->>GO: create state + PKCE verifier, store hashed in oauth_states (10 min)
+  GO-->>UI: Google authorize URL (access_type=offline, prompt=consent, minimal scopes, include_granted_scopes=true)
+  UI->>GA: Top-level redirect, member consents
+  GA->>GO: callback ?code&state
+  GO->>GO: verify and consume state, exchange code + verifier for tokens
+  GO->>V: store refresh token in Vault, row with Google account id, email label, scopes
+  GO-->>UI: redirect to /settings/integrations?google=connected
+  Note over GO,V: Access tokens are never stored, only minted per call from the refresh token
+```
+
+- **Scopes requested:** `openid`, `email` (to show "Connected as …") plus exactly one of the scopes in §25.2, requested when the member first connects.
+- **Disconnect:** `POST https://oauth2.googleapis.com/revoke`, delete the Vault secret and the connection row.
+- **Token failures** (`invalid_grant`, revoked, 7-day testing expiry): mark the connection `reauth_required`, show "Reconnect Google", fall back to manual links.
+
+### 25.4 Creating a link for a meeting
+
+1. Member chooses "Create Google Meet link" in the scheduler (member only; guests never see this option).
+2. App saves the meeting first (so a Google failure never loses the meeting), then calls `google-meet` with the meeting id.
+3. The function checks: caller is a member of the meeting's workspace, has an `active` Google connection, rate limit 30/h; mints an access token; calls Option A or B; validates the returned URL against the Meet URL pattern; stores `meet_url`, `link_source` and the Google reference.
+4. Reschedule/cancel of a Google-created meeting calls `google-meet` again (`events.patch` / `events.delete`). If the organizer later disconnects Google, the link keeps working; Google-side updates stop and the UI says so.
+
+### 25.5 Google Cloud configuration and limits
+
+| Item | Specification |
+|---|---|
+| Project | One free Google Cloud project owned by the shared project account (Implementation Plan §5.1). |
+| APIs | Google Calendar API (Option A) and/or Google Meet REST API (Option B). |
+| Consent screen | External; app name, support email; only the scopes above; both members as test users. |
+| Publishing status | **Testing**: ≤ 100 test users and refresh tokens expire 7 days after consent (reconnect weekly). **In production (unverified)**: users see an "unverified app" warning once; no 7-day expiry. Formal verification of sensitive scopes needs an app home page, privacy policy and an owned, verified domain — avoided while the users are the two members. |
+| Redirect URI | `https://<project-ref>.supabase.co/functions/v1/google-oauth/callback` |
+| Quotas and cost | No charge for these APIs; default quotas far exceed a few requests per meeting. Re-check quotas and terms at implementation time. |
+| CSP | No change: Google APIs are called server-side; OAuth is a top-level navigation; Meet opens in a new tab. |
 
 ## Glossary
 
@@ -610,3 +772,7 @@ sequenceDiagram
 | SFU | Selective Forwarding Unit — a media server for group calls (not used). |
 | CSP | Content Security Policy — browser rules restricting what a page may load. |
 | ADR | Architecture Decision Record. |
+| Permissive policy | An RLS policy that grants access; several permissive policies on a table are combined with OR. |
+| Guard trigger | A `before` trigger that rejects column changes a policy cannot express. |
+| PKCE | Proof Key for Code Exchange — protects the OAuth code exchange from interception. |
+| Refresh token | A long-lived Google credential used server-side to obtain short-lived access tokens. |

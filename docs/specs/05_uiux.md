@@ -132,6 +132,7 @@ Eight hues with light/dark variants: Indigo `#5B4FE0`, Teal `#14A3A3`, Rose `#D9
 | Global actions | Top bar: search field (Ctrl+K), Quick add (+), Notifications, Availability, Avatar menu | Top bar: page title, search icon, bell; Quick add as floating button above bottom bar on list pages |
 | Object tabs | Underlined tabs below page header | Scrollable tab chips |
 | Badges | Unread count on Chat and bell; overdue count on My tasks | Same on bottom bar |
+| Project guests | Guest shell: top bar with room switcher, bell and avatar; the room's tabs as the only navigation; no sidebar modules, no quick add outside the room | Same; the room tab strip replaces the bottom bar |
 
 **Why Calendar is not in the mobile bottom bar:** the top five daily mobile actions (from personas) are check status, capture opportunity, update tasks, chat, and "everything else". Calendar is reachable from Home's deadlines widget and the More sheet. **Unresolved:** validate with users; swap Projects ↔ Calendar if usage shows otherwise.
 
@@ -264,7 +265,7 @@ Eight hues with light/dark variants: Indigo `#5B4FE0`, Teal `#14A3A3`, Rose `#D9
 
 <div class="wf">
  <div class="wf-bar"><span>← Projects</span><b>Moonshot Hack</b><span class="wf-chip">Hackathon</span><span class="wf-chip ok"><span class="wf-n">1</span>Stage: Building ▾</span><span class="wf-grow"></span><span>(A)(B) viewing</span><span class="wf-btn g">Share link</span></div>
- <div class="wf-row" style="padding:0 8px;gap:12px;border-bottom:1px solid #D5D6E2"><b style="color:#3B31B8">Overview</b><span>Board</span><span>Notes</span><span>Files</span><span>Checklist</span><span>Chat</span><span>Activity</span><span class="wf-muted">Ideas · Decisions (R2) · Pitch · Judge Q&amp;A · Retro (R3)</span><span class="wf-n">2</span></div>
+ <div class="wf-row" style="padding:0 8px;gap:12px;border-bottom:1px solid #D5D6E2"><b style="color:#3B31B8">Overview</b><span>Board</span><span>Notes</span><span>Files</span><span>Checklist</span><span>Chat</span><span>Activity</span><span class="wf-muted">People (R1) · Meetings · Ideas · Decisions (R2) · Pitch · Judge Q&amp;A · Retro (R3)</span><span class="wf-n">2</span></div>
  <div class="wf-main"><div class="wf-row">
   <div class="wf-col wf-grow">
    <div class="wf-card"><h6>Summary</h6><div class="wf-line"></div><div class="wf-line m"></div></div>
@@ -278,7 +279,7 @@ Eight hues with light/dark variants: Indigo `#5B4FE0`, Teal `#14A3A3`, Rose `#D9
   </div>
  </div></div>
 </div>
-<ol class="ann"><li>Stage selector (FR-PRJ-02); "completed" prompts retrospective and portfolio (R3).</li><li>Tabs by release; unreleased tabs are not shown (listed here for completeness).</li><li>Progress from tasks and checklist.</li><li>Team roles are free text per member; links include the source opportunity and repositories.</li></ol>
+<ol class="ann"><li>Stage selector (FR-PRJ-02); "completed" prompts retrospective and portfolio (R3).</li><li>Tabs by release (People in R1 for guest management, Meetings in R2); unreleased tabs are not shown (listed here for completeness).</li><li>Progress from tasks and checklist.</li><li>Team roles are free text per member; links include the source opportunity and repositories.</li></ol>
 
 ## 17. Kanban board wireframe
 
@@ -439,6 +440,141 @@ Eight hues with light/dark variants: Indigo `#5B4FE0`, Teal `#14A3A3`, Rose `#D9
 | Haptics | None (PWA limitations); rely on visual feedback. |
 | Notifications | In-app toasts for events in the current context; others only increment the bell. |
 
+## 27. Project people and guest management
+
+<div class="wf">
+ <div class="wf-bar"><span>← Projects</span><b>Moonshot Hack</b><span class="wf-chip">Hackathon</span><span class="wf-grow"></span><span class="wf-chip con">👁 3 guests in this room</span><span class="wf-n">1</span></div>
+ <div class="wf-row" style="padding:0 8px;gap:12px;border-bottom:1px solid #D5D6E2"><span>Overview</span><span>Board</span><span>Notes</span><span>Files</span><span>Checklist</span><span>Meetings</span><b style="color:#3B31B8">People</b><span>Activity</span></div>
+ <div class="wf-main">
+  <div class="wf-row"><b class="wf-grow" style="font-size:9pt">People</b><span class="wf-btn g">Guest settings</span><span class="wf-btn">+ Invite guests</span><span class="wf-n">2</span></div>
+  <div class="wf-card"><h6>Workspace members · 2 <span class="wf-muted">(permanent, full access)</span></h6>
+   <div class="wf-row"><span>(A)</span><b class="wf-grow">A (you)</b><span class="wf-chip">Member</span><span class="wf-muted">Lead, pitch</span></div>
+   <div class="wf-row"><span>(B)</span><b class="wf-grow">B</b><span class="wf-chip">Member</span><span class="wf-muted">Backend</span></div></div>
+  <div class="wf-card"><h6>Room guests · 3 of 10 <span class="wf-n">3</span></h6>
+   <div class="wf-row"><span>(C)</span><b class="wf-grow">Chitra</b><span class="wf-chip inf">Guest</span><span class="wf-input" style="width:110px;color:#1B1D2E">Project Admin ▾</span><span class="wf-muted">joined 12 Nov</span><span class="wf-btn g">Remove</span></div>
+   <div class="wf-row"><span>(D)</span><b class="wf-grow">Dev</b><span class="wf-chip inf">Guest</span><span class="wf-input" style="width:110px;color:#1B1D2E">Collaborator ▾</span><span class="wf-muted">joined 13 Nov</span><span class="wf-btn g">Remove</span></div>
+   <div class="wf-row"><span>(E)</span><b class="wf-grow">Esha</b><span class="wf-chip inf">Guest</span><span class="wf-input" style="width:110px;color:#1B1D2E">Viewer ▾</span><span class="wf-muted">joined today</span><span class="wf-btn g">Remove</span></div></div>
+  <div class="wf-card"><h6>Invitations <span class="wf-n">4</span></h6>
+   <div class="wf-row"><b class="wf-grow">Team Orbit link</b><span class="wf-chip">Collaborator</span><span class="wf-muted">expires 24 Nov · used 2 / 3</span><span class="wf-chip ok">Active</span><span class="wf-btn g">Revoke</span></div>
+   <div class="wf-row wf-muted"><span class="wf-grow">Mentor preview</span><span class="wf-chip">Viewer</span><span>expired 15 Nov · used 0 / 1</span><span class="wf-chip miss">Expired</span></div>
+   <div class="wf-row wf-muted"><span class="wf-grow">Old link</span><span class="wf-chip">Collaborator</span><span>revoked by A</span><span class="wf-chip bad">Revoked</span></div></div>
+ </div>
+</div>
+<ol class="ann"><li>Guest-presence banner on every room tab while guests are present (FR-GUEST-14).</li><li>Invite and settings actions: workspace members and guest Project Admins only; Viewers and Collaborators see a read-only People list.</li><li>Guests are always labelled "Guest" with their role; the role selector offers Project Admin only to workspace members. Removing asks for confirmation naming the person and stating that their open assignments in this room will be cleared.</li><li>Invitations show label, role, expiry, use count and status. The link itself is never shown again after creation; a lost link is replaced by creating a new one.</li></ol>
+
+**Guest settings sheet:** toggles — Collaborators can upload files · Collaborators can create tasks · Collaborators can schedule meetings (R2) · Viewers can comment · Guests can see room activity; number field — Maximum guests (1–25). Each toggle has a one-line explanation; changes are logged.
+
+**Mobile:** sections become stacked cards; role selector opens a bottom sheet with role descriptions; Remove and Revoke move into each row's ⋯ menu.
+
+## 28. Guest invitation dialog and acceptance
+
+<div class="two">
+<div class="wf"><div class="wf-bar"><b>Invite guests to Moonshot Hack</b></div><div class="wf-main">
+ <div><b>Role</b> <span class="wf-n">1</span></div>
+ <div class="wf-card">◉ <b>Collaborator</b> — create and edit tasks, notes, comments and files that guests can see</div>
+ <div class="wf-card">○ <b>Viewer</b> — read-only access to what's shared with guests</div>
+ <div class="wf-card wf-muted">○ <b>Project Admin</b> — also manage guests and room settings (members only)</div>
+ <div class="wf-row"><span style="width:70px">Expires</span><span class="wf-input" style="color:#1B1D2E">In 7 days ▾</span><span style="width:60px">Max uses</span><span class="wf-input" style="color:#1B1D2E">3</span></div>
+ <div class="wf-row"><span style="width:70px">Label</span><span class="wf-input wf-grow" style="color:#1B1D2E">Team Orbit link</span></div>
+ <div class="wf-muted">Guests only see this room — never your dashboard, calendar, chat, opportunities or other projects. <span class="wf-n">2</span></div>
+ <div class="wf-row"><span class="wf-grow"></span><span class="wf-btn g">Cancel</span><span class="wf-btn">Create link</span></div>
+</div></div>
+<div class="wf"><div class="wf-bar"><b>Link created</b></div><div class="wf-main">
+ <div class="wf-card" style="background:#FFFAEE">Copy this link now — for security it won't be shown again. <span class="wf-n">3</span></div>
+ <div class="wf-row"><span class="wf-input wf-grow" style="color:#1B1D2E">luna-space.pages.dev/join#Xq3…9fA</span><span class="wf-btn">Copy</span></div>
+ <div class="wf-row"><span class="wf-btn g">Share…</span><span class="wf-muted">Collaborator · expires 24 Nov · up to 3 people</span></div>
+ <div class="wf-row"><span class="wf-grow"></span><span class="wf-btn g">Done</span></div>
+</div></div>
+</div>
+<ol class="ann"><li>Role cards with plain-language descriptions; Project Admin disabled (with explanation) when the inviter is a guest.</li><li>Scope reminder under the form (PRD PRIV-15/16).</li><li>One-time display; "Share…" uses the Android share sheet / Web Share API when available.</li></ol>
+
+<div class="two">
+<div><div class="wf-phone">
+ <div class="wf-bar"><b>🌙 Luna Space</b></div>
+ <div style="padding:8px;display:flex;flex-direction:column;gap:6px;min-height:230px">
+  <b style="font-size:9pt">You're invited</b>
+  <div>A invited you to join the project room <b>Moonshot Hack</b> as a <span class="wf-chip">Collaborator</span>. <span class="wf-n">1</span></div>
+  <div class="wf-muted">You'll only see this room. You won't become a member of A's workspace.</div>
+  <span class="wf-btn" style="text-align:center">Accept and join</span>
+  <span class="wf-btn g" style="text-align:center">Create an account first</span>
+  <span class="wf-muted" style="text-align:center">Not you? Sign out</span>
+ </div>
+</div></div>
+<div><ol class="ann"><li>Acceptance screen (Flow §21.2) shows inviter's display name, room name and role before anything changes. Signed-out visitors see "Sign in" and "Create account"; after confirming their email they return here automatically.</li></ol>
+<table><thead><tr><th>State</th><th>Message</th></tr></thead><tbody>
+<tr><td>Invalid / expired / revoked / used up</td><td>"This invitation is no longer valid. Ask the person who invited you for a new link."</td></tr>
+<tr><td>Room full</td><td>"This room is full. Ask a project admin to make space."</td></tr>
+<tr><td>Already a member of the workspace</td><td>"You're already a member of this workspace" + Open room</td></tr>
+<tr><td>Already a guest</td><td>Opens the room directly</td></tr>
+</tbody></table></div>
+</div>
+
+## 29. Guest experience and indicators
+
+<div class="two">
+<div class="wf"><div class="wf-bar"><b>Moonshot Hack ▾</b><span class="wf-chip inf">Guest · Collaborator</span><span class="wf-grow"></span><span>🔔</span><span>(D)</span><span class="wf-n">1</span></div>
+ <div class="wf-row" style="padding:0 8px;gap:10px;border-bottom:1px solid #D5D6E2"><b style="color:#3B31B8">Board</b><span>Overview</span><span>Notes</span><span>Files</span><span>Checklist</span><span>Meetings</span><span>People</span></div>
+ <div class="wf-main"><div class="wf-row" style="align-items:stretch">
+  <div class="wf-kcol"><b>To do</b><div class="wf-card">Pitch deck v1<br/><span class="wf-muted">(A) · Thu</span></div><div class="wf-card">Scrape dataset<br/><span class="wf-muted">(D) you · Fri</span></div></div>
+  <div class="wf-kcol"><b>In progress</b><div class="wf-card">Auth flow<br/><span class="wf-muted">(B)</span></div></div>
+  <div class="wf-kcol"><b>Done</b><div class="wf-card wf-muted">Repo setup ✓</div></div>
+ </div><div class="wf-muted">Only items shared with guests are shown. <span class="wf-n">2</span></div></div>
+</div>
+<div class="wf"><div class="wf-bar"><b>Notes</b><span class="wf-grow"></span><span class="wf-btn g">+ Note</span></div><div class="wf-main">
+ <div class="wf-row wf-card"><b class="wf-grow">Judging criteria</b><span class="wf-chip inf">👁 Visible to guests</span><span class="wf-n">3</span></div>
+ <div class="wf-row wf-card"><b class="wf-grow">Our research (members)</b><span class="wf-chip miss">Members only</span><span class="wf-btn g">Share with guests</span></div>
+ <div class="wf-row wf-card wf-muted"><b class="wf-grow">My private idea 🔒</b><span>Private — can't be shared with guests</span></div>
+ <div class="wf-muted">Member's view of the same room</div>
+</div></div>
+</div>
+<ol class="ann"><li>Guest shell: room switcher (only their rooms), a persistent "Guest · role" chip, bell and avatar menu (profile, leave room, sign out). No sidebar, dashboard, calendar, chat or vault.</li><li>Guests never see hints of hidden content (no counts of hidden items).</li><li>Members see an eye chip on guest-visible items and a one-click "Share with guests" / "Hide from guests"; private items explain why they can't be shared. Making an item visible shows a confirmation the first time.</li></ol>
+
+| Indicator | Where | Rule |
+|---|---|---|
+| "Guest" chip + role | Names in People, assignee pickers, comments, activity | Always shown next to guests' names |
+| 👁 Visible to guests | Task cards, notes, files, bookmarks, meetings (members' view) | Shown only when guests are present in the room |
+| Guest-presence banner | Top of every room tab (members' view) | "3 guests can see items marked 👁" with link to People |
+| Guest home | `/guest` | Room cards with role, next deadline and unread count; "Leave room" in each card's menu |
+
+## 30. Meetings: list, scheduler and meeting page <span class="tag r2">R2</span>
+
+<div class="wf">
+ <div class="wf-bar"><b>Meetings</b><span class="wf-chip ok">Upcoming</span><span class="wf-chip">Previous</span><span class="wf-grow"></span><span class="wf-btn">+ Schedule meeting</span></div>
+ <div class="wf-main">
+  <div class="wf-card" style="border-color:#5B4FE0"><div class="wf-row"><b class="wf-grow">Daily stand-up</b><span class="wf-chip bad">Starts in 8 min</span><span class="wf-btn">Join meeting ↗</span><span class="wf-n">1</span></div><div class="wf-muted">Today 18:00–18:15 IST · 5 participants · Google Meet · 👁 guests</div></div>
+  <div class="wf-card"><div class="wf-row"><b class="wf-grow">Judge Q&amp;A rehearsal</b><span class="wf-chip">Fri 20 Nov</span><span class="wf-btn g">Join meeting ↗</span></div><div class="wf-muted">19:30–20:30 IST · 3 going · 1 maybe · link added manually</div></div>
+  <div class="wf-card"><div class="wf-row"><b class="wf-grow">Mentor check-in</b><span class="wf-chip">Sat 21 Nov</span><span class="wf-chip con">No link yet</span><span class="wf-btn g">Add link</span></div></div>
+ </div>
+</div>
+<ol class="ann"><li>The Join button opens Google Meet in a new tab (Meet app on Android); it becomes primary and pulses gently (reduced-motion: static) from 10 minutes before start.</li></ol>
+
+<div class="two">
+<div class="wf"><div class="wf-bar"><b>Schedule meeting</b></div><div class="wf-main">
+ <div class="wf-row"><span style="width:60px">Title</span><span class="wf-input wf-grow" style="color:#1B1D2E">Daily stand-up</span></div>
+ <div class="wf-row"><span style="width:60px">When</span><span class="wf-input" style="color:#1B1D2E">Tue 17 Nov</span><span class="wf-input" style="color:#1B1D2E">18:00–18:15</span><span class="wf-input" style="color:#1B1D2E">Asia/Kolkata ▾</span></div>
+ <div class="wf-row"><span style="width:60px">People</span><span class="wf-chip">A</span><span class="wf-chip">B</span><span class="wf-chip inf">Chitra · guest</span><span class="wf-chip inf">Dev · guest</span><span class="wf-muted">+ add</span></div>
+ <div><b>Meeting link</b> <span class="wf-n">2</span></div>
+ <div class="wf-card">◉ Create Google Meet link <span class="wf-muted">(connected as a…@gmail.com)</span></div>
+ <div class="wf-card">○ Paste an existing Meet link<div class="wf-input" style="margin-top:3px;color:#8A8DA6">https://meet.google.com/abc-defg-hij</div></div>
+ <div class="wf-card">○ Add a link later</div>
+ <div class="wf-row"><span>Agenda</span><span class="wf-input wf-grow">Markdown…</span></div>
+ <div class="wf-row"><span>☑ Visible to guests</span><span>🔔 1 day, 15 min</span><span class="wf-grow"></span><span class="wf-btn">Schedule</span></div>
+</div></div>
+<div class="wf"><div class="wf-bar"><b>Daily stand-up</b><span class="wf-grow"></span><span class="wf-btn">Join meeting ↗</span><span class="wf-n">3</span></div><div class="wf-main">
+ <div class="wf-muted">Tue 17 Nov, 18:00–18:15 IST (14:30 your time) · organizer A · <span class="wf-btn g">Add to my calendar ▾</span></div>
+ <div class="wf-row"><span class="wf-chip ok">A going</span><span class="wf-chip ok">B going</span><span class="wf-chip">Dev maybe</span><span class="wf-grow"></span><span class="wf-input" style="color:#1B1D2E">My response: Going ▾</span></div>
+ <div class="wf-card"><h6>Agenda</h6><div class="wf-line m"></div></div>
+ <div class="wf-card"><h6>Notes <span class="wf-muted">(meeting note in Vault)</span></h6><div class="wf-line"></div><div class="wf-line s"></div></div>
+ <div class="wf-card"><h6>Decisions</h6>Use Supabase Realtime for the board — <span class="wf-muted">logged</span></div>
+ <div class="wf-card"><h6>Action items <span class="wf-n">4</span></h6><div class="wf-row"><span class="wf-grow">Record 90-s demo · Dev · Thu</span><span class="wf-btn g">Convert to task</span></div><div class="wf-row wf-muted"><span class="wf-grow">Fix login redirect · A</span><span class="wf-chip ok">→ Task</span></div></div>
+</div></div>
+</div>
+<ol class="ann" start="2"><li>Link options: "Create Google Meet link" appears only for workspace members who have connected Google (R3); otherwise it reads "Connect Google in Settings to create links automatically" and the paste option is selected. Pasted links are validated as you type. Guests see only the paste and later options.</li><li>Meeting page: Join, time in the organizer's zone and the viewer's zone, responses, agenda, notes, decisions and action items. "Add to my calendar" offers Google Calendar (template link) and .ics.</li><li>Converting an action item creates a guest-visible task in the room and replaces the button with a link to the task.</li></ol>
+
+**Settings → Integrations → Google (R3):** card with status (Not connected · Connected as … · Reconnect needed), the exact permissions requested in plain language ("Create Google Calendar events with Meet links on your calendar"), Connect / Disconnect buttons, and a note that guests never use your Google account.
+
+**States:** no meetings — "Plan your next team call" + Schedule; Google failed — banner "Couldn't create the Google Meet link. Your meeting is saved — try again or paste a link"; cancelled meetings shown struck through in Previous with "Cancelled".
+
 ## Glossary
 
 | Term | Meaning |
@@ -449,3 +585,6 @@ Eight hues with light/dark variants: Indigo `#5B4FE0`, Teal `#14A3A3`, Rose `#D9
 | Optimistic update | Showing a change immediately, before the server confirms it. |
 | WCAG | Web Content Accessibility Guidelines. |
 | Provenance chip | Small label showing whether a value was confirmed, inferred, missing, conflicting or manual. |
+| Guest shell | Reduced app frame for project guests: room switcher plus that room's tabs. |
+| Guest-presence banner | Members' reminder that guests can see items marked with the eye icon. |
+| Join button | Opens the meeting's Google Meet link outside Luna Space. |

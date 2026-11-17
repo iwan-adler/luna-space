@@ -31,7 +31,8 @@ flowchart TD
     P1 --> P2[P2 Opportunities core]
     P2 --> P3[P3 URL extraction]
     P1 --> P4[P4 Projects & tasks]
-    P4 --> A((R1-alpha))
+    P4 --> P4b[P4b Project guest access]
+    P4b --> A((R1-alpha))
     P3 --> A
     A --> P5[P5 Calendar, reminders, notifications]
     P5 --> P6[P6 Chat]
@@ -39,7 +40,8 @@ flowchart TD
     P7 --> P8[P8 Hardening & release]
   end
   subgraph R2[Release 2]
-    P9[P9 Academics & calendar+] --> P10[P10 Productivity]
+    P8b[P8b Project meetings - manual Meet links] --> P9[P9 Academics & calendar+]
+    P9 --> P10[P10 Productivity]
     P11[P11 Opportunity intelligence]
     P12[P12 Collaboration+ & offline]
   end
@@ -52,8 +54,10 @@ flowchart TD
     P16[P16 Calls & screen sharing]
     P17[P17 Optional AI]
   end
-  P8 --> P9 & P11 & P12
+  P8 --> P8b
+  P8 --> P11 & P12
   P10 & P11 & P12 --> P13 & P14 & P15
+  P15 --> P15b[P15b Google Meet API integration]
   P15 --> P16 --> P17
 ```
 
@@ -135,6 +139,8 @@ gitGraph
 | `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT` | Edge Function secrets | **Yes** |
 | `INVITE_BASE_URL` | Edge Function secrets | No |
 | `GITHUB_CLIENT_ID` / `GITHUB_CLIENT_SECRET` (R3) | Edge Function secrets | **Yes** (secret) |
+| `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` (R3, optional) | Edge Function secrets | **Yes** (secret) |
+| `GOOGLE_OAUTH_REDIRECT_URI`, `APP_BASE_URL` | Edge Function secrets | No |
 | `SUPABASE_DB_PASSWORD`, `BACKUP_AGE_PUBLIC_KEY` | GitHub Actions secrets (backup job) | **Yes** |
 
 > **Security:** Only variables prefixed `VITE_` reach the browser. A CI step greps the built `dist/` folder for `service_role` and known secret patterns and fails the build if found.
@@ -165,6 +171,19 @@ gitGraph
 | 5.9 | Schedule cron jobs via migration (reminders every 5 min, maintenance nightly, re-checks daily in R2). | `cron.job_run_details` shows successes. |
 | 5.10 | Turn on Realtime for the tables listed in TRD §9 (publication `supabase_realtime`). | Board updates appear in a second browser. |
 
+### 5.1 Google Cloud setup (Phase 15b, optional)
+
+Only needed for automatic Google Meet links. Manual Meet links (Phase 8b) need none of this.
+
+| Step | Action | Verification |
+|---|---|---|
+| G1 | Create a Google Cloud project (free) under the shared project account (PRD PRIV-14). No billing account is needed for the Calendar or Meet REST APIs (verify on the console at setup time). | Project visible to both members |
+| G2 | Enable **Google Calendar API** (recommended path) and, if the Meet REST path is chosen, **Google Meet REST API** (TRD §25.2). | APIs listed as enabled |
+| G3 | Configure the **OAuth consent screen**: user type External; app name "Luna Space"; support email; scopes from TRD §25.3; add both members as **test users**. | Consent screen shows only the requested scopes |
+| G4 | Create an **OAuth client ID** (type Web application) with redirect URI `https://<project-ref>.supabase.co/functions/v1/google-oauth/callback`. | Client ID and secret issued |
+| G5 | Store `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `GOOGLE_OAUTH_REDIRECT_URI`, `APP_BASE_URL` with `supabase secrets set`. | `supabase secrets list` shows the names |
+| G6 | Decide the publishing status (TRD §25.5): stay in **Testing** (refresh tokens expire after 7 days → reconnect weekly) or **publish unverified** (one-time "unverified app" warning; no 7-day expiry). | Decision recorded in an ADR |
+
 ## 6. Folder structure
 
 ```text
@@ -182,7 +201,7 @@ luna-space/
 │  │  └─ patterns/            # EmptyState, ErrorState, VisibilityToggle, DateField, FieldStatusBadge, FileDrop…
 │  ├─ features/
 │  │  ├─ auth/  workspace/  dashboard/  opportunities/  projects/  tasks/
-│  │  ├─ calendar/  academics/  growth/  chat/  vault/  automation/
+│  │  ├─ guests/  meetings/  calendar/  academics/  growth/  chat/  vault/  automation/
 │  │  ├─ trips/  portfolio/  contacts/  notifications/  search/  settings/  trash/
 │  │  └─ <feature>/ { api.ts · hooks.ts · schemas.ts · types.ts · components/ · pages/ · __tests__/ }
 │  ├─ lib/                    # supabase.ts (client), dates.ts, tz.ts, markdown.ts, files.ts, offline/ (R2)
@@ -196,7 +215,8 @@ luna-space/
 │  │  ├─ _shared/             # cors.ts, auth.ts, validate.ts, ratelimit.ts, safe-fetch.ts, push.ts
 │  │  ├─ invite-create/  invite-accept/  extract-opportunity/  fetch-link-preview/  dispatch-notifications/
 │  │  ├─ export-data/  maintenance/  recheck-opportunities/ (R2)  weekly-summary/ (R2)
-│  │  └─ github-oauth/  github-sync/  discovery-poll/ (R3)  turn-credentials/  ai-assist/ (R4)
+│  │  ├─ project-invite-create/  project-invite-accept/ (R1)
+│  │  └─ github-oauth/  github-sync/  discovery-poll/  google-oauth/  google-meet/ (R3)  turn-credentials/  ai-assist/ (R4)
 │  ├─ tests/                  # pgTAP: rls_*.test.sql, constraints_*.test.sql
 │  └─ seed.sql                # two test users, one workspace, sample data (local only)
 ├─ tests/e2e/                 # Playwright specs with two browser contexts (member A and B)
@@ -267,9 +287,21 @@ Each phase below follows the same structure. "AC" lines refer to PRD acceptance 
 | Features | FR-PRJ-01–10, FR-OPP-15, FR-AUTO-08; file storage foundation (used by chat and vault later). |
 | Technical tasks | M: migrations `projects`, `project_members`, `tasks`, `task_comments`, `files`, `checklists`, `checklist_items`, `templates` (+ seed built-in templates) · M: storage bucket policies + upload helper (type/size validation, path convention) · M: project list + room layout with tabs · L→split: board (columns, drag-and-drop with dnd-kit, keyboard moves, fractional ordering, optimistic updates, Realtime subscription) · M: task drawer (subtasks, comments, attachments, assignee, priority, due) · S: My tasks page · M: checklist from template + save as template · S: convert opportunity → project · S: project activity tab. |
 | Dependencies | P1 (P2 for conversion). |
-| Deliverables | **R1-alpha** milestone: platform + opportunities + extraction + projects. |
+| Deliverables | Project rooms usable by the two members; file storage foundation. (R1-alpha follows Phase 4b so hackathon teammates can join.) |
 | Acceptance criteria | AC-16, AC-17, AC-20 (upload limits). |
 | Testing | Unit: ordering algorithm. pgTAP: task visibility via project, file ownership. E2E: two contexts see a card move. |
+
+### 7.5b Phase 4b — Project guest access <span class="tag r1">R1</span>
+
+| Item | Detail |
+|---|---|
+| Objective | Hackathon teammates join one Project Room as guests through a secure, room-scoped link, without ever becoming workspace members. |
+| Features | FR-GUEST-01–15; NFR-SEC-14–17. |
+| Technical tasks | S: enum `guest_role` · M: migrations `project_guest_invitations`, `project_guest_memberships`, `project_guest_settings` (Schema §31) · S: `guest_visible` columns on tasks, checklists, notes, bookmarks, files, activity_log + check "private items never guest-visible" · S: assignee validation trigger (member or active guest of the task's project) replacing the member-only FK · M: helper `private.guest_role(project_id)` + guard trigger `private.guard_guest_write()` · L→split: guest RLS policies per table (projects, tasks, task_comments, checklists, checklist_items, notes, bookmarks, files, activity_log, storage objects) · M: `project_directory(project_id)` RPC (names/avatars/roles only) · M: Edge Functions `project-invite-create` and `project-invite-accept` (hashing, fragment links, rate limits, row lock, guest cap) · S: RPCs `revoke_project_invitation`, `set_guest_role`, `remove_project_guest`, `leave_project` · M: People tab, invite dialog, role selector, guest settings · M: `/join` acceptance page with sign-up resume · M: guest home `/guest` and guest shell · S: "Visible to guests" toggles, eye icons, guest banner · S: guest activity entries and notification triggers (in-app now; push when P5 lands). |
+| Dependencies | P1 (auth, workspace helpers), P4 (projects, tasks, files, checklists). Notes/bookmarks policies are added in P7 when those tables exist; meetings policies in P8b. |
+| Deliverables | **R1-alpha** milestone: platform + opportunities + extraction + projects + room guests. |
+| Acceptance criteria | AC-26 – AC-35; AC-04 still passes (two-member limit untouched). |
+| Testing | pgTAP **guest matrix**: for every table, roles {member A, member B, guest viewer, guest collaborator, guest admin, removed guest, guest of another room, outsider, anon} × {select, insert, update, soft-delete}; invitation function tests (expired, revoked, used up, cap reached, member-as-guest, concurrent accepts); E2E with three browser contexts (A, B, guest G) covering invite → accept → task assignment → removal. |
 
 ### 7.6 Phase 5 — Calendar, reminders and notifications <span class="tag r1">R1</span>
 
@@ -323,6 +355,7 @@ Each phase below follows the same structure. "AC" lines refer to PRD acceptance 
 
 | Phase | Objective | Key features | Main tables / functions | Acceptance focus |
 |---|---|---|---|---|
+| **P8b Project meetings (first R2 phase)** | Plan and document team calls; join through Google Meet | FR-MEET-01–10 | `project_meetings`, `meeting_participants`, `meeting_action_items`; `notes.meeting_id`, `reminders.meeting_id`, `decisions.meeting_id`; `calendar_feed` meeting rows; guest policies for meetings | AC-36 – AC-39; link validation; reminders deduplicated; guests see only guest-visible meetings |
 | **P9 Academics & calendar+** | Study life on the same calendar | FR-ACAD-01–05, FR-CAL-06–07, FR-AUTO-04 | `subjects`, `timetable_slots`, `assessments`; recurrence (`rrule`) on events; conflict query | Timetable shows on calendar for owner only; exam/deadline clash warning |
 | **P10 Productivity** | Personal growth tools | FR-PROD-01–06, 08; FR-DASH-07 | `goals`, `habits`, `habit_logs`, `focus_sessions`, `skills`, `skill_stage_history`, `courses`, `learning_logs`, `weekly_reviews` | Pomodoro timer survives tab switch; streaks correct across time zones |
 | **P11 Opportunity intelligence** | Decide better, stay current | FR-OPP-16–20, FR-AUTO-06 | `member_eligibility`, `opportunities.eligibility_criteria` (jsonb), `opportunity_participants`, `opportunity_pending_changes`; `recheck-opportunities` | Change never applied without review; eligibility unknown when data missing |
@@ -335,6 +368,7 @@ Each phase below follows the same structure. "AC" lines refer to PRD acceptance 
 | **P13 Travel, location, expenses** | Safe trips to offline events | FR-TRIP-01–07, FR-PROD-07 | `trips`, `trip_items`, `trip_emergency_contacts`, `location_shares`, `expenses`; Leaflet map | AC-23; balances correct to the paisa |
 | **P14 Portfolio, contacts, project prep** | Record achievements and relationships honestly | FR-PORT-01–07, FR-CONT-01–04, FR-PRJ-16–18 | `portfolio_items`, `portfolio_bullets`, `contacts`, `judge_questions`, `retrospectives`, `project_skills` | AC-24; only owner edits portfolio |
 | **P15 Integrations & data ownership** | Connect GitHub, voice, discovery; leave cleanly | FR-PRJ-19, FR-CHAT-11, FR-OPP-21–22, FR-PLAT-14, 17–18 | `github_connections`, `project_repositories`, `discovery_feeds`, `discovery_items`; `github-sync`, ZIP export, leave-workspace RPC | AC-25; tokens never reach the browser |
+| **P15b Google Meet API integration** | Create Meet links automatically from a member's Google account | FR-MEET-11–13, NFR-SEC-18 | `google_connections`, `oauth_states` (shared with GitHub OAuth); `google-oauth`, `google-meet` functions; Google Cloud setup §5.1 | AC-40; works with Google disabled; token never reaches the browser; mocked Google endpoints in CI |
 
 ### 7.12 Release 4 phases <span class="tag r4">R4</span>
 
@@ -356,6 +390,7 @@ Within each phase, implement in this order to keep every pull request testable:
 | 3 | Opportunities (manual) | Core value; simplest domain to establish patterns |
 | 4 | Extraction | Highest product risk — validate early |
 | 5 | Files + projects + tasks + checklists | Files are reused by chat and vault |
+| 5b | Project guest access | Needs projects, tasks and files; must exist before teammates use R1-alpha |
 | 6 | Calendar feed, reminders, notifications, push | Needs dated records from 3 and 5 |
 | 7 | Chat | Needs files and notifications |
 | 8 | Vault + search | Needs content from all previous modules |
@@ -372,6 +407,8 @@ flowchart TD
   OPP --> CONV[Convert to project]
   FILES --> PRJ[Projects & tasks]
   PRJ --> CONV
+  PRJ --> GUEST[Project guests]
+  FILES --> GUEST
   OPP --> FEED[Calendar feed]
   PRJ --> FEED
   FEED --> REM[Reminders]
@@ -393,6 +430,10 @@ flowchart TD
   R1 --> CMD[Quick commands]
   R1 --> TRIP[Trips R3] --> LOC[Location sharing R3]
   CHAT --> CALLS[Calls R4]
+  GUEST --> MEET[Project meetings R2]
+  REM --> MEET
+  VAULT --> MEET
+  MEET --> GMEET[Google Meet API R3]
 ```
 
 ## 10. Milestones and deliverables
@@ -402,12 +443,12 @@ flowchart TD
 | M0 Walking skeleton | P0 | Deployed app, CI green | `v0.0.1` |
 | M1 Foundation | P1 | AC-01 – AC-06 pass | `v0.1.0` |
 | M2 Opportunities | P2 + P3 | AC-08 – AC-15 pass; extraction success measured on 20 real URLs | `v0.2.0` |
-| M3 R1-alpha | P4 | Used for one real hackathon; feedback issues logged | `v0.3.0-alpha` |
+| M3 R1-alpha | P4 + P4b | Used for one real hackathon with teammates as room guests; feedback issues logged | `v0.3.0-alpha` |
 | M4 Time & talk | P5 + P6 | Reminders and chat used daily for 2 weeks without critical bugs | `v0.5.0` |
 | M5 Knowledge | P7 | Search finds content across modules | `v0.7.0` |
 | M6 **Release 1** | P8 | Release checklist complete | `v1.0.0` |
-| M7 **Release 2** | P9 – P12 | R2 ACs pass; offline sync verified | `v2.0.0` |
-| M8 **Release 3** | P13 – P15 | AC-23 – AC-25 pass | `v3.0.0` |
+| M7 **Release 2** | P8b, P9 – P12 | R2 ACs pass; meetings used for a real team call; offline sync verified | `v2.0.0` |
+| M8 **Release 3** | P13 – P15, P15b | AC-23 – AC-25 and AC-40 pass | `v3.0.0` |
 | M9 **Release 4** | P16 – P17 | Calls on 3 network types; AI off by default verified | `v4.0.0` |
 
 ## 11. Testing strategy
@@ -433,6 +474,8 @@ flowchart TD
 5. Chat: send, reply, react, edit, delete, attach file; B sees each change.
 6. Create private note as A → B cannot find it via search or direct URL.
 7. Delete task → restore from recycle bin → export JSON contains it.
+8. A invites guest G (Collaborator, max uses 1) → G signs up from the link and accepts → G creates and moves a task → B sees it live → A marks a note visible to guests → G reads it → A removes G → G's next request returns nothing from the room.
+9. (R2) G schedules a meeting with a pasted Meet link → A and B are notified → reminder fires → action item converted to a task.
 
 ### 11.3 Test data
 
@@ -446,6 +489,13 @@ flowchart TD
 | RLS behaviour | For each table: owner/partner/outsider/anon × select/insert/update/delete matrix | pgTAP generated from a table list | R1 |
 | Two-member limit | Insert third member directly; race two simultaneous accepts | pgTAP + concurrent script | R1 |
 | Invitations | Reuse, expiry, revoked, brute force (rate limit) | Deno tests | R1 |
+| Guest isolation | Guest matrix (Phase 4b) on every table; guests read zero rows from opportunities, calendar_events, messages, loose tasks, other projects, private notes, profiles | pgTAP | R1 |
+| Two-member limit with guests | Many guests accepted; `workspace_members` unchanged; third member insert still fails | pgTAP | R1 |
+| Room invitations | Expired, revoked, used-up, max-uses race (two concurrent accepts for the last use), guest cap, member-as-guest, token never stored in plain text, generic error messages, rate limits | Deno tests + pgTAP | R1 |
+| Guest privilege escalation | Guest tries to grant Project Admin, change project visibility/owner/workspace, un-hide items, soft-delete members' items, read token hashes | pgTAP | R1 |
+| Removal | Removed guest loses access on next request; Realtime stops delivering | pgTAP + E2E | R1 |
+| Meeting links | Only `https://meet.google.com/<code>` without parameters accepted; hidden meetings invisible to guests | pgTAP + unit | R2 |
+| Google tokens | Refresh token never returned; disconnect revokes and deletes; guests cannot call `google-meet`; OAuth `state` + PKCE validated | Function tests with mocked Google | R3 |
 | SSRF | URLs to `localhost`, `127.0.0.1`, `[::1]`, `10.x`, `172.16.x`, `192.168.x`, `169.254.169.254`, `0.0.0.0`, decimal/octal IP forms, IPv6-mapped IPv4, redirects to private IPs, DNS names resolving to private IPs, non-80/443 ports, `file:`/`ftp:` schemes | Deno tests against safe-fetch | R1 |
 | Uploads | Oversized, wrong MIME, double extensions, SVG with script, path traversal in file names | Component + function tests | R1 |
 | XSS | Markdown with `<script>`, `javascript:` links, event handlers; message bodies | Unit tests on sanitiser; CSP header check | R1 |
@@ -561,11 +611,11 @@ First: propose a plan (files to add/change, migration name, tests). Wait for app
 
 ### 17.1 Labels
 
-`release:R1`…`R4` · `phase:P0`…`P17` · `module:plat|dash|opp|prj|cal|acad|prod|chat|vault|auto|trip|port|cont` · `type:feature|bug|chore|docs|security|test` · `size:S|M|L` · `good first task` · `blocked`.
+`release:R1`…`R4` · `phase:P0`…`P17`, `phase:P4b`, `phase:P8b`, `phase:P15b` · `module:plat|dash|opp|prj|guest|meet|cal|acad|prod|chat|vault|auto|trip|port|cont` · `type:feature|bug|chore|docs|security|test` · `size:S|M|L` · `good first task` · `blocked`.
 
 ### 17.2 Milestones
 
-One GitHub milestone per phase (`P0 Setup` … `P17 Optional AI`) plus release milestones `R1 MVP`, `R2`, `R3`, `R4` used for release notes.
+One GitHub milestone per phase (`P0 Setup` … `P17 Optional AI`, plus `P4b Project guest access`, `P8b Project meetings`, `P15b Google Meet API integration`) plus release milestones `R1 MVP`, `R2`, `R3`, `R4` used for release notes.
 
 ### 17.3 Issue template (feature)
 
@@ -679,6 +729,32 @@ The backlog below covers **R1 in full**, broken into small tasks. Later releases
 | 69 | Project activity tab | S | 18 |
 | 70 | Project files tab (uses files table) | S | 57 |
 
+### 18.5b Phase 4b — Project guest access
+
+| # | Issue | Size | Depends on |
+|---|---|---|---|
+| 103 | Enum `guest_role`; migration `project_guest_invitations` (hashed tokens, expiry ≤ 30 d, max uses) | S | 54 |
+| 104 | Migration `project_guest_memberships` (one active row per person/room, removal fields) + `project_guest_settings` | S | 103 |
+| 105 | `guest_visible` columns + "private never guest-visible" checks on tasks, checklists, files, activity_log | S | 104 |
+| 106 | Assignee validation trigger for tasks and checklist items (member or active guest) | S | 104 |
+| 107 | `private.guest_role()` helper and `private.guard_guest_write()` trigger | M | 104 |
+| 108 | Guest RLS policies: projects, tasks, task_comments, checklists, checklist_items, files, storage objects, activity_log | M | 107 |
+| 109 | pgTAP guest matrix (generated per table) incl. two-member-limit regression | M | 108 |
+| 110 | `project_directory()` RPC (names, avatars, roles only) | S | 104 |
+| 111 | Edge Function `project-invite-create` (rate limit, fragment link, role rules) | M | 103 |
+| 112 | Edge Function `project-invite-accept` (lock, uses, cap, member check, idempotent) + tests | M | 104, 111 |
+| 113 | RPCs: revoke invitation, set guest role, remove guest, leave room (+ assignment clean-up) | M | 108 |
+| 114 | People tab: members, guests, invitations, settings | M | 110, 113 |
+| 115 | Invite dialog with role selector and one-time link display | S | 111 |
+| 116 | `/join` page with sign-up resume; guest home `/guest`; guest shell and route guard | M | 112 |
+| 117 | "Visible to guests" toggles, eye icons, guest-presence banner | S | 105 |
+| 118 | Guest notifications and activity entries (joined, role changed, removed, assigned) | S | 113 |
+| 119 | E2E: three-context guest journey (critical journey 8) | M | 114–118 |
+
+**Phase 8b (R2) outline:** meetings migration and guest policies · `calendar_feed` meeting rows · reminders for meetings · Meetings tab and scheduler · meeting page (Join, notes, decisions, action items → tasks) · add-to-calendar links (Google template URL, `.ics`) · tests (AC-36 – AC-39).
+
+**Phase 15b (R3) outline:** Google Cloud setup (§5.1) · `oauth_states` and `google_connections` migrations · `google-oauth` function (PKCE, state, Vault) · `google-meet` function (create/update/cancel, pending handling) · Settings → Integrations Google card · scheduler "Create Google Meet link" option with fallback · mocked-Google function tests · manual test with a real account (AC-40).
+
 ### 18.6 Phases 5–8 — remaining R1
 
 | # | Issue | Size | Phase |
@@ -721,7 +797,7 @@ The backlog below covers **R1 in full**, broken into small tasks. Later releases
 | Term | Meaning |
 |---|---|
 | Phase | A group of related issues delivering one vertical slice. |
-| R1-alpha | Internal milestone after Phase 4 used for real feedback. |
+| R1-alpha | Internal milestone after Phase 4b (projects + room guests) used for real feedback. |
 | pgTAP | PostgreSQL unit-testing framework used to test constraints and RLS. |
 | Fixture | Saved HTML page used to test extraction without hitting live websites. |
 | Preview deployment | Temporary deployment of a pull request for review. |

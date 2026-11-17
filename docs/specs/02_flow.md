@@ -42,6 +42,7 @@ Every object carries the same four platform attributes: **workspace**, **owner**
 | Portfolio | My achievements | `/portfolio` | <span class="tag r3">R3</span> |
 | Contacts | People and mentors | `/contacts` | <span class="tag r3">R3</span> |
 | Utilities | Search, notifications, recycle bin, settings, weekly review | various | R1–R2 |
+| Guest home | Rooms a project guest belongs to (guests see nothing else) | `/guest` | <span class="tag r1">R1</span> |
 
 ## 2. Sitemap
 
@@ -65,6 +66,8 @@ flowchart LR
   ROOT --> PORT[Portfolio R3]
   ROOT --> CONT[Contacts R3]
   ROOT --> UTIL[Utilities]
+  ROOT --> JOIN["Room invitation<br/>/join link"]
+  ROOT --> GHOME[Guest home<br/>/guest]
   OPP --> O1[List /opportunities]
   OPP --> O2[Add from URL /opportunities/new]
   OPP --> O3[Review /opportunities/review/:runId]
@@ -73,6 +76,8 @@ flowchart LR
   OPP --> O6[Discovery R3 /opportunities/discover]
   PRJ --> P1[List /projects]
   PRJ --> P2[Room /projects/:id/:tab]
+  PRJ --> P3[People /projects/:id/people]
+  PRJ --> P4[Meetings R2 /projects/:id/meetings]
   VAULT --> V1[All /vault]
   VAULT --> V2[Folder /vault/f/:id]
   VAULT --> V3[Note /vault/n/:id]
@@ -90,6 +95,8 @@ flowchart LR
 | `/auth/sign-in`, `/auth/sign-up`, `/auth/reset`, `/auth/callback` | Authentication | <span class="tag r1">R1</span> | Public routes |
 | `/onboarding` | Create workspace, profile basics | <span class="tag r1">R1</span> | Only when the user has no workspace |
 | `/invite/:token` | Accept invitation | <span class="tag r1">R1</span> | Works signed-out (prompts sign-up) |
+| `/join#<token>` | Accept a **Project Room** guest invitation (token in the URL fragment, never sent to servers) | <span class="tag r1">R1</span> | Works signed-out (prompts sign-up, then resumes) |
+| `/guest` | Guest home: list of rooms the signed-in person is a guest in | <span class="tag r1">R1</span> | Shown instead of the dashboard to accounts with no workspace but with guest rooms |
 | `/` | Dashboard (Shared / Me toggle) | <span class="tag r1">R1</span> | Default landing |
 | `/opportunities` | List, board-by-status, filters | <span class="tag r1">R1</span> | `?view=list, pipeline` |
 | `/opportunities/new` | Paste URL or manual entry | <span class="tag r1">R1</span> | `?url=` supported for share-target |
@@ -101,6 +108,8 @@ flowchart LR
 | `/projects/:id/overview, board, notes, files, checklist, chat, activity` | Project room tabs | <span class="tag r1">R1</span> | |
 | `/projects/:id/ideas, decisions, polls` | Collaboration tabs | <span class="tag r2">R2</span> | |
 | `/projects/:id/pitch, judge, retro, github` | Preparation tabs | <span class="tag r3">R3</span> | |
+| `/projects/:id/people` | People: members, guests, invitations, guest settings | <span class="tag r1">R1</span> | Guests see a read-only list unless Project Admin |
+| `/projects/:id/meetings`, `/projects/:id/meetings/:meetingId` | Meetings list and meeting page | <span class="tag r2">R2</span> | Join button opens Google Meet externally |
 | `/tasks` | My tasks | <span class="tag r1">R1</span> | Task drawer `?task=:id` on any page |
 | `/calendar` | Month / week / day / agenda | <span class="tag r1">R1</span> | `?view=&date=` |
 | `/chat` | Workspace conversation | <span class="tag r1">R1</span> | `?project=` filter, `?m=` jump to message |
@@ -117,7 +126,7 @@ flowchart LR
 | `/notifications` | Notification centre | <span class="tag r1">R1</span> | |
 | `/trash` | Recycle bin | <span class="tag r1">R1</span> | |
 | `/settings/profile, workspace, notifications, privacy, data` | Settings | <span class="tag r1">R1</span> | |
-| `/settings/integrations, ai` | Integrations (R3), AI (R4) | <span class="tag r3">R3</span> | |
+| `/settings/integrations, ai` | Integrations: GitHub and Google (R3), AI (R4) | <span class="tag r3">R3</span> | |
 | `/call/:id` | Call screen | <span class="tag r4">R4</span> | Overlay |
 
 ## 3. Navigation hierarchy
@@ -131,6 +140,7 @@ flowchart LR
 | L1 Section | Page header with view switch (list/board/calendar) and filters | Same, filters in a bottom sheet |
 | L2 Object | Detail page with tabs (opportunity, project room) | Detail page; tabs become a horizontally scrollable tab strip |
 | L3 Sub-object | Right-side drawer (task, event, note preview) keeps context | Full-screen sheet with back gesture |
+| Guest shell | Minimal top bar (room switcher, notifications, avatar) and the room's guest tabs only; no sidebar modules | Same; bottom bar replaced by the room's tab strip |
 | Modal | Create/confirm dialogs, review steps | Full-screen dialogs |
 
 ### 3.2 Navigation rules
@@ -141,6 +151,7 @@ flowchart LR
 4. **Quick add (+)** is available everywhere: Opportunity from URL, Task, Event, Note, Bookmark, and (R2) Goal, Focus session.
 5. **The command palette** searches records and actions: "new task", "go to calendar", "open project …".
 6. **Deep links from notifications** open the exact record and highlight the changed element.
+7. **Guests are routed by permission, not by hiding links**: any non-room route opened by a guest shows "You don't have access to this page" and offers the guest home; the data is already denied by RLS.
 
 ## 4. First-time user journey
 
@@ -629,6 +640,12 @@ flowchart TD
   ACAD[Assessments & timetable] --> CAL
   CAL -- conflicts --> AUTO[Automation]
   AUTO -- reminders, digests, suggestions --> NOTIF[Notifications]
+  PRJ -- invitations --> GUEST[Project guests]
+  GUEST -- guest-visible tasks, notes, files --> PRJ
+  PRJ -- meetings --> MEET[Project meetings]
+  MEET -- schedule --> CAL
+  MEET -- action items --> TSK
+  MEET -- notes --> VAULT
   ALL[Every module] -. activity .-> ACT[Activity log]
   ALL -. search index .-> SRCH[Search]
 ```
@@ -648,6 +665,134 @@ flowchart TD
 | Trip ↔ Expenses | Expense with trip | `trip_id` | Expense |
 | Any → Activity | Write on shared record | action, entity, summary | Activity log (append-only) |
 | Any → Notifications | Rules | type, target link, dedupe key | Notifications |
+| Project → Guests | Invitation accepted | room id, role; guest sees only guest-visible rows | Guest membership |
+| Meeting → Calendar | Meeting scheduled | via `calendar_feed` (meeting rows) | Meeting |
+| Meeting → Tasks | Convert action item | title, assignee, due date, project, `guest_visible = true` | Task; action item keeps a link |
+| Meeting → Vault | Meeting notes | note of kind `meeting` with `meeting_id` | Note |
+
+## 21. Project guest invitation and acceptance journey
+
+### 21.1 Creating a room invitation
+
+```mermaid
+flowchart TD
+  A([Project room → People → Invite guests]) --> B{Caller is a workspace member<br/>or guest Project Admin?}
+  B -- No --> X[Action not shown; API would be denied by RLS]
+  B -- Yes --> C[Invite dialog:<br/>role, expiry, max uses, label]
+  C --> D{Role = Project Admin<br/>and caller is a guest?}
+  D -- Yes --> D1[Not allowed: only members grant Project Admin]
+  D -- No --> E[Edge Function project-invite-create<br/>rate limit 20/h per project]
+  E --> F[(Store SHA-256 hash, role, expiry,<br/>max uses, label, creator)]
+  F --> G["Show link once:<br/>app URL /join + token fragment<br/>Copy · Share"]
+  G --> H[Activity: invitation created<br/>members notified if a guest created it]
+```
+
+The plain token exists only in the creator's browser at that moment. Afterwards the People tab shows the invitation by label, role, expiry, use count and status (Active, Expired, Used up, Revoked).
+
+### 21.2 Accepting a room invitation
+
+```mermaid
+sequenceDiagram
+  autonumber
+  actor G as Invited person
+  participant UI as Luna Space app
+  participant EF as Edge Function project-invite-accept
+  participant DB as Postgres (RLS)
+  G->>UI: Opens the /join link (token is in the fragment and stays in the browser)
+  UI->>UI: Store token in sessionStorage, clear it from the address bar
+  alt not signed in
+    UI-->>G: Sign in or create account (email confirmation required)
+    G->>UI: Returns after confirmation
+  end
+  UI->>EF: POST token (JWT of the signed-in person)
+  EF->>DB: rate limit (10/h per user), hash token, lock invitation row
+  EF->>DB: check not revoked, not expired, uses left, project active
+  EF->>DB: check person is not a member of that workspace, not already a guest, room below guest cap
+  EF->>DB: insert project_guest_memberships (role from invitation), use_count + 1, activity, notifications
+  EF-->>UI: room id + role
+  UI-->>G: Room overview with "You're a guest in this room" welcome
+```
+
+| Case | Behaviour |
+|---|---|
+| Token invalid, expired, revoked or used up | Generic "This invitation is no longer valid. Ask the person who invited you for a new link." |
+| Person is a member of the room's workspace | "You're already a member of this workspace" → opens the room as a member. No guest row. |
+| Already a guest of this room | Opens the room; no change (idempotent). |
+| Room at its guest cap | "This room is full. Ask a project admin to make space." |
+| Project deleted or archived | Generic invalid message. |
+| Person has no workspace of their own | After acceptance they land in the room; the guest home lists their rooms. They are never pushed into workspace onboarding. |
+
+## 22. Guest permission management and removal
+
+```mermaid
+flowchart TD
+  A([People tab]) --> B{Action}
+  B -- Change role --> C[Role selector: Viewer / Collaborator<br/>Project Admin only by members]
+  C --> C1[(Update role, activity, notify guest)]
+  C1 --> C2[New permissions apply on the guest's next request]
+  B -- Remove guest --> R[Confirm: name the person and consequences]
+  R --> R1[(Set removed_at/by, clear the guest's open assignments in the room,<br/>remove from future meetings, cancel their reminders)]
+  R1 --> R2[Notify removed guest, activity entry]
+  R2 --> R3[RLS denies every room query; Realtime stops delivering rows]
+  B -- Revoke invitation --> V[(Set revoked_at: link dead immediately)]
+  B -- Room guest settings --> S[Toggle: collaborators upload files, create tasks,<br/>schedule meetings · viewers comment · guests see activity · max guests]
+  B -- Guest leaves --> L[Guest home → Leave room → same as removal, reason 'left']
+```
+
+**What a guest can open** (everything else is absent from the guest shell and denied by the database):
+
+| Room tab | Viewer | Collaborator | Project Admin |
+|---|---|---|---|
+| Overview | Read | Read | Read + edit details |
+| Board / tasks / subtasks | Read guest-visible | Create, edit, move, comment | Same + delete guest-created tasks |
+| Checklist | Read | Tick, add items | Same |
+| Notes, Files, References | Read guest-visible | Create (always guest-visible), edit guest-visible, upload if allowed | Same + remove guest-created items |
+| Meetings (R2) | Read, join, respond | Schedule with manual link if allowed, notes, action items | Same |
+| People | Read names and roles | Read | Invite (Viewer/Collaborator), change roles, remove guests, settings |
+| Activity | Guest-visible entries if allowed | Same | Same |
+| Workspace chat, dashboard, calendar, opportunities, vault outside the room, other rooms, settings | — | — | — |
+
+## 23. Meeting scheduling journey <span class="tag r2">R2</span>
+
+```mermaid
+flowchart TD
+  A([Room → Meetings → Schedule]) --> B[Title, date, start/end, time zone,<br/>agenda, participants, visible to guests, reminders]
+  B --> C{Link}
+  C -- Paste existing Meet URL --> D{Valid meet.google.com address?}
+  D -- No --> D1[Inline error] --> C
+  D -- Yes --> S
+  C -- Add later --> S
+  C -- Create Google Meet link R3 --> G{Member has connected Google<br/>and integration configured?}
+  G -- No --> G1[Explain + Connect Google or paste a link] --> C
+  G -- Yes --> E[Edge Function google-meet:<br/>create event with Meet conference<br/>or create Meet space]
+  E -- failed / pending too long --> G2[Keep meeting, show retry or paste link]
+  E -- link returned --> S
+  S[(Save meeting, participants,<br/>reminders, activity)] --> N[Notify participants:<br/>meeting scheduled]
+  S --> CAL[Appears on members' calendar<br/>and on the room schedule for guests]
+```
+
+**Rescheduling or cancelling** updates the meeting, regenerates reminders, notifies participants once, and — for links created through Google — updates or cancels the Google event (R3). A manual link is never changed by Luna Space.
+
+## 24. Joining a meeting and follow-up <span class="tag r2">R2</span>
+
+```mermaid
+flowchart LR
+  R[Reminder 1 day / 15 min before] --> P[Meeting page]
+  P --> J[Join meeting<br/>opens meet.google.com in a new tab<br/>or the Meet app on Android]
+  J --> M[Call happens in Google Meet<br/>outside Luna Space]
+  P --> NOTES[Meeting notes<br/>note of kind meeting]
+  P --> DEC[Decisions → decision log]
+  P --> AI[Action items]
+  AI -- Convert to task --> T[(Task in room, guest-visible,<br/>assignee + due date)]
+  M --> AFTER[After end time:<br/>meeting moves to Previous,<br/>prompt to add notes and action items]
+```
+
+| Rule | Detail |
+|---|---|
+| Who can see the link | Workspace members; room guests only when the meeting is visible to guests. Anyone the link is forwarded to can still ask to join in Google Meet — admission is controlled by the meeting host in Google Meet. |
+| Join button | Enabled at any time; highlighted from 10 minutes before start until end. |
+| Calendar for participants | "Add to my calendar" gives a Google Calendar template link or `.ics` file; no Google account connection needed. |
+| Not supported | Embedding Meet, starting the call from inside Luna Space, recordings or transcripts. |
 
 ## Glossary
 
@@ -659,3 +804,5 @@ flowchart TD
 | Outbox | Device-local queue of changes made offline, replayed when online (R2). |
 | Share target | PWA capability that lets Android's share sheet send a URL to Luna Space. |
 | Dedupe key | A unique string that prevents the same reminder or notification being created twice. |
+| Guest shell | The reduced app frame a project guest sees: room switcher and that room's guest tabs only. |
+| URL fragment | The part of a link after `#`; browsers do not send it to servers, which keeps invitation tokens out of logs. |

@@ -113,3 +113,4 @@ table.meta.rev th{width:auto}
 .arrow{text-align:center;font-size:7.8pt;color:var(--muted);margin:3pt 0;position:relative}
 .sidearrow{display:block;font-size:7.4pt;color:#8A5A06}
 p,li{orphans:3;widows:3}
+td code,th code{overflow-wrap:anywhere;word-break:break-word}

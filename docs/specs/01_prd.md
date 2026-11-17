@@ -16,8 +16,10 @@ This Product Requirements Document (PRD) defines **what** Luna Space must do and
 - **Release tags:** <span class="tag r1">R1</span> = MVP, <span class="tag r2">R2</span>, <span class="tag r3">R3</span>, <span class="tag r4">R4</span>. A feature tagged R1 is required for the first usable release.
 - **Priority tags (MoSCoW within a release):** <span class="tag must">Must</span> <span class="tag should">Should</span> <span class="tag could">Could</span>.
 - **Requirement identifiers:** `FR-<MODULE>-<nn>` for functional requirements, `NFR-<AREA>-<nn>` for non-functional requirements, `US-<nn>` for user stories, `AC-<nn>` for acceptance criteria. The same identifiers are referenced from documents 02–06.
-- **Module codes:** PLAT (platform), DASH, OPP, PRJ, CAL, ACAD, PROD, CHAT, VAULT, AUTO, TRIP, PORT, CONT.
+- **Module codes:** PLAT (platform), DASH, OPP, PRJ, GUEST (project guest access), MEET (project meetings), CAL, ACAD, PROD, CHAT, VAULT, AUTO, TRIP, PORT, CONT.
 - **"Member"** means one of the (at most) two people in a workspace. **"Partner"** means the other member, from the point of view of the current user.
+- **"Guest"** (project guest) means a signed-in person who has been invited into **one specific Project Room** with a guest role (Viewer, Collaborator or Project Admin). A guest is never a workspace member and never counts toward the two-member limit.
+- **"Meeting participant"** means a member or an authorized guest of a Project Room who is listed on a meeting scheduled in that room.
 - **Shared / Private:** every record that can be either is labelled with a `visibility` of `shared` (both members can see it) or `private` (only its owner can see it).
 
 > **Proposed:** Everything in this package is a proposal for review. Nothing here describes software that already exists. Where a decision has not been made, it is marked **Unresolved** and a recommended default is given.
@@ -30,6 +32,8 @@ Luna Space replaces that scatter with one connected workspace:
 
 - An **Opportunity Tracker** that captures hackathons, competitions, internships, scholarships, fellowships and other programmes — including **automatic extraction** of details from a pasted URL, with every extracted field marked *confirmed, inferred, missing* or *conflicting* and reviewed by a person before it is saved.
 - **Project Rooms** for each hackathon or major project, with a five-column task board, notes, files, checklists, decisions and (later) pitch and demo preparation.
+- **Project guest access**: hackathon teammates beyond the two members join an individual Project Room through a room-scoped invitation link, with a Viewer, Collaborator or Project Admin role. Guests see only what is explicitly shared with that room; the two-member workspace limit is unchanged.
+- **Project Meetings**: schedule meetings inside a Project Room with an agenda, participants, reminders, notes and action items that become tasks. Participants join through the real **Google Meet** link — added by hand, or created automatically when a member connects their Google account (optional).
 - A **shared and personal Calendar** in which opportunity deadlines, task due dates and milestones appear automatically, plus academic timetables and exams.
 - **Real-time Chat** between the two members, with replies, reactions, read receipts, attachments and (later) quick commands, voice notes and calls.
 - A **Knowledge Vault** of notes, files, bookmarks and snippets, searchable in one place.
@@ -40,7 +44,7 @@ Luna Space replaces that scatter with one connected workspace:
 
 The product targets **₹0 running cost** using free tiers (Supabase Free plan, a free static host, browser-native Web Push). Every feature that could exceed a free tier or require payment is identified in section 16 and in the TRD.
 
-Delivery is staged across four releases. **R1 (MVP)** delivers the platform foundation, opportunities with URL extraction, project rooms and tasks, calendar with reminders, text chat, the Knowledge Vault, notifications, recycle bin and export. R2 adds academics, productivity, comparison and eligibility tools and automation. R3 adds travel, portfolio, contacts, expenses, GitHub integration and voice messages. R4 adds audio/video calls, screen sharing and optional AI.
+Delivery is staged across four releases. **R1 (MVP)** delivers the platform foundation, opportunities with URL extraction, project rooms and tasks, **project guest access**, calendar with reminders, text chat, the Knowledge Vault, notifications, recycle bin and export. R2 starts with **project meetings using Google Meet links** and adds academics, productivity, comparison and eligibility tools and automation. R3 adds travel, portfolio, contacts, expenses, GitHub integration, **automatic Google Meet link creation through Google OAuth** and voice messages. R4 adds audio/video calls, screen sharing and optional AI.
 
 ## 2. Product vision
 
@@ -98,7 +102,8 @@ How might two collaborators keep every opportunity, deadline, project task, conv
 
 The following are explicitly **out of scope** for all four planned releases unless the PRD is revised:
 
-- More than two members in a workspace, guest access, public sharing links or organisations.
+- More than two **permanent workspace members**, workspace-level guest access (guests are limited to individual Project Rooms, §7.13), public unauthenticated sharing links, or organisations.
+- Recreating, embedding or recording Google Meet inside Luna Space. Meetings are joined through Google's own Meet service using its link.
 - Multiple workspaces per user (a user belongs to at most one workspace at a time).
 - A public opportunity marketplace, scraping of whole websites, or crawling sites the user did not paste.
 - Automated submission of applications or registrations on third-party sites.
@@ -106,14 +111,22 @@ The following are explicitly **out of scope** for all four planned releases unle
 - iOS-specific support (it should work in Safari where web standards allow, but iOS is not tested).
 - Payments, invoicing or splitting money through payment providers. Expenses are records only.
 - Any feature that requires a paid AI API to function.
-- Group calls with more than two participants, call recording, or live transcription.
+- Group calls with more than two participants **built into Luna Space** (group meetings use Google Meet, §7.14), call recording, or live transcription.
 - Continuous background location tracking.
 
 ## 5. Target users and personas
 
 ### 5.1 User model
 
-Luna Space has exactly one type of human user — a **workspace member** — and the workspace holds at most two. The person who creates the workspace is recorded as its creator for audit purposes only; both members have identical permissions once the second member joins.
+Luna Space distinguishes three kinds of people. They are stored separately and must never be confused:
+
+| Kind | How many | Scope | Where stored |
+|---|---|---|---|
+| **Permanent workspace member** | **Exactly 1–2 per workspace** (hard limit, unchanged) | The whole workspace: dashboard, opportunities, calendar, chat, vault, all Project Rooms | `workspace_members` (seat 1 or 2) |
+| **Project Room guest** | Many per room (default cap 10, configurable up to 25) | One Project Room only, limited by role and by what members mark as visible to guests | `project_guest_memberships` |
+| **Meeting participant** | Any members and authorized guests of the room | One meeting in one Project Room | `meeting_participants` |
+
+The person who creates the workspace is recorded as its creator for audit purposes only; both members have identical permissions once the second member joins. A guest is an ordinary signed-in Luna Space account that has no workspace seat in that workspace; the same account may be a guest in several rooms (even rooms of different workspaces) and may own its own workspace elsewhere.
 
 ### 5.2 Personas
 
@@ -181,6 +194,12 @@ Luna Space has exactly one type of human user — a **workspace member** — and
 | UC-22 | Leave the workspace and take personal data along | Member | <span class="tag r3">R3</span> |
 | UC-23 | Hold an audio/video call with screen sharing | Member | <span class="tag r4">R4</span> |
 | UC-24 | Ask an optional AI assistant to summarise or brainstorm | Member | <span class="tag r4">R4</span> |
+| UC-25 | Invite hackathon teammates into one Project Room as guests | Member / guest Project Admin | <span class="tag r1">R1</span> |
+| UC-26 | Accept a room invitation and work on the board as a guest | Guest | <span class="tag r1">R1</span> |
+| UC-27 | Change a guest's role, revoke an invitation or remove a guest | Member / guest Project Admin | <span class="tag r1">R1</span> |
+| UC-28 | Schedule a project meeting with a Google Meet link and agenda | Member / authorized guest | <span class="tag r2">R2</span> |
+| UC-29 | Join a meeting, take notes and turn action items into tasks | Participant | <span class="tag r2">R2</span> |
+| UC-30 | Create the Google Meet link automatically from a connected Google account | Member | <span class="tag r3">R3</span> |
 
 ## 7. Functional requirements
 
@@ -385,6 +404,48 @@ Requirements are grouped by module. Each requirement is testable; acceptance cri
 | FR-CONT-03 | Follow-up reminders per contact (date + note), shown in the dashboard and calendar. | <span class="tag r3">R3</span> | <span class="tag should">Should</span> |
 | FR-CONT-04 | Only details the contact has made public (or given with consent) should be stored; the form shows this guidance. | <span class="tag r3">R3</span> | <span class="tag must">Must</span> |
 
+### 7.13 Project guest access (GUEST)
+
+Guests extend a single Project Room to teammates who are **not** workspace members. They never consume a workspace seat.
+
+| ID | Requirement | Rel. | Pri. |
+|---|---|---|---|
+| FR-GUEST-01 | A workspace member or a guest with the Project Admin role can create a **room invitation link** scoped to exactly one Project Room, choosing a role (Viewer or Collaborator; only members may grant Project Admin), an expiry (1 hour, 1 day, 7 days — default — or 30 days maximum), an optional maximum number of uses (1–25) and an optional label. | <span class="tag r1">R1</span> | <span class="tag must">Must</span> |
+| FR-GUEST-02 | The link is shown **once** on creation for copying; afterwards only its label, role, expiry, use count and status (Active, Expired, Used up, Revoked) are shown. | <span class="tag r1">R1</span> | <span class="tag must">Must</span> |
+| FR-GUEST-03 | Any active invitation can be **revoked immediately**; a revoked, expired or used-up link can never be used again. | <span class="tag r1">R1</span> | <span class="tag must">Must</span> |
+| FR-GUEST-04 | Accepting requires a signed-in Luna Space account with a confirmed email. A person without an account can sign up from the invitation page and is returned to the acceptance step. | <span class="tag r1">R1</span> | <span class="tag must">Must</span> |
+| FR-GUEST-05 | Acceptance creates a guest membership for that room only. It never creates or changes a workspace membership and never counts toward the two-member limit. A workspace member of the same workspace cannot become a guest (they already have full access). | <span class="tag r1">R1</span> | <span class="tag must">Must</span> |
+| FR-GUEST-06 | Guest roles: **Viewer** — read guest-visible project information, notes, files, tasks, checklists and meetings; **Collaborator** — Viewer plus create and update guest-visible tasks, subtasks, comments, checklist items, notes and project files; **Project Admin** — Collaborator plus edit project details (name, summary, stage, dates, links), manage guest invitations and guests (except granting Project Admin), and configure room guest settings. No guest role can delete or archive the project, change workspace settings or manage workspace members. | <span class="tag r1">R1</span> | <span class="tag must">Must</span> |
+| FR-GUEST-07 | Room guest settings (configurable by members and guest Project Admins): collaborators can upload files (default on); collaborators can create tasks (on); viewers can comment (off); guests can see room activity (on); collaborators can schedule meetings (on, R2); maximum guests in the room (default 10, 1–25). | <span class="tag r1">R1</span> | <span class="tag should">Should</span> |
+| FR-GUEST-08 | Members decide what guests see: every project task, checklist, note, file, bookmark and meeting has a **"Visible to guests"** flag. Defaults: tasks, checklists and meetings visible; notes, files and bookmarks hidden until shared. Items created by guests are always visible to guests. Private (member-only personal) items can never be made visible to guests. | <span class="tag r1">R1</span> | <span class="tag must">Must</span> |
+| FR-GUEST-09 | Members and guest Project Admins can **change a guest's role** and **remove a guest**. Removal takes effect immediately for all data access; the guest's open task assignments in that room are cleared and they are removed from future meetings. Guests can also leave a room themselves. | <span class="tag r1">R1</span> | <span class="tag must">Must</span> |
+| FR-GUEST-10 | A **People** tab in each Project Room lists workspace members (labelled "Member"), guests (labelled "Guest" with role) and invitations (with status). | <span class="tag r1">R1</span> | <span class="tag must">Must</span> |
+| FR-GUEST-11 | Guests have a **guest home** listing only the rooms they belong to. Guests never see the workspace dashboard, workspace calendar or personal calendars, personal or loose tasks, private notes or documents, other Project Rooms, opportunity records, workspace chat, members' private profiles or settings, or workspace membership management. | <span class="tag r1">R1</span> | <span class="tag must">Must</span> |
+| FR-GUEST-12 | Guests can be assigned tasks and checklist items in their room, and receive notifications for assignments, mentions in comments, role changes, removal and (R2) meetings. | <span class="tag r1">R1</span> | <span class="tag must">Must</span> |
+| FR-GUEST-13 | Room activity history records guest actions (with a "Guest" label) and invitation events (created, accepted, revoked, role changed, removed). Guests see only activity about guest-visible items in their room, when the room setting allows. | <span class="tag r1">R1</span> | <span class="tag must">Must</span> |
+| FR-GUEST-14 | Every guest-visible item is marked with an eye icon for members, and the room shows a banner while guests are present ("3 guests can see items marked 👁"). | <span class="tag r1">R1</span> | <span class="tag should">Should</span> |
+| FR-GUEST-15 | When a guest's account is deleted or the project is deleted, the membership ends automatically; guest-created content stays in the room with the author shown as "former guest". | <span class="tag r1">R1</span> | <span class="tag must">Must</span> |
+
+### 7.14 Project meetings and Google Meet (MEET)
+
+A **Meetings** tab inside each Project Room. Luna Space schedules and documents meetings; the call itself always happens in **Google Meet** through its link — Meet is never recreated or embedded.
+
+| ID | Requirement | Rel. | Pri. |
+|---|---|---|---|
+| FR-MEET-01 | Schedule a meeting in a Project Room with title, date, start and end time, time zone (default: organizer's), agenda (Markdown), participants (room members and guests) and a "Visible to guests" flag (default on). | <span class="tag r2">R2</span> | <span class="tag must">Must</span> |
+| FR-MEET-02 | **Manual link (always available):** paste an existing Google Meet URL; it is validated to be a `https://meet.google.com/…` meeting address without extra parameters. A meeting may also be saved without a link and the link added later. | <span class="tag r2">R2</span> | <span class="tag must">Must</span> |
+| FR-MEET-03 | Meetings list with **Upcoming** and **Previous** sections; meetings also appear on members' workspace calendar and on the room schedule visible to guests. | <span class="tag r2">R2</span> | <span class="tag must">Must</span> |
+| FR-MEET-04 | A **Join meeting** button opens the Google Meet link in a new tab (or the Meet app on Android); it is prominent from 10 minutes before the start until the end time. | <span class="tag r2">R2</span> | <span class="tag must">Must</span> |
+| FR-MEET-05 | Meeting links and details are visible only to workspace members and to guests of that room when the meeting is visible to guests; they never appear in notifications' lock-screen text. | <span class="tag r2">R2</span> | <span class="tag must">Must</span> |
+| FR-MEET-06 | Reminders to participants (defaults: 1 day and 15 minutes before) in-app and by Web Push; notifications when a meeting is scheduled, changed or cancelled. | <span class="tag r2">R2</span> | <span class="tag must">Must</span> |
+| FR-MEET-07 | Meeting page holds the agenda, **meeting notes** (a Vault note of kind "meeting" linked to the meeting), **decisions** (linked to the decision log) and **action items**. | <span class="tag r2">R2</span> | <span class="tag must">Must</span> |
+| FR-MEET-08 | Each action item can be **converted into a project task** with one action (title, assignee, due date carried over); the item then links to the task. | <span class="tag r2">R2</span> | <span class="tag must">Must</span> |
+| FR-MEET-09 | "Add to my calendar" offers a Google Calendar template link and an `.ics` download for each participant — no Google API required. | <span class="tag r2">R2</span> | <span class="tag should">Should</span> |
+| FR-MEET-10 | Participants can mark their response (going / maybe / not going); the organizer can reschedule or cancel (participants are notified). | <span class="tag r2">R2</span> | <span class="tag should">Should</span> |
+| FR-MEET-11 | **Google integration (optional):** a workspace member can connect their own Google account (Google OAuth, explicit consent, minimal scopes) in Settings → Integrations, and then choose **"Create Google Meet link"** when scheduling. Rescheduling or cancelling updates the Google side when the link was created this way. | <span class="tag r3">R3</span> | <span class="tag should">Should</span> |
+| FR-MEET-12 | Disconnecting Google revokes the token and deletes it; existing meetings keep their links. If the integration is not configured, fails or the token has expired, the scheduler falls back to the manual link with an explanation. No other Luna Space feature depends on Google credentials. | <span class="tag r3">R3</span> | <span class="tag must">Must</span> |
+| FR-MEET-13 | Guests can never trigger Google API calls; only a member's own connected account creates links. | <span class="tag r3">R3</span> | <span class="tag must">Must</span> |
+
 ## 8. Non-functional requirements
 
 ### 8.1 Security (where each is enforced is detailed in TRD §17 and Schema §28–29)
@@ -404,6 +465,11 @@ Requirements are grouped by module. Each requirement is testable; acceptance cri
 | NFR-SEC-11 | Camera, microphone and location are requested only at the moment of use, after an in-app explanation, and never in the background. |
 | NFR-SEC-12 | Security-relevant actions (sign-in, invitation created/accepted/revoked, member left, export requested, integration connected, location sharing started/stopped) are written to the audit log. |
 | NFR-SEC-13 | Content Security Policy forbids inline scripts and restricts connections to the Supabase project, the map tile server and the TURN/STUN servers. Rendered Markdown is sanitised. |
+| NFR-SEC-14 | Guest isolation is enforced by RLS: every table a guest can reach has explicit guest policies limited to their room and to guest-visible rows; all other tables deny guests by default. Hiding UI is never the control. |
+| NFR-SEC-15 | Room invitation tokens: ≥ 32 random bytes, stored only as a SHA-256 hash, delivered in the URL fragment (`/join#…`) so they never reach server logs or `Referer` headers, expire (≤ 30 days), optional use limit, revocable, single membership per person. Invalid, expired, revoked and used-up tokens return the same generic message. |
+| NFR-SEC-16 | Rate limits: 20 room invitations per hour per project, 10 acceptance attempts per hour per user, 30 guest-management actions per hour per user. |
+| NFR-SEC-17 | Guest removal or role downgrade takes effect on the next request (no cached authorization); Realtime subscriptions stop delivering rows the guest can no longer read. |
+| NFR-SEC-18 | Google refresh tokens are encrypted in Supabase Vault, used only inside Edge Functions, never returned to the browser, and deleted on disconnect. Only the minimum Google scopes are requested, at the moment the feature is first used. |
 
 ### 8.2 Performance and reliability
 
@@ -470,6 +536,10 @@ flowchart TB
   CHAT -->|/note| VAULT
   OPP -->|trip| TRIP
   PRJ -->|completed project| PORT
+  PRJ -->|room access| GUEST[Project guests]
+  PRJ -->|meetings| MEET[Meetings + Google Meet]
+  MEET -->|scheduled time| CAL
+  MEET -->|action items| PRJ
   PROD -->|skills| PORT
   OPP --> CONT
   AUTO -.reads.-> OPP & PRJ & CAL & PROD
@@ -525,6 +595,14 @@ Individually owned achievement records and timeline, built from verified project
 
 Professional contacts and mentors with context (where met, related event) and follow-up reminders.
 
+### 9.13 Project guest access
+
+A room-scoped access layer on top of Project Rooms: invitations, guest memberships, guest roles, per-room guest settings and the "Visible to guests" flag on project content. It reuses the platform's authentication, notifications and activity log but has its own membership table, so the workspace's two-seat model is untouched.
+
+### 9.14 Project meetings
+
+The Meetings tab of a Project Room: scheduling, participants, reminders, notes, decisions and action items, with Google Meet as the external call service. Manual links work without any Google setup; an optional per-member Google connection creates links automatically.
+
 ## 10. Feature prioritization
 
 ### 10.1 Prioritisation method
@@ -541,6 +619,9 @@ Features were scored on **user value** (V, 1–5), **dependency weight** (D, how
 | Text chat with attachments | 4 | 2 | 3 | 1 | 2 | <span class="tag r1">R1</span> |
 | Vault + search | 4 | 3 | 2 | 1 | 4 | <span class="tag r1">R1</span> |
 | Recycle bin, export, activity | 3 | 2 | 2 | 1 | 2 | <span class="tag r1">R1</span> |
+| Project guest access (invites, roles, RLS) | 5 | 2 | 3 | 1 | 3 | <span class="tag r1">R1</span> |
+| Project meetings with manual Meet links | 4 | 1 | 2 | 1 | 2 | <span class="tag r2">R2</span> (first) |
+| Google Meet link creation via Google OAuth | 3 | 0 | 4 | 2 | −3 | <span class="tag r3">R3</span> |
 | Academics | 4 | 1 | 2 | 1 | 2 | <span class="tag r2">R2</span> |
 | Goals, habits, focus, skills, courses | 3 | 2 | 2 | 1 | 2 | <span class="tag r2">R2</span> |
 | Eligibility, comparison, monitoring, credibility | 4 | 1 | 3 | 2 | 0 | <span class="tag r2">R2</span> |
@@ -560,7 +641,7 @@ Features were scored on **user value** (V, 1–5), **dependency weight** (D, how
 
 ### 11.1 MVP objective
 
-> **R1 objective:** Two members can run a complete hackathon cycle in Luna Space — capture the opportunity from its URL, decide to participate, plan and track the project, never miss a deadline, talk and share files, keep notes and references, and recover from mistakes — on both a Windows laptop and an Android phone, at ₹0.
+> **R1 objective:** Two members can run a complete hackathon cycle in Luna Space — capture the opportunity from its URL, decide to participate, plan and track the project **together with their hackathon teammates as room guests**, never miss a deadline, talk and share files, keep notes and references, and recover from mistakes — on both a Windows laptop and an Android phone, at ₹0.
 
 ### 11.2 In scope for R1
 
@@ -573,11 +654,12 @@ Features were scored on **user value** (V, 1–5), **dependency weight** (D, how
 | Calendar | Month/week/day/agenda; shared & personal layers; derived opportunity/task/milestone dates; events; reminders with presets |
 | Chat | Real-time text; replies; reactions; edit/delete; read receipts; attachments; availability & presence |
 | Vault | Folders; Markdown notes (incl. meeting notes); files; bookmarks/references; tags; full-text search |
+| Project guests | Room invitation links (role, expiry, max uses, revoke); acceptance flow; Viewer / Collaborator / Project Admin roles; room guest settings; "Visible to guests" flags; People tab; guest home; guest removal and role changes; guest notifications and activity; RLS isolation |
 | Automation | Default deadline reminders; missing-information warnings; default submission checklist offer |
 
 ### 11.3 Explicitly deferred from R1
 
-Academics, productivity tools, comparison, eligibility checker, monitoring, credibility indicators, quick commands, polls, decision log, ideas, offline outbox (R2); travel, location sharing, portfolio, contacts, expenses, GitHub API, voice messages, leave-workspace flow, full ZIP backup (R3); calls, screen sharing, AI (R4).
+Project meetings with Google Meet links, academics, productivity tools, comparison, eligibility checker, monitoring, credibility indicators, quick commands, polls, decision log, ideas, offline outbox (R2); travel, location sharing, portfolio, contacts, expenses, GitHub API, Google OAuth / automatic Meet links, voice messages, leave-workspace flow, full ZIP backup (R3); calls, screen sharing, AI (R4).
 
 > **Assumption:** The R1 scope is large for a two-person, part-time team. The Implementation Plan splits it into eight phases with a usable internal milestone ("R1-alpha": platform + opportunities + projects) before the full R1.
 
@@ -585,9 +667,9 @@ Academics, productivity tools, comparison, eligibility checker, monitoring, cred
 
 | Release | Theme | Scope |
 |---|---|---|
-| <span class="tag r2">R2</span> | **Plan smarter** | Academics (subjects, timetable, labs, assessments, resources, progress); recurring events; conflict detection; goals (shared/individual), habits, focus/Pomodoro, skills with stages, courses, learning log, weekly review; eligibility profiles and checker; comparison; credibility indicators; deadline-change monitoring with review; participation history; automation digests, task suggestions, progress reports; chat quick commands; polls; brainstorming & idea voting; decision log; approval requests; meeting-notes template; code snippets; linked resources; offline drafts & queued sync; email notifications (optional, needs SMTP) |
-| <span class="tag r3">R3</span> | **Go further** | Travel & events (trips, itinerary, accommodation, transport, packing, schedule, emergency contacts, map); location sharing; expenses & balances; portfolio, timeline, résumé bullet generator; skills-to-project mapping; contacts, mentor directory, follow-ups; pitch/presentation/demo preparation; judge Q&A; retrospectives; GitHub integration; voice messages; personalised matching; discovery feeds; leave workspace & data separation; account deletion; full ZIP backup export |
-| <span class="tag r4">R4</span> | **Connect live, assist optionally** | One-to-one audio and video calls; screen sharing; optional AI provider settings; AI summarisation, brainstorming, natural-language search, pitch help, meeting summaries, portfolio bullet suggestions |
+| <span class="tag r2">R2</span> | **Plan smarter** | **First:** project meetings — Meetings tab, scheduling with time zone, participants (members and guests), manual Google Meet links, Join button, calendar entries, reminders, notes, decisions, action items → tasks, add-to-calendar links. Then: academics (subjects, timetable, labs, assessments, resources, progress); recurring events; conflict detection; goals (shared/individual), habits, focus/Pomodoro, skills with stages, courses, learning log, weekly review; eligibility profiles and checker; comparison; credibility indicators; deadline-change monitoring with review; participation history; automation digests, task suggestions, progress reports; chat quick commands; polls; brainstorming & idea voting; decision log; approval requests; meeting-notes template; code snippets; linked resources; offline drafts & queued sync; email notifications (optional, needs SMTP) |
+| <span class="tag r3">R3</span> | **Go further** | Travel & events (trips, itinerary, accommodation, transport, packing, schedule, emergency contacts, map); location sharing; expenses & balances; portfolio, timeline, résumé bullet generator; skills-to-project mapping; contacts, mentor directory, follow-ups; pitch/presentation/demo preparation; judge Q&A; retrospectives; GitHub integration; optional Google account connection and automatic Google Meet link creation (Calendar or Meet REST API); voice messages; personalised matching; discovery feeds; leave workspace & data separation; account deletion; full ZIP backup export |
+| <span class="tag r4">R4</span> | **Connect live, assist optionally** | One-to-one audio and video calls built into Luna Space (lower priority now that group meetings use Google Meet); screen sharing; optional AI provider settings; AI summarisation, brainstorming, natural-language search, pitch help, meeting summaries, portfolio bullet suggestions |
 
 > **Unresolved:** Whether R3's travel and portfolio work should swap with R2's productivity tools depends on the users' calendar (e.g. an offline hackathon season). The release order may be changed in a PRD revision without changing the architecture.
 
@@ -632,6 +714,20 @@ Stories are written as *As a member, I want … so that …*. Each references th
 | US-25 | As a member, I want to type `/task Fix login by Friday @partner` in chat and get a task. | FR-CHAT-10 |
 | US-26 | As a member, I want to search one box and find a note, a link or a message. | FR-PLAT-11, FR-VAULT-06 |
 | US-27 | As a member, I want to record why we chose a tech stack and get my partner's approval. | FR-PRJ-12, 13 |
+
+### 13.3a Project guests and meetings
+
+| ID | Story | Covers |
+|---|---|---|
+| US-40 | As a member, I want to send my two hackathon teammates a link that lets them into only our Moonshot project room so that we can all use one board without giving them my workspace. | FR-GUEST-01, 05 |
+| US-41 | As a guest, I want to open the link, create an account and land directly in the room so that I can start working. | FR-GUEST-04, 11 |
+| US-42 | As a member, I want to choose exactly which notes and files guests can see so that my private research stays private. | FR-GUEST-08 |
+| US-43 | As a member, I want to revoke a leaked link and remove a teammate who left the team, immediately. | FR-GUEST-03, 09 |
+| US-44 | As a guest collaborator, I want to be assigned tasks and get notified so that I know what to do. | FR-GUEST-12 |
+| US-45 | As a member or guest, I want to schedule a team call with a Google Meet link and agenda so that everyone joins at the right time. | FR-MEET-01, 02, 04 |
+| US-46 | As a participant, I want reminders before the meeting and a Join button. | FR-MEET-04, 06 |
+| US-47 | As a participant, I want to turn action items from the meeting into tasks on the board. | FR-MEET-07, 08 |
+| US-48 | As a member, I want Luna Space to create the Meet link for me from my Google account, but still work if I never connect Google. | FR-MEET-11, 12 |
 
 ### 13.4 Personal growth, travel, portfolio, contacts
 
@@ -678,6 +774,21 @@ Criteria use *Given / When / Then*. Each is intended to become an automated test
 | AC-23 | US-34 | Given location sharing started for 1 hour, then both members see the banner; after 1 hour the position is erased and the banner disappears for both, even if the sharer's phone is offline. |
 | AC-24 | US-35 | Given a project with no recorded result, when bullets are generated, then no bullet mentions winning, ranking or prize. |
 | AC-25 | US-37 | Given member B leaves, then B receives an export of their data, B's private records are deleted, shared records remain with author "B (former member)", and seat 2 becomes free. |
+| AC-26 | US-40 | Given a workspace with two members, when 4 guests accept invitations to a room, then `workspace_members` still has exactly 2 rows and a third workspace-member insert still fails; the guests appear only in that room's People tab. |
+| AC-27 | US-40 | Given an invitation with max uses 2, when a third person opens it, then they see "This invitation is no longer valid" and no membership is created; the same message appears for expired and revoked links. |
+| AC-28 | US-41 | Given a signed-out person opens `/join#<token>`, when they sign up and confirm their email, then they are returned to the acceptance screen and, on accepting, land in the room with the invited role. |
+| AC-29 | US-41 | Given a guest of room P, when they query (through the API with their own session) opportunities, calendar_events, loose tasks, messages, other projects, workspace members' profiles or any private note, then zero rows are returned (database test). |
+| AC-30 | US-42 | Given a shared project note not marked visible to guests, then guests of the room cannot read it, find it in search or download its files; after a member marks it visible, they can. A private note cannot be marked visible to guests (constraint error). |
+| AC-31 | US-43 | Given a guest is removed, then within their next request every room query returns zero rows, their open task assignments in that room are cleared, and they no longer receive Realtime updates for the room. |
+| AC-32 | US-43 | Given a revoked invitation, when anyone submits its token, then acceptance fails with the generic message and the attempt counts toward the rate limit. |
+| AC-33 | FR-GUEST-06 | Given a Viewer, when they try to create or update a task through the API, then RLS rejects it; given a Collaborator, task creation in their room succeeds and in any other room fails. |
+| AC-34 | FR-GUEST-06 | Given a guest Project Admin, when they try to delete the project, change its visibility, grant Project Admin or read workspace settings, then each attempt is rejected by the database. |
+| AC-35 | FR-GUEST-07 | Given a room with max guests 3 and 3 active guests, when a fourth acceptance is attempted, then it fails with "This room is full" and no membership is created. |
+| AC-36 | US-45 | Given a meeting saved with a pasted URL that is not a `https://meet.google.com/` address (or has query parameters), then saving is rejected with a validation message. |
+| AC-37 | US-45 | Given a guest-visible meeting at 18:00 Asia/Kolkata, then a guest in Europe/Berlin sees 13:30 (local) with the organizer's zone in a tooltip, and the meeting appears on members' workspace calendar but on no guest-inaccessible view. |
+| AC-38 | US-46 | Given default reminders, then each participant receives exactly one reminder 1 day and one 15 minutes before; cancelling the meeting cancels pending reminders and notifies participants once. |
+| AC-39 | US-47 | Given an action item with assignee and due date, when converted, then a guest-visible task exists in the room with the same title, assignee and due date, and the action item links to it. |
+| AC-40 | US-48 | Given Google is not configured for the project or the member has not connected, then the scheduler offers only the manual link and every other feature works; given a connected member, "Create Google Meet link" stores a valid Meet URL and the Google event/space reference, and the refresh token is never present in any API response to the browser. |
 
 ## 15. Success metrics
 
@@ -694,6 +805,9 @@ Metrics are collected **inside the user's own Supabase project** using aggregate
 | Project adoption | ≥ 80 % of hackathon tasks tracked in Luna Space | Self-reported in retrospectives |
 | Portfolio coverage | ≥ 1 verified portfolio entry per completed project per member (R3) | `portfolio_items` |
 | Cost | ₹0 per month | Supabase and hosting dashboards |
+| Guest adoption | ≥ 1 room per hackathon with all teammates as guests | `project_guest_memberships` |
+| Guest isolation | 0 cross-room or workspace data exposures (security tests) | pgTAP guest matrix |
+| Meeting follow-through | ≥ 70 % of meeting action items converted to tasks or closed | `meeting_action_items` |
 | Free-tier headroom | ≤ 60 % of each free-tier limit used | Usage panel |
 
 ## 16. Product risks and assumptions
@@ -712,6 +826,11 @@ Metrics are collected **inside the user's own Supabase project** using aggregate
 | Extracted data wrong but accepted | Medium | High | Evidence snippets, statuses, mandatory review, history and re-check |
 | Partner sees data the user believed private | Low | High | RLS on server; automated tests per table; visibility shown on every record |
 | Location data misuse | Low | High | Opt-in, time-limited, latest point only, erased on expiry, visible banner, audit log |
+| Guest sees data not intended for them | Medium | High | Deny-by-default RLS for guests; explicit "Visible to guests" flag; private items can never be guest-visible; guest test matrix in CI; banner showing guest presence |
+| Invitation link forwarded to the wrong person | Medium | Medium | Short default expiry, optional use limit, label, immediate revoke, People tab shows who joined, remove guest |
+| Guest count grows storage/Realtime use | Low | Medium | Per-room guest cap (default 10, max 25); file limits unchanged |
+| Google OAuth app stays in "Testing" status: refresh tokens expire after 7 days and at most 100 test users | High (for Google feature) | Low | Reconnect prompt; manual links always work; optionally publish the app (unverified-app warning) — see TRD §25 |
+| Google API terms, scopes or quotas change | Medium | Low | Integration optional and isolated in two Edge Functions; manual fallback |
 
 ### 16.2 Assumptions
 
@@ -723,6 +842,8 @@ Metrics are collected **inside the user's own Supabase project** using aggregate
 | AS-04 | Default time zone is Asia/Kolkata; members may travel | Per-profile time zone already supported |
 | AS-05 | Fetching a single public page that a user pasted, at human frequency, is acceptable use | Restrict to manual entry for sites that forbid it |
 | AS-06 | The members are comfortable with an English-only interface | Add i18n later |
+| AS-07 | Hackathon teammates are willing to create a Luna Space account (email + password or magic link) to join a room | Offer read-only sharing later (not planned) |
+| AS-08 | Google Meet remains free for personal Google accounts for the meeting lengths and sizes the team uses (Google's own free-tier limits apply to the call itself) | Use any other meeting service's link via a future "other link" option |
 
 ## 17. Dependencies
 
@@ -738,6 +859,8 @@ Metrics are collected **inside the user's own Supabase project** using aggregate
 | GitHub REST API | Repository info | R3 | Free | Rate limits per token |
 | STUN (public) / TURN (free tier or self-hosted) | Calls | R4 | STUN free; TURN limited | Cost risk |
 | AI provider (user-chosen) | Optional AI | R4 | Varies | Never required |
+| Google Cloud project (free) with Google Calendar API and/or Google Meet REST API, OAuth consent screen | Automatic Meet links | R3 | Free; quotas apply | Optional; manual Meet links need nothing |
+| Google Meet (Google's service) | The call itself | R2 | Free for personal accounts, with Google's own limits | Users join with their own Google account or as Meet guests |
 
 ## 18. Privacy and data ownership requirements
 
@@ -757,6 +880,11 @@ Metrics are collected **inside the user's own Supabase project** using aggregate
 | PRIV-12 | **Separation.** When a member leaves, private data is exported to them and deleted; shared data remains for the remaining member; authorship is kept as display name with "(former member)". If both members leave, the workspace and all data are deleted after 30 days. |
 | PRIV-13 | **Retention.** Recycle bin 30 days; read notifications 90 days; activity log 1 year; extraction runs not linked to a saved opportunity 7 days; exports 24 hours; location positions until expiry only. |
 | PRIV-14 | **Project ownership.** The Supabase project and GitHub repository are owned by an account both members can access (or by one member with the other as collaborator). This is recorded in the repository README. |
+| PRIV-15 | **Guest minimisation.** Guests see members only as display name and avatar, and only within the shared room; they never see members' email addresses, time zones, availability, private profiles or settings. Members see guests' display name, avatar and role. |
+| PRIV-16 | **Explicit sharing to guests.** Nothing becomes visible to guests implicitly except tasks, checklists and meetings created in the room (visible by default, can be hidden). Notes, files and bookmarks require an explicit "Visible to guests" choice. |
+| PRIV-17 | **Guest departure.** Removing or leaving ends access immediately; the membership record is kept for audit (who, when, by whom) for 1 year; guest-created content stays with the room. |
+| PRIV-18 | **Meetings.** Luna Space stores the Meet link, schedule, agenda, participants (as Luna Space accounts), notes, decisions and action items — never recordings, transcripts, chat logs or attendance data from Google. Participants' email addresses are not sent to Google by default. |
+| PRIV-19 | **Google account.** Connecting Google is optional, per member, revocable; only the minimum scopes are requested; the token is encrypted and deleted on disconnect. |
 
 > **Unresolved:** Which member's account owns the Supabase project and the hosting account. Recommended: create both under a shared project email that both members control, so that either can maintain the service if the other leaves.
 
@@ -781,3 +909,9 @@ Metrics are collected **inside the user's own Supabase project** using aggregate
 | STUN / TURN | Servers that help WebRTC peers connect; TURN relays media when direct connection fails. |
 | SSRF | Server-Side Request Forgery — tricking a server into fetching internal addresses. |
 | MVP / R1 | Minimum viable product, Release 1. |
+| Project guest | A signed-in person invited into one Project Room with a guest role; not a workspace member. |
+| Guest role | Viewer, Collaborator or Project Admin — what a guest may do in their room. |
+| Visible to guests | Per-item flag deciding whether room guests can see a project item. |
+| Meeting participant | A member or authorized guest listed on a project meeting. |
+| Google Meet link | The `https://meet.google.com/xxx-xxxx-xxx` address of a Meet meeting, opened outside Luna Space. |
+| OAuth scope | A named permission a user grants to an app on their Google account. |
