@@ -200,8 +200,8 @@ flowchart LR
 
 | Function | Trigger | Auth | Purpose | Rel. |
 |---|---|---|---|---|
-| `invite-create` | App | JWT (member) | Create/revoke invitation, return link once | <span class="tag r1">R1</span> |
-| `invite-accept` | App | JWT (any signed-in user) | Validate token, add seat 2 | <span class="tag r1">R1</span> |
+| `create_workspace_invitation()` / `revoke_workspace_invitation()` (SQL RPCs, ADR 0002) | App | JWT (member) | Create/revoke invitation, return link once | <span class="tag r1">R1</span> |
+| `accept_workspace_invitation(token)` (SQL RPC, ADR 0002) | App | JWT (any signed-in user) | Validate token, add seat 2 | <span class="tag r1">R1</span> |
 | `project-invite-create` | App | JWT (member or guest Project Admin of the room) | Create a room invitation, return the fragment link once | <span class="tag r1">R1</span> |
 | `project-invite-accept` | App | JWT (any signed-in user) | Validate a room token, create a guest membership | <span class="tag r1">R1</span> |
 | `extract-opportunity` | App | JWT (member) | Safe fetch + parse + store run & fields | <span class="tag r1">R1</span> |

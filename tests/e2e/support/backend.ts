@@ -1,0 +1,77 @@
+import { execSync } from 'node:child_process'
+
+/**
+ * Local Supabase connection for end-to-end tests. Uses E2E_SUPABASE_URL / E2E_SERVICE_ROLE_KEY
+ * when set (CI), otherwise reads `supabase status` from the running local stack.
+ * Only ever points at a local development stack — never at a hosted project.
+ */
+function readStatus(): Record<string, string> {
+  try {
+    const out = execSync('npx supabase status -o env', {
+      stdio: ['ignore', 'pipe', 'ignore'],
+    }).toString()
+    const entries: [string, string][] = []
+    for (const line of out.split(/\r?\n/)) {
+      const m = line.match(/^([A-Z_]+)="?(.*?)"?$/)
+      if (m && m[1] && m[2] !== undefined) entries.push([m[1], m[2]])
+    }
+    return Object.fromEntries(entries)
+  } catch {
+    return {}
+  }
+}
+
+let cached: { url: string; serviceKey: string } | null | undefined
+
+export function localBackend(): { url: string; serviceKey: string } | null {
+  if (cached !== undefined) return cached
+  const envUrl = process.env.E2E_SUPABASE_URL
+  const envKey = process.env.E2E_SERVICE_ROLE_KEY
+  if (envUrl && envKey) {
+    cached = { url: envUrl, serviceKey: envKey }
+  } else {
+    const status = readStatus()
+    cached =
+      status.API_URL && status.SERVICE_ROLE_KEY
+        ? { url: status.API_URL, serviceKey: status.SERVICE_ROLE_KEY }
+        : null
+  }
+  if (cached && !/^http:\/\/(127\.0\.0\.1|localhost)(:\d+)?$/.test(cached.url)) {
+    throw new Error('E2E tests must only run against a local Supabase stack')
+  }
+  return cached
+}
+
+export interface TestUser {
+  email: string
+  password: string
+  name: string
+}
+
+/** Creates a confirmed test account through the local Auth admin API. */
+export async function createTestUser(name: string): Promise<TestUser> {
+  const backend = localBackend()
+  if (!backend) throw new Error('Local Supabase is not running')
+  const suffix = `${Date.now()}-${Math.floor(Math.random() * 1e6)}`
+  const user: TestUser = {
+    email: `${name.toLowerCase()}-${suffix}@e2e.test`,
+    password: `e2e-pass-${suffix}`,
+    name,
+  }
+  const res = await fetch(`${backend.url}/auth/v1/admin/users`, {
+    method: 'POST',
+    headers: {
+      apikey: backend.serviceKey,
+      Authorization: `Bearer ${backend.serviceKey}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      email: user.email,
+      password: user.password,
+      email_confirm: true,
+      user_metadata: { display_name: name },
+    }),
+  })
+  if (!res.ok) throw new Error(`Could not create test user: ${res.status} ${await res.text()}`)
+  return user
+}

@@ -3,7 +3,7 @@ import { readFileSync } from 'node:fs'
 import { fileURLToPath, URL } from 'node:url'
 import tailwindcss from '@tailwindcss/vite'
 import react from '@vitejs/plugin-react'
-import { defineConfig } from 'vite'
+import { defineConfig, loadEnv } from 'vite'
 
 /**
  * Reads the `/*` block of public/_headers (Cloudflare Pages format) so `vite preview`
@@ -24,13 +24,30 @@ function pagesRootHeaders(): Record<string, string> {
   return headers
 }
 
-export default defineConfig({
+/**
+ * Production CSP only allows *.supabase.co. When the build points at the local Supabase stack
+ * (development, CI end-to-end tests), the preview server additionally allows that loopback origin.
+ */
+function previewHeaders(mode: string): Record<string, string> {
+  const headers = pagesRootHeaders()
+  const apiUrl = loadEnv(mode, process.cwd(), 'VITE_').VITE_SUPABASE_URL ?? ''
+  const csp = headers['Content-Security-Policy']
+  if (csp && /^http:\/\/(127\.0\.0\.1|localhost)(:\d+)?$/.test(apiUrl)) {
+    const ws = apiUrl.replace(/^http/, 'ws')
+    headers['Content-Security-Policy'] = csp
+      .replace("connect-src 'self'", `connect-src 'self' ${apiUrl} ${ws}`)
+      .replace("img-src 'self'", `img-src 'self' ${apiUrl}`)
+  }
+  return headers
+}
+
+export default defineConfig(({ mode }) => ({
   plugins: [react(), tailwindcss()],
   resolve: {
     alias: { '@': fileURLToPath(new URL('./src', import.meta.url)) },
   },
   preview: {
-    headers: pagesRootHeaders(),
+    headers: previewHeaders(mode),
   },
   test: {
     environment: 'jsdom',
@@ -38,4 +55,4 @@ export default defineConfig({
     include: ['src/**/*.test.{ts,tsx}'],
     css: false,
   },
-})
+}))
