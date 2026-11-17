@@ -22,6 +22,7 @@ This document specifies the **PostgreSQL data model** for Luna Space on Supabase
 | DB8 | **Simple over clever** | Enumerations as Postgres enums where the list is stable; `text` with `check` where it may grow; `jsonb` only for genuinely flexible structures (eligibility criteria, template bodies, caches). |
 | DB9 | **Idempotent writes** | Offline-capable tables have `client_id uuid unique`; reminders and notifications use dedupe keys. |
 | DB10 | **Least privilege** | Security-definer functions live in the unexposed `private` schema with `search_path = ''`; clients have no DELETE policies on content tables. |
+| DB11 | **Guests are a separate audience** | Project Room guests live in `project_guest_memberships`, never in `workspace_members`. Project content carries a `guest_visible` flag; guest access is granted only by explicit guest policies (§31). |
 
 ### 1.1 Standard columns [std]
 
@@ -184,6 +185,37 @@ erDiagram
 | `profiles` | `github_connections`; `projects` → `project_repositories` | 1 : 0..1 / 1 : N | <span class="tag r3">R3</span> |
 | `profiles` | `ai_settings`; `workspaces` → `call_sessions` | 1 : 0..1 / 1 : N | <span class="tag r4">R4</span> |
 
+### 2.11 Project guest access <span class="tag r1">R1</span>
+
+```mermaid
+erDiagram
+  projects ||--o{ project_guest_invitations : issues
+  projects ||--o{ project_guest_memberships : "has guests"
+  projects ||--|| project_guest_settings : configures
+  profiles ||--o{ project_guest_memberships : "is guest in"
+  project_guest_invitations |o--o{ project_guest_memberships : "accepted via"
+  project_guest_memberships {
+    uuid project_id FK
+    uuid user_id FK
+    guest_role role
+    timestamptz removed_at
+  }
+```
+
+Guests never appear in `workspace_members`; the two-seat constraint (§15) is unaffected.
+
+### 2.12 Project meetings and Google <span class="tag r2">R2</span> <span class="tag r3">R3</span>
+
+```mermaid
+erDiagram
+  projects ||--o{ project_meetings : schedules
+  project_meetings ||--o{ meeting_participants : invites
+  project_meetings ||--o{ meeting_action_items : produces
+  meeting_action_items |o--o| tasks : "converted to"
+  project_meetings ||--o{ notes : "meeting notes"
+  profiles ||--o| google_connections : "R3 connects"
+```
+
 ## 3. Complete table inventory
 
 | # | Table | Domain | Visibility model | Rel. |
@@ -258,6 +290,14 @@ erDiagram
 | 68 | `github_connections` | Integrations | Owner only; token column hidden | <span class="tag r3">R3</span> |
 | 69 | `project_repositories` | Integrations | Inherits project | <span class="tag r3">R3</span> |
 | 70 | `ai_settings` | Integrations | Owner only; key hidden | <span class="tag r4">R4</span> |
+| 71 | `project_guest_invitations` | Guests | Room members + guest Project Admins (no token hash) | <span class="tag r1">R1</span> |
+| 72 | `project_guest_memberships` | Guests | Room members; each guest sees own row; Project Admin sees room list | <span class="tag r1">R1</span> |
+| 73 | `project_guest_settings` | Guests | Room members + guests (read), members + Project Admin (write) | <span class="tag r1">R1</span> |
+| 74 | `project_meetings` | Meetings | Room members; guests when `guest_visible` | <span class="tag r2">R2</span> |
+| 75 | `meeting_participants` | Meetings | Inherits meeting | <span class="tag r2">R2</span> |
+| 76 | `meeting_action_items` | Meetings | Inherits meeting | <span class="tag r2">R2</span> |
+| 77 | `google_connections` | Integrations | Owner only; token reference hidden | <span class="tag r3">R3</span> |
+| 78 | `oauth_states` | Integrations | Server only | <span class="tag r3">R3</span> |
 
 **Views:** `calendar_feed`, `dashboard_upcoming`, `expense_balances` (R3) — all `security_invoker = true`.
 
@@ -304,6 +344,11 @@ erDiagram
 | `trips`, `trip_items`, `trip_emergency_contacts`, `location_shares` | Travel (R3). |
 | `portfolio_items`, `portfolio_bullets`, `contacts` | Portfolio and networking (R3). |
 | `github_connections`, `project_repositories`, `ai_settings`, `call_sessions` | Integrations and calls (R3–R4). |
+| `project_guest_invitations` | Hashed, expiring, use-limited, revocable invitation links into one Project Room. |
+| `project_guest_memberships` | Guest role of a person in one room, with join and removal audit fields. |
+| `project_guest_settings` | Per-room guest permission toggles and guest cap. |
+| `project_meetings`, `meeting_participants`, `meeting_action_items` | Room meetings with Meet link, participants and follow-up items (R2). |
+| `google_connections`, `oauth_states` | Optional per-member Google account connection and short-lived OAuth state (R3). |
 
 ## 5. Column definitions
 
@@ -383,7 +428,8 @@ Every table has a single-column `uuid` primary key **except**:
 |---|---|---|
 | Workspace ownership | `workspace_id → workspaces(id)` | `cascade` (deleting a workspace deletes everything) |
 | Person reference (author, owner, actor) | `owner_id → profiles(id)` | `set null` (authorship display falls back to `workspace_member_history`) |
-| Member-only reference (assignee, approver, payer) | `(workspace_id, assignee_id) → workspace_members(workspace_id, user_id)` | `set null (assignee_id)` — a departed member can no longer be assigned |
+| Member-only reference (approver, payer) | `(workspace_id, assignee_id) → workspace_members(workspace_id, user_id)` | `set null (assignee_id)` — a departed member can no longer be assigned |
+| Room-participant reference (task / checklist / action-item assignee, meeting participant) | `assignee_id → profiles(id)` + trigger `private.validate_room_person()` (member of the workspace or active guest of the row's project) | `set null`; guest removal clears assignments in that room |
 | Parent–child in same workspace | `(project_id, workspace_id) → projects(id, workspace_id)` | `cascade` for owned children (tasks, items); `set null (project_id)` for optional links |
 | Optional cross-module link | `(opportunity_id, workspace_id) → opportunities(id, workspace_id)` | `set null (opportunity_id)` (PostgreSQL 15 column-list syntax) |
 | File references | `receipt_file_id → files(id)` | `set null` |
@@ -408,6 +454,9 @@ Every foreign-key column is indexed (see §11).
 | `messages`, `tasks`, `notes`, `checklist_items` | `(client_id)` | Idempotent offline replay |
 | `vault_folders` | `unique nulls not distinct (workspace_id, parent_id, name)` | No duplicate folder names at a level |
 | `location_shares` | partial `(sharer_id) where revoked_at is null and cleared_at is null` | One active share per member |
+| `project_guest_memberships` | partial `(project_id, user_id) where removed_at is null` | One active guest membership per person per room |
+| `project_guest_invitations` | `token_hash` | Token lookup |
+| `meeting_participants` | `(meeting_id, user_id)` (PK) | One response per person |
 | `weekly_reviews` | `(user_id, week_start)` | One review per week |
 
 > **Privacy note:** uniqueness that spans private records can leak their existence through constraint errors. For that reason duplicate-URL detection for opportunities is performed by a query under RLS, not by a workspace-wide unique constraint.
@@ -499,6 +548,7 @@ flowchart LR
 2. A private folder may contain only private items (trigger `private.enforce_folder_visibility`).
 3. Changing `private → shared` is logged in `activity_log` (PRD PRIV-03). Only the owner can change `shared → private` (RLS `with check`).
 4. The partner can see that a private record *exists* nowhere — not in counts, search, calendar or constraint errors.
+5. **Room-guest audience (R1):** project content additionally carries `guest_visible`. Guests of that room can see a row only if it belongs to their room, is `shared` and `guest_visible = true`. A `private` row can never be `guest_visible` (check constraint). Defaults: tasks, checklists, meetings `true`; notes, bookmarks, files `false`; rows created by guests are forced to `true`.
 
 ## 14. Workspace membership model
 
@@ -900,8 +950,9 @@ create table public.tasks (
   unique (id, workspace_id),
   foreign key (project_id, workspace_id) references public.projects (id, workspace_id) on delete cascade,
   foreign key (parent_task_id, workspace_id) references public.tasks (id, workspace_id) on delete cascade,
-  foreign key (workspace_id, assignee_id)
-    references public.workspace_members (workspace_id, user_id) on delete set null (assignee_id),
+  foreign key (assignee_id) references public.profiles (id) on delete set null,
+  -- assignee must be a member of the workspace or an active guest of the task's project:
+  -- enforced by trigger private.validate_room_person() (§31.4)
   check (visibility = 'shared' or owner_id is not null),
   check (project_id is null or visibility = 'shared'),        -- project tasks follow the project
   check (due_date is null or due_at is null),
@@ -970,8 +1021,7 @@ create table public.checklist_items (
   for_user_id   uuid references public.profiles(id) on delete set null,   -- packing items per person
   client_id     uuid unique,
   foreign key (checklist_id, workspace_id) references public.checklists (id, workspace_id) on delete cascade,
-  foreign key (workspace_id, assignee_id)
-    references public.workspace_members (workspace_id, user_id) on delete set null (assignee_id),
+  foreign key (assignee_id) references public.profiles (id) on delete set null,   -- validated like tasks
   check (is_done = (done_at is not null))
 );
 ```
@@ -1591,6 +1641,10 @@ create index on public.activity_log (project_id, created_at desc) where project_
 | `rate_limit_events` | Delete after 2 days |
 | `location_shares` | Null coordinates ≤ 5 min after expiry/stop; delete row after 7 days |
 | `client_errors` | Delete after 30 days |
+| `project_guest_invitations` | Delete 90 days after expiry or revocation |
+| `project_guest_memberships` (removed) | Keep 1 year after `removed_at` for audit, then delete |
+| `oauth_states` | Delete 10 minutes after creation (and on use) |
+| `project_meetings` | Life of the project; purged with it |
 | `cron.job_run_details` | Keep 14 days |
 
 ## 27. Integration tables
@@ -1619,6 +1673,7 @@ Every table in `public` has `alter table … enable row level security;`. Polici
 | **P4 Owner only** | notification_preferences, push_subscriptions, reminders, habits, habit_logs, focus_sessions, learning_logs, member_eligibility, weekly_reviews, export_jobs, github_connections, ai_settings | `user_id = (select auth.uid())` (or `owner_id`) |
 | **P5 Recipient** | notifications | select/update `recipient_id = (select auth.uid())`; no insert (server only) |
 | **P6 Server only** | rate_limit_events, client_errors (select), cron tables | RLS on with no client policies |
+| **P7 Room guest** | projects, tasks, task_comments, checklists, checklist_items, notes, bookmarks, files, activity_log, project_meetings (+ children), project guest tables | Separate permissive policies: row's room has `private.guest_role(project_id)` not null, row `guest_visible` and not deleted; writes need the role/setting in §31 and pass `private.guard_guest_write()` |
 
 `(select auth.uid())` and `(select private.current_workspace_id())` are wrapped in sub-selects so Postgres evaluates them once per statement rather than once per row.
 
@@ -1750,6 +1805,8 @@ Downloads always use signed URLs (`createSignedUrl`, ≤ 3600 s). No bucket is p
 | 0013 | `chat` | messages, message_reactions, chat_read_state, Realtime publication | <span class="tag r1">R1</span> |
 | 0014 | `vault_search` | vault_folders, notes, bookmarks, `search_workspace` RPC | <span class="tag r1">R1</span> |
 | 0015 | `recycle_export` | `restore_item` RPC, export_jobs, maintenance cron schedule | <span class="tag r1">R1</span> |
+| 0016 | `project_guests` | `guest_role` enum, project_guest_invitations, project_guest_memberships, project_guest_settings, `guest_visible` columns + checks, `private.guest_role`, `private.validate_room_person`, `private.guard_guest_write`, guest policies (incl. storage), `project_directory` and guest-management RPCs | <span class="tag r1">R1</span> |
+| 0100 | `project_meetings` | project_meetings, meeting_participants, meeting_action_items; `notes.meeting_id`, `reminders.meeting_id`; `calendar_feed` adds meeting rows; guest policies for meetings | <span class="tag r2">R2</span> |
 | 0101 | `academics` | subjects, timetable_slots, assessments; FKs from notes/bookmarks/reminders; extend `calendar_feed` | <span class="tag r2">R2</span> |
 | 0102 | `recurrence_conflicts` | rrule/exdates handling helpers, `detect_conflicts` | <span class="tag r2">R2</span> |
 | 0103 | `productivity` | goals, habits, habit_logs, focus_sessions, skills, skill_stage_history, courses, learning_logs, weekly_reviews | <span class="tag r2">R2</span> |
@@ -1762,6 +1819,7 @@ Downloads always use signed URLs (`createSignedUrl`, ≤ 3600 s). No bucket is p
 | 0204 | `project_prep` | judge_questions, retrospectives, project_skills | <span class="tag r3">R3</span> |
 | 0205 | `integrations` | github_connections, project_repositories, discovery_feeds, discovery_items | <span class="tag r3">R3</span> |
 | 0206 | `data_ownership` | `leave_workspace`, `delete_account` RPCs | <span class="tag r3">R3</span> |
+| 0207 | `google_integration` | oauth_states (also used by GitHub OAuth), google_connections; `project_meetings` Google reference columns already exist from 0100 | <span class="tag r3">R3</span> |
 | 0301 | `calls_ai` | call_sessions, ai_settings, Realtime authorization policies for call channels | <span class="tag r4">R4</span> |
 
 **Rules:** migrations are append-only; destructive changes use expand → migrate data → contract across two releases; each migration ships with its pgTAP tests; seed data lives only in `seed.sql` (never in production migrations), except built-in templates.
@@ -1775,6 +1833,297 @@ Downloads always use signed URLs (`createSignedUrl`, ≤ 3600 s). No bucket is p
 5. Delete the `workspace_members` row (freeing the seat) and set `left_at` in history; log a security activity entry.
 6. If no members remain, set `workspaces.deleted_at`; the workspace and all data are purged after 30 days.
 
+## 31. Project guest access model
+
+> **Proposed:** Added in v1.1. Guest access is **room-scoped** and **does not change** `workspace_members` or the two-seat constraint.
+
+### 31.1 Tables
+
+```sql
+create type public.guest_role as enum ('viewer', 'collaborator', 'project_admin');   -- ordered
+
+create table public.project_guest_invitations (
+  id            uuid primary key default gen_random_uuid(),
+  workspace_id  uuid not null,
+  project_id    uuid not null,
+  token_hash    bytea not null unique check (octet_length(token_hash) = 32),       -- sha256(token)
+  role          public.guest_role not null default 'collaborator',
+  label         text check (char_length(label) <= 60),
+  created_by    uuid references public.profiles(id) on delete set null,
+  created_at    timestamptz not null default now(),
+  expires_at    timestamptz not null,
+  max_uses      smallint check (max_uses between 1 and 25),                         -- null = unlimited until expiry
+  use_count     smallint not null default 0 check (use_count >= 0),
+  last_used_at  timestamptz,
+  revoked_at    timestamptz,
+  revoked_by    uuid references public.profiles(id) on delete set null,
+  foreign key (project_id, workspace_id) references public.projects (id, workspace_id) on delete cascade,
+  check (expires_at > created_at and expires_at <= created_at + interval '30 days'),
+  check (max_uses is null or use_count <= max_uses)
+);
+create index on public.project_guest_invitations (project_id, created_at desc);
+revoke select (token_hash) on public.project_guest_invitations from authenticated, anon;
+
+create table public.project_guest_memberships (
+  id              uuid primary key default gen_random_uuid(),
+  workspace_id    uuid not null,
+  project_id      uuid not null,
+  user_id         uuid not null references public.profiles(id) on delete cascade,
+  role            public.guest_role not null,
+  invitation_id   uuid references public.project_guest_invitations(id) on delete set null,
+  joined_at       timestamptz not null default now(),
+  role_changed_at timestamptz,
+  role_changed_by uuid references public.profiles(id) on delete set null,
+  removed_at      timestamptz,
+  removed_by      uuid references public.profiles(id) on delete set null,
+  removal_reason  text check (removal_reason in ('removed','left','became_member','project_deleted')),
+  foreign key (project_id, workspace_id) references public.projects (id, workspace_id) on delete cascade,
+  check ((removed_at is null) = (removal_reason is null))
+);
+create unique index project_guest_memberships_one_active
+  on public.project_guest_memberships (project_id, user_id) where removed_at is null;
+create index on public.project_guest_memberships (user_id) where removed_at is null;
+-- trigger private.reject_member_as_guest(): insert fails if user_id is in workspace_members for workspace_id
+-- trigger private.enforce_guest_cap(): active guests < project_guest_settings.max_guests (row-locks the project)
+
+create table public.project_guest_settings (
+  project_id                       uuid primary key,
+  workspace_id                     uuid not null,
+  collaborators_can_upload_files   boolean not null default true,
+  collaborators_can_create_tasks   boolean not null default true,
+  collaborators_can_schedule       boolean not null default true,     -- meetings, R2
+  viewers_can_comment              boolean not null default false,
+  guests_see_activity              boolean not null default true,
+  max_guests                       smallint not null default 10 check (max_guests between 1 and 25),
+  updated_at                       timestamptz not null default now(),
+  foreign key (project_id, workspace_id) references public.projects (id, workspace_id) on delete cascade
+);
+```
+
+A `project_guest_settings` row is inserted by an `after insert` trigger on `projects` (and back-filled for existing projects in migration 0016), so the settings lookup never misses. `private.log_activity()` copies `guest_visible` from the affected row, so guests only ever see activity about items they can already read.
+
+### 31.2 Columns added to existing tables (migration 0016)
+
+```sql
+alter table public.tasks        add column guest_visible boolean not null default true,
+                                add constraint tasks_guest_vis check (not guest_visible or project_id is not null);
+alter table public.checklists   add column guest_visible boolean not null default true;
+alter table public.notes        add column guest_visible boolean not null default false,
+                                add constraint notes_guest_vis
+                                check (not guest_visible or (project_id is not null and visibility = 'shared'));
+alter table public.bookmarks    add column guest_visible boolean not null default false,
+                                add constraint bookmarks_guest_vis
+                                check (not guest_visible or (project_id is not null and visibility = 'shared'));
+alter table public.files        add column guest_visible boolean not null default false,
+                                add constraint files_guest_vis
+                                check (not guest_visible or (project_id is not null and visibility = 'shared'));
+alter table public.activity_log add column guest_visible boolean not null default false;
+```
+
+Notes and bookmarks policies are created when those tables exist (migration 0014 runs before 0016, so 0016 covers them).
+
+### 31.3 Helper functions
+
+```sql
+-- Caller's active guest role in a project, or null. Security definer: reads memberships without RLS recursion.
+create or replace function private.guest_role(p_project uuid)
+returns public.guest_role language sql stable security definer set search_path = '' as $$
+  select g.role from public.project_guest_memberships g
+   where g.project_id = p_project and g.user_id = (select auth.uid()) and g.removed_at is null;
+$$;
+
+-- Room setting lookup used by guest write policies.
+create or replace function private.guest_setting(p_project uuid, p_key text)
+returns boolean language sql stable security definer set search_path = '' as $$
+  select coalesce((to_jsonb(s) ->> p_key)::boolean, false)
+    from public.project_guest_settings s where s.project_id = p_project;
+$$;
+
+-- People of a room for display: names, avatars, kind and role only (no email, time zone or settings).
+create or replace function public.project_directory(p_project uuid)
+returns table (user_id uuid, display_name text, avatar_path text, kind text, role text)
+language sql stable security definer set search_path = '' as $$
+  select m.user_id, p.display_name, p.avatar_path, 'member', null
+    from public.projects pr
+    join public.workspace_members m on m.workspace_id = pr.workspace_id
+    join public.profiles p on p.id = m.user_id
+   where pr.id = p_project
+     and (pr.workspace_id = private.current_workspace_id() or private.guest_role(p_project) is not null)
+  union all
+  select g.user_id, p.display_name, p.avatar_path, 'guest', g.role::text
+    from public.project_guest_memberships g join public.profiles p on p.id = g.user_id
+   where g.project_id = p_project and g.removed_at is null
+     and (exists (select 1 from public.projects pr where pr.id = p_project
+                   and pr.workspace_id = private.current_workspace_id())
+          or private.guest_role(p_project) is not null);
+$$;
+
+grant execute on function private.guest_role(uuid), private.guest_setting(uuid, text) to authenticated;
+```
+
+### 31.4 Integrity triggers
+
+| Trigger | On | Rule |
+|---|---|---|
+| `private.validate_room_person()` | tasks, checklist_items, meeting_action_items (`assignee_id`); meeting_participants (`user_id`) | Person must be a member of the row's workspace or an active guest of the row's project; a guest may only be attached to a `guest_visible` row |
+| `private.guard_guest_write()` | projects, tasks, task_comments, checklists, checklist_items, notes, bookmarks, files, project_meetings, meeting_action_items | If the caller is **not** a member of the row's workspace: `workspace_id`, `project_id`, `owner_id`/`created_by`, `visibility` cannot change; `guest_visible` cannot become false; inserts are forced `guest_visible = true` and `owner_id = auth.uid()`; `deleted_at` may be set only on rows the caller created (Project Admin: any guest-created row); on `projects` only `name`, `summary`, `stage` (not `archived`), `start_date`, `end_date`, `links`, `repo_urls` may change, and only by a Project Admin |
+| `private.on_guest_removed()` | project_guest_memberships (`removed_at` set) | Clear the guest's `assignee_id` on the room's tasks, checklist items and action items; delete their future `meeting_participants` rows; cancel their pending reminders; insert activity and notification |
+| `private.end_guest_on_membership()` | workspace_members (insert) | End any active guest memberships of that user in the same workspace with reason `became_member` |
+| `private.reject_member_as_guest()`, `private.enforce_guest_cap()` | project_guest_memberships (insert) | See §31.1 |
+
+### 31.5 Guest RLS policies (examples)
+
+```sql
+-- Rooms
+create policy projects_guest_select on public.projects for select to authenticated
+  using ( deleted_at is null and private.guest_role(id) is not null );
+create policy projects_guest_admin_update on public.projects for update to authenticated
+  using ( private.guest_role(id) = 'project_admin' )
+  with check ( private.guest_role(id) = 'project_admin' );          -- columns limited by guard trigger
+
+-- Tasks
+create policy tasks_guest_select on public.tasks for select to authenticated
+  using ( project_id is not null and guest_visible and deleted_at is null
+          and private.guest_role(project_id) is not null );
+create policy tasks_guest_insert on public.tasks for insert to authenticated
+  with check ( project_id is not null and guest_visible and owner_id = (select auth.uid())
+               and private.guest_role(project_id) >= 'collaborator'
+               and private.guest_setting(project_id, 'collaborators_can_create_tasks') );
+create policy tasks_guest_update on public.tasks for update to authenticated
+  using      ( project_id is not null and guest_visible and private.guest_role(project_id) >= 'collaborator' )
+  with check ( project_id is not null and guest_visible and private.guest_role(project_id) >= 'collaborator' );
+
+-- Notes (bookmarks identical; files add the upload setting)
+create policy notes_guest_select on public.notes for select to authenticated
+  using ( project_id is not null and guest_visible and visibility = 'shared' and deleted_at is null
+          and private.guest_role(project_id) is not null );
+create policy notes_guest_write on public.notes for insert to authenticated
+  with check ( project_id is not null and guest_visible and visibility = 'shared'
+               and owner_id = (select auth.uid()) and private.guest_role(project_id) >= 'collaborator' );
+
+-- Activity
+create policy activity_guest_select on public.activity_log for select to authenticated
+  using ( project_id is not null and guest_visible
+          and private.guest_role(project_id) is not null
+          and private.guest_setting(project_id, 'guests_see_activity') );
+
+-- Guest tables: own membership, and room lists for members / Project Admins
+create policy pgm_select on public.project_guest_memberships for select to authenticated
+  using ( user_id = (select auth.uid())
+          or workspace_id = (select private.current_workspace_id())
+          or private.guest_role(project_id) = 'project_admin' );
+-- No client INSERT/UPDATE/DELETE on project_guest_memberships or project_guest_invitations:
+-- changes go through project-invite-* Edge Functions and security-definer RPCs
+-- (revoke_project_invitation, set_guest_role, remove_project_guest, leave_project) that check the caller.
+```
+
+`guest_role` comparisons use the enum order (`viewer` < `collaborator` < `project_admin`); a `null` role makes every comparison false, so non-guests never match a guest policy. Storage needs no new policy: `storage.objects` read/insert policies already require a matching `files` row readable/owned under RLS (§29).
+
+**Tables deliberately without guest policies:** workspaces, workspace_members, workspace_invitations, profiles (except via `project_directory`), opportunities and all opportunity children, calendar_events, reminders of others, notifications of others, messages and chat tables, vault_folders, all productivity, academic, travel, portfolio, contact and integration tables. Guests therefore read zero rows from them (AC-29).
+
+### 31.6 Tests (pgTAP guest matrix)
+
+For each guest-reachable table: {member, guest viewer, guest collaborator, guest project admin, removed guest, guest of another room, outsider, anon} × {select, insert, update, soft-delete}, plus: private row cannot be `guest_visible`; guest cannot un-hide or move rows; two concurrent accepts for the last invitation use produce one membership; 26th guest rejected at cap 25; `workspace_members` count unchanged after guests join.
+
+## 32. Meetings and Google integration model
+
+### 32.1 Meeting tables (R2, migration 0100)
+
+```sql
+create table public.project_meetings (
+  id                 uuid primary key default gen_random_uuid(),
+  workspace_id       uuid not null,
+  project_id         uuid not null,
+  title              text not null check (char_length(title) between 1 and 200),
+  agenda             text check (char_length(agenda) <= 5000),
+  starts_at          timestamptz not null,
+  ends_at            timestamptz not null,
+  timezone           text not null,                                    -- organizer's IANA zone for display
+  status             text not null default 'scheduled' check (status in ('scheduled','cancelled','completed')),
+  meet_url           text check (meet_url ~ '^https://meet\.google\.com/[a-z0-9-]{3,64}$'),  -- no query or fragment
+  link_source        text not null default 'none'
+                     check (link_source in ('none','manual','google_calendar','google_meet_api')),
+  google_event_id    text,                                             -- R3, Option A reference only
+  google_space_name  text,                                             -- R3, Option B reference only
+  organizer_id       uuid references public.profiles(id) on delete set null,
+  guest_visible      boolean not null default true,
+  reminder_minutes   integer[] not null default '{1440,15}',
+  created_at timestamptz not null default now(), updated_at timestamptz not null default now(),
+  cancelled_at timestamptz, deleted_at timestamptz, deleted_by uuid references public.profiles(id) on delete set null,
+  unique (id, workspace_id),
+  foreign key (project_id, workspace_id) references public.projects (id, workspace_id) on delete cascade,
+  check (ends_at > starts_at and ends_at <= starts_at + interval '24 hours'),
+  check ((link_source = 'none') = (meet_url is null)),
+  check (google_event_id is null or link_source = 'google_calendar'),
+  check (google_space_name is null or link_source = 'google_meet_api'),
+  check ((status = 'cancelled') = (cancelled_at is not null))
+);
+create index on public.project_meetings (project_id, starts_at) where deleted_at is null;
+create index on public.project_meetings (workspace_id, starts_at) where deleted_at is null and status <> 'cancelled';
+
+create table public.meeting_participants (
+  meeting_id    uuid not null,
+  workspace_id  uuid not null,
+  user_id       uuid not null references public.profiles(id) on delete cascade,
+  response      text not null default 'invited' check (response in ('invited','going','maybe','not_going')),
+  is_organizer  boolean not null default false,
+  added_at      timestamptz not null default now(),
+  primary key (meeting_id, user_id),
+  foreign key (meeting_id, workspace_id) references public.project_meetings (id, workspace_id) on delete cascade
+);   -- user validated by private.validate_room_person()
+
+create table public.meeting_action_items (
+  id            uuid primary key default gen_random_uuid(),
+  workspace_id  uuid not null,
+  meeting_id    uuid not null,
+  text          text not null check (char_length(text) between 1 and 300),
+  assignee_id   uuid references public.profiles(id) on delete set null,   -- validated like task assignees
+  due_date      date,
+  status        text not null default 'open' check (status in ('open','converted','dropped')),
+  task_id       uuid references public.tasks(id) on delete set null,
+  created_by    uuid references public.profiles(id) on delete set null,
+  created_at    timestamptz not null default now(),
+  foreign key (meeting_id, workspace_id) references public.project_meetings (id, workspace_id) on delete cascade
+);
+
+alter table public.notes     add column meeting_id uuid references public.project_meetings(id) on delete set null;
+alter table public.reminders add column meeting_id uuid references public.project_meetings(id) on delete cascade;
+-- reminders' "at most one target" check is replaced to include meeting_id; dedupe key 'mt:{meeting}:{user}:{epoch}'
+-- decisions (migration 0105) gets meeting_id uuid references project_meetings(id) on delete set null
+```
+
+- **Calendar:** `calendar_feed` gains a branch `select 'meeting', m.id, m.workspace_id, m.title, 'meeting', false, null, null, m.starts_at, m.ends_at, 'shared', m.organizer_id from project_meetings m where m.deleted_at is null and m.status <> 'cancelled'`. Being `security_invoker`, members see all room meetings and guests only guest-visible ones of their rooms.
+- **Policies:** members — inherit project (EXISTS on `projects`); guests — select when `guest_visible` and `guest_role(project_id)` not null; insert/update when role ≥ collaborator and `collaborators_can_schedule`, with `link_source in ('none','manual')` (guard trigger); participants and action items inherit the meeting.
+- **Not stored:** recordings, transcripts, Meet chat, attendance, Google attendee lists, participants' emails.
+
+### 32.2 Google connection tables (R3, migration 0207)
+
+```sql
+create table public.google_connections (
+  user_id                  uuid primary key references public.profiles(id) on delete cascade,
+  google_subject           text not null,                    -- Google account id ("sub")
+  account_label            text,                             -- e.g. masked email shown to the owner only
+  refresh_token_secret_id  uuid not null,                    -- Supabase Vault secret id
+  scopes                   text[] not null,
+  status                   text not null default 'active' check (status in ('active','reauth_required')),
+  connected_at             timestamptz not null default now(),
+  last_used_at             timestamptz
+);
+revoke select (refresh_token_secret_id) on public.google_connections from authenticated, anon;
+
+create table public.oauth_states (                           -- shared by GitHub and Google OAuth
+  id                        uuid primary key default gen_random_uuid(),
+  user_id                   uuid not null references public.profiles(id) on delete cascade,
+  provider                  text not null check (provider in ('github','google')),
+  state_hash                bytea not null unique check (octet_length(state_hash) = 32),
+  code_verifier_secret_id   uuid,                            -- PKCE verifier in Vault
+  created_at                timestamptz not null default now(),
+  expires_at                timestamptz not null default now() + interval '10 minutes'
+);   -- RLS on, no client policies
+```
+
+RLS: `google_connections` owner-only select/delete (delete triggers token revocation through the `google-oauth` function, not directly); writes only by `google-oauth`. `oauth_states` server-only.
+
 ## Glossary
 
 | Term | Meaning |
@@ -1787,3 +2136,5 @@ Downloads always use signed URLs (`createSignedUrl`, ≤ 3600 s). No bucket is p
 | `tsvector` / GIN | Postgres full-text search document type and the index type used for it. |
 | pgTAP | Unit-testing framework for PostgreSQL. |
 | Expand–contract | Migration technique: add new structure, migrate, then remove the old structure later. |
+| Guest-visible | Flag on project content allowing that room's guests to read it. |
+| Guest matrix | The set of RLS tests run for every guest role against every guest-reachable table. |

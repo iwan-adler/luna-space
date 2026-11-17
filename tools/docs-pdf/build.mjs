@@ -13,7 +13,7 @@ const HTMLDIR = path.join(HERE, '.cache');
 fs.mkdirSync(OUT, { recursive: true });
 fs.mkdirSync(HTMLDIR, { recursive: true });
 
-const VERSION = '1.0';
+const VERSION = '1.1';
 const DATE = '17 November 2026';
 const DOCS = [
   { n: '01', src: '01_prd.md', pdf: '01_Luna_Space_PRD.pdf', title: 'Product Requirements Document', short: 'PRD' },
@@ -82,13 +82,13 @@ function render(doc, pageMap) {
   </div>
   <table class="meta">
     <tr><th>Document</th><td>${doc.pdf}</td></tr>
-    <tr><th>Version</th><td>${VERSION} — first complete draft</td></tr>
+    <tr><th>Version</th><td>${VERSION}</td></tr>
     <tr><th>Date</th><td>${DATE}</td></tr>
     <tr><th>Status</th><td>Draft for review. All architecture is <b>proposed</b>; nothing in this package describes a confirmed implementation.</td></tr>
     <tr><th>Companion documents</th><td>01 PRD · 02 Application Flow · 03 Implementation Plan · 04 TRD · 05 UI/UX Specification · 06 Backend Schema</td></tr>
     <tr><th>Precedence</th><td>Scope and priority: 01 PRD. Navigation: 02. Delivery order: 03. Technology: 04. Visual design: 05. Data model: 06.</td></tr>
   </table>
-  <table class="meta rev"><tr><th>Version</th><th>Date</th><th>Change</th></tr><tr><td>1.0</td><td>${DATE}</td><td>Initial release of the six-document package.</td></tr></table>
+  <table class="meta rev"><tr><th>Version</th><th>Date</th><th>Change</th></tr><tr><td>1.0</td><td>${DATE}</td><td>Initial release of the six-document package.</td></tr><tr><td>1.1</td><td>${DATE}</td><td>Added project-scoped guest access (R1), project meetings with Google Meet links (R2) and optional Google OAuth / automatic Meet links (R3). Two-member workspace limit unchanged.</td></tr></table>
 </section>
 <section class="toc"><h2 class="toc-h">Contents</h2><ol class="toclist">${toc}</ol></section>
 <main>${body}</main>
