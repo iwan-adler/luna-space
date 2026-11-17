@@ -22,3 +22,19 @@ test('page has no horizontal scroll at phone width', async ({ page }) => {
   )
   expect(overflow).toBeLessThanOrEqual(0)
 })
+
+test('production security headers allow the app to run without CSP violations', async ({
+  page,
+}) => {
+  const violations: string[] = []
+  page.on('console', (msg) => {
+    if (/Content Security Policy|Refused to/i.test(msg.text())) violations.push(msg.text())
+  })
+  page.on('pageerror', (err) => violations.push(err.message))
+
+  const response = await page.goto('/')
+  expect(response?.headers()['content-security-policy']).toContain("default-src 'self'")
+  await expect(page.getByRole('heading', { level: 1, name: 'Welcome to Luna Space' })).toBeVisible()
+  await page.evaluate(() => document.fonts.ready)
+  expect(violations).toEqual([])
+})
