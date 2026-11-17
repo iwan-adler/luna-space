@@ -50,8 +50,12 @@ export function HomePage() {
         <Card>
           <h2 className="mb-2 text-h3 font-semibold">What&apos;s next</h2>
           <p className="text-body-sm text-muted">
-            Opportunities with URL extraction arrive next, followed by project rooms, the calendar,
-            chat and the knowledge vault.
+            Track hackathons, internships and scholarships with their deadlines in{' '}
+            <Link to="/opportunities" className="font-medium text-primary hover:underline">
+              Opportunities
+            </Link>
+            . Automatic extraction from links, project rooms, the calendar, chat and the knowledge
+            vault follow in the next phases.
           </p>
         </Card>
       </div>

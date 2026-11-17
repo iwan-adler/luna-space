@@ -28,6 +28,8 @@ jobs:
       - run: npm run lint
       - run: npm run typecheck
       - run: npm test
+      - name: Unit tests in far-apart time zones (date-only values must never shift)
+        run: TZ=Pacific/Kiritimati npm test && TZ=America/Los_Angeles npm test
       - run: npm run build
       - name: No server secrets in the bundle
         run: npm run check:bundle-secrets
