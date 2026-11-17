@@ -1,0 +1,11 @@
+dist
+coverage
+playwright-report
+test-results
+planning
+package-lock.json
+docs/specs
+tools/docs-pdf
+supabase/.temp
+supabase/.branches
+src/types/database.ts

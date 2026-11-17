@@ -1,0 +1,40 @@
+name: Feature task
+description: One small, testable piece of work from the Implementation Plan backlog
+title: '[MODULE] '
+labels: ['type:feature']
+body:
+  - type: input
+    id: requirements
+    attributes:
+      label: Requirement IDs
+      description: From docs/specs/01_prd.md (FR-…, AC-…) and the backlog number in 03_impl.md §18
+      placeholder: FR-OPP-08, AC-10, backlog #50
+    validations:
+      required: true
+  - type: textarea
+    id: description
+    attributes:
+      label: Description
+      description: What to build, with links to the relevant spec sections
+    validations:
+      required: true
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Acceptance criteria
+      value: |
+        - [ ]
+    validations:
+      required: true
+  - type: textarea
+    id: tests
+    attributes:
+      label: Tests
+      placeholder: pgTAP for RLS; component test for …; e2e step in …
+  - type: dropdown
+    id: size
+    attributes:
+      label: Size
+      options: ['S', 'M', 'L (split before starting)']
+    validations:
+      required: true

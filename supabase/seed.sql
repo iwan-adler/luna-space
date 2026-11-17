@@ -1,0 +1,3 @@
+-- Local development seed data only (never applied to production).
+-- Phase 1 adds: two test members (a@example.test, b@example.test), one shared workspace,
+-- and an outsider (outsider@example.test) with their own workspace for isolation tests.

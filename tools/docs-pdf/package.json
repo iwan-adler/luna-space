@@ -1,0 +1,15 @@
+{
+  "name": "luna-space-docs-pdf",
+  "private": true,
+  "type": "module",
+  "description": "Builds the six planning PDFs from docs/specs (Markdown + Mermaid) using local Chrome.",
+  "scripts": {
+    "build": "node build.mjs",
+    "check": "node overflow.mjs"
+  },
+  "dependencies": {
+    "marked": "15.0.12",
+    "mermaid": "11.4.1",
+    "puppeteer-core": "23.11.1"
+  }
+}

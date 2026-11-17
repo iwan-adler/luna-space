@@ -1,0 +1,29 @@
+name: Security finding
+description: A gap against the security requirements (PRD §8.1, TRD §17)
+labels: ['type:security']
+body:
+  - type: input
+    id: requirement
+    attributes:
+      label: Requirement affected
+      placeholder: NFR-SEC-09 / TR-SEC-11
+    validations:
+      required: true
+  - type: textarea
+    id: finding
+    attributes:
+      label: Finding
+      description: Describe the gap without including real secrets or personal data.
+    validations:
+      required: true
+  - type: dropdown
+    id: severity
+    attributes:
+      label: Severity
+      options: [critical, high, medium, low]
+    validations:
+      required: true
+  - type: textarea
+    id: fix
+    attributes:
+      label: Proposed fix and test
