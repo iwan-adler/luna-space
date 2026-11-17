@@ -83,6 +83,136 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
+                },"opportunities": {
+                  Row: {
+                    "benefits": string | null,"created_at": string,"deleted_at": string | null,"deleted_by": string | null,"description": string | null,"eligibility_criteria": Json | null,"eligibility_text": string | null,"fee_amount": number | null,"fee_currency": string | null,"id": string,"is_free": boolean | null,"location": string | null,"mode": Database["public"]['Enums']["participation_mode"],"official_url": string | null,"organizer": string | null,"owner_id": string | null,"prizes": string | null,"registration_url": string | null,"required_documents": (string)[],"rules_text": string | null,"rules_url": string | null,"search": unknown,"status": Database["public"]['Enums']["opportunity_status"],"tags": (string)[],"team_max": number | null,"team_min": number | null,"title": string,"tracks": (string)[],"type": Database["public"]['Enums']["opportunity_type"],"updated_at": string,"visibility": Database["public"]['Enums']["visibility"],"workspace_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "benefits"?: string | null,"created_at"?: string,"deleted_at"?: string | null,"deleted_by"?: string | null,"description"?: string | null,"eligibility_criteria"?: Json | null,"eligibility_text"?: string | null,"fee_amount"?: number | null,"fee_currency"?: string | null,"id"?: string,"is_free"?: boolean | null,"location"?: string | null,"mode"?: Database["public"]['Enums']["participation_mode"],"official_url"?: string | null,"organizer"?: string | null,"owner_id"?: string | null,"prizes"?: string | null,"registration_url"?: string | null,"required_documents"?: (string)[],"rules_text"?: string | null,"rules_url"?: string | null,"search"?: never,"status"?: Database["public"]['Enums']["opportunity_status"],"tags"?: (string)[],"team_max"?: number | null,"team_min"?: number | null,"title": string,"tracks"?: (string)[],"type": Database["public"]['Enums']["opportunity_type"],"updated_at"?: string,"visibility"?: Database["public"]['Enums']["visibility"],"workspace_id": string
+                  }
+                  Update: {
+                    "benefits"?: string | null,"created_at"?: string,"deleted_at"?: string | null,"deleted_by"?: string | null,"description"?: string | null,"eligibility_criteria"?: Json | null,"eligibility_text"?: string | null,"fee_amount"?: number | null,"fee_currency"?: string | null,"id"?: string,"is_free"?: boolean | null,"location"?: string | null,"mode"?: Database["public"]['Enums']["participation_mode"],"official_url"?: string | null,"organizer"?: string | null,"owner_id"?: string | null,"prizes"?: string | null,"registration_url"?: string | null,"required_documents"?: (string)[],"rules_text"?: string | null,"rules_url"?: string | null,"search"?: never,"status"?: Database["public"]['Enums']["opportunity_status"],"tags"?: (string)[],"team_max"?: number | null,"team_min"?: number | null,"title"?: string,"tracks"?: (string)[],"type"?: Database["public"]['Enums']["opportunity_type"],"updated_at"?: string,"visibility"?: Database["public"]['Enums']["visibility"],"workspace_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "opportunities_deleted_by_fkey"
+      columns: ["deleted_by"]
+isOneToOne: false
+      referencedRelation: "profiles"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "opportunities_owner_id_fkey"
+      columns: ["owner_id"]
+isOneToOne: false
+      referencedRelation: "profiles"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "opportunities_workspace_id_fkey"
+      columns: ["workspace_id"]
+isOneToOne: false
+      referencedRelation: "workspaces"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"opportunity_dates": {
+                  Row: {
+                    "all_day": boolean,"at_time": string | null,"created_at": string,"id": string,"kind": Database["public"]['Enums']["date_kind"],"label": string | null,"on_date": string | null,"opportunity_id": string,"source_timezone": string | null,"updated_at": string,"workspace_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "all_day": boolean,"at_time"?: string | null,"created_at"?: string,"id"?: string,"kind": Database["public"]['Enums']["date_kind"],"label"?: string | null,"on_date"?: string | null,"opportunity_id": string,"source_timezone"?: string | null,"updated_at"?: string,"workspace_id": string
+                  }
+                  Update: {
+                    "all_day"?: boolean,"at_time"?: string | null,"created_at"?: string,"id"?: string,"kind"?: Database["public"]['Enums']["date_kind"],"label"?: string | null,"on_date"?: string | null,"opportunity_id"?: string,"source_timezone"?: string | null,"updated_at"?: string,"workspace_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "opportunity_dates_opportunity_id_workspace_id_fkey"
+      columns: ["opportunity_id","workspace_id"]
+isOneToOne: false
+      referencedRelation: "opportunities"
+      referencedColumns: ["id","workspace_id"]
+    }
+                  ]
+                },"opportunity_field_history": {
+                  Row: {
+                    "changed_at": string,"changed_by": string | null,"extraction_run_id": string | null,"field_key": string,"id": number,"new_value": Json | null,"old_value": Json | null,"opportunity_id": string,"source": Database["public"]['Enums']["provenance_source"],"workspace_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "changed_at"?: string,"changed_by"?: string | null,"extraction_run_id"?: string | null,"field_key": string,"id"?: never,"new_value"?: Json | null,"old_value"?: Json | null,"opportunity_id": string,"source": Database["public"]['Enums']["provenance_source"],"workspace_id": string
+                  }
+                  Update: {
+                    "changed_at"?: string,"changed_by"?: string | null,"extraction_run_id"?: string | null,"field_key"?: string,"id"?: never,"new_value"?: Json | null,"old_value"?: Json | null,"opportunity_id"?: string,"source"?: Database["public"]['Enums']["provenance_source"],"workspace_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "opportunity_field_history_changed_by_fkey"
+      columns: ["changed_by"]
+isOneToOne: false
+      referencedRelation: "profiles"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "opportunity_field_history_opportunity_id_workspace_id_fkey"
+      columns: ["opportunity_id","workspace_id"]
+isOneToOne: false
+      referencedRelation: "opportunities"
+      referencedColumns: ["id","workspace_id"]
+    }
+                  ]
+                },"opportunity_field_provenance": {
+                  Row: {
+                    "evidence": string | null,"extraction_run_id": string | null,"field_key": string,"opportunity_id": string,"source": Database["public"]['Enums']["provenance_source"],"status_at_acceptance": Database["public"]['Enums']["field_status"] | null,"verified_at": string,"verified_by": string | null,"workspace_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "evidence"?: string | null,"extraction_run_id"?: string | null,"field_key": string,"opportunity_id": string,"source": Database["public"]['Enums']["provenance_source"],"status_at_acceptance"?: Database["public"]['Enums']["field_status"] | null,"verified_at"?: string,"verified_by"?: string | null,"workspace_id": string
+                  }
+                  Update: {
+                    "evidence"?: string | null,"extraction_run_id"?: string | null,"field_key"?: string,"opportunity_id"?: string,"source"?: Database["public"]['Enums']["provenance_source"],"status_at_acceptance"?: Database["public"]['Enums']["field_status"] | null,"verified_at"?: string,"verified_by"?: string | null,"workspace_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "opportunity_field_provenance_opportunity_id_workspace_id_fkey"
+      columns: ["opportunity_id","workspace_id"]
+isOneToOne: false
+      referencedRelation: "opportunities"
+      referencedColumns: ["id","workspace_id"]
+    },{
+      foreignKeyName: "opportunity_field_provenance_verified_by_fkey"
+      columns: ["verified_by"]
+isOneToOne: false
+      referencedRelation: "profiles"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"opportunity_sources": {
+                  Row: {
+                    "created_at": string,"credibility": Database["public"]['Enums']["credibility_level"] | null,"credibility_reason": string | null,"credibility_set_by": string | null,"domain": string,"id": string,"is_primary": boolean,"last_check_outcome": string | null,"last_checked_at": string | null,"last_content_hash": string | null,"monitor": boolean,"normalized_url": string,"opportunity_id": string,"url": string,"workspace_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "created_at"?: string,"credibility"?: Database["public"]['Enums']["credibility_level"] | null,"credibility_reason"?: string | null,"credibility_set_by"?: string | null,"domain": string,"id"?: string,"is_primary"?: boolean,"last_check_outcome"?: string | null,"last_checked_at"?: string | null,"last_content_hash"?: string | null,"monitor"?: boolean,"normalized_url": string,"opportunity_id": string,"url": string,"workspace_id": string
+                  }
+                  Update: {
+                    "created_at"?: string,"credibility"?: Database["public"]['Enums']["credibility_level"] | null,"credibility_reason"?: string | null,"credibility_set_by"?: string | null,"domain"?: string,"id"?: string,"is_primary"?: boolean,"last_check_outcome"?: string | null,"last_checked_at"?: string | null,"last_content_hash"?: string | null,"monitor"?: boolean,"normalized_url"?: string,"opportunity_id"?: string,"url"?: string,"workspace_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "opportunity_sources_credibility_set_by_fkey"
+      columns: ["credibility_set_by"]
+isOneToOne: false
+      referencedRelation: "profiles"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "opportunity_sources_opportunity_id_workspace_id_fkey"
+      columns: ["opportunity_id","workspace_id"]
+isOneToOne: false
+      referencedRelation: "opportunities"
+      referencedColumns: ["id","workspace_id"]
+    }
+                  ]
                 },"profiles": {
                   Row: {
                     "availability": Database["public"]['Enums']["availability_status"],"avatar_path": string | null,"created_at": string,"display_name": string,"id": string,"timezone": string,"updated_at": string
@@ -229,6 +359,9 @@ isOneToOne: false
                            },
 "revoke_workspace_invitation":
 { Args: Record<PropertyKey, never>; Returns: Json
+                           },
+"save_opportunity":
+{ Args: { "p_dates"?: Json,"p_fields": Json,"p_id": string,"p_source_url"?: string }; Returns: string
                            }
           }
           Enums: {

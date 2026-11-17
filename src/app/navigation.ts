@@ -20,7 +20,7 @@ export interface NavItem {
 /** Primary modules (UI spec §8). Secondary modules appear here as their releases ship. */
 export const primaryNav: NavItem[] = [
   { to: '/', label: 'Home', icon: House },
-  { to: '/opportunities', label: 'Opportunities', icon: Trophy, phase: 'Phase 2' },
+  { to: '/opportunities', label: 'Opportunities', icon: Trophy },
   { to: '/projects', label: 'Projects', icon: FolderKanban, phase: 'Phase 4' },
   { to: '/tasks', label: 'My tasks', icon: ListChecks, phase: 'Phase 4' },
   { to: '/calendar', label: 'Calendar', icon: CalendarDays, phase: 'Phase 5' },

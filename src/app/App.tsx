@@ -1,4 +1,6 @@
+import { lazy, Suspense, type ReactNode } from 'react'
 import { Route, Routes } from 'react-router'
+import { PageSpinner } from '@/components/ui/Spinner'
 import {
   AuthCallbackPage,
   AuthLayout,
@@ -22,6 +24,20 @@ import { ComingSoonPage } from './ComingSoonPage'
 import { ConfigMissingPage } from './ConfigMissingPage'
 import { NotFoundPage } from './NotFoundPage'
 
+// Feature modules load on demand (TR-FE-01: route chunks, small initial bundle).
+const opportunities = () => import('@/features/opportunities')
+const OpportunityListPage = lazy(() =>
+  opportunities().then((m) => ({ default: m.OpportunityListPage })),
+)
+const OpportunityFormPage = lazy(() =>
+  opportunities().then((m) => ({ default: m.OpportunityFormPage })),
+)
+const OpportunityDetailPage = lazy(() =>
+  opportunities().then((m) => ({ default: m.OpportunityDetailPage })),
+)
+
+const page = (node: ReactNode) => <Suspense fallback={<PageSpinner />}>{node}</Suspense>
+
 export function App() {
   if (!publicEnv.ok) return <ConfigMissingPage />
   return (
@@ -40,7 +56,10 @@ export function App() {
         <Route element={<RequireWorkspace />}>
           <Route element={<AppShell />}>
             <Route index element={<HomePage />} />
-            <Route path="opportunities/*" element={<ComingSoonPage />} />
+            <Route path="opportunities" element={page(<OpportunityListPage />)} />
+            <Route path="opportunities/new" element={page(<OpportunityFormPage />)} />
+            <Route path="opportunities/:id" element={page(<OpportunityDetailPage />)} />
+            <Route path="opportunities/:id/edit" element={page(<OpportunityFormPage />)} />
             <Route path="projects/*" element={<ComingSoonPage />} />
             <Route path="tasks" element={<ComingSoonPage />} />
             <Route path="calendar" element={<ComingSoonPage />} />

@@ -9,7 +9,7 @@ import { Alert } from '@/components/ui/Card'
 import { SelectField, TextField } from '@/components/ui/Field'
 import { PageSpinner } from '@/components/ui/Spinner'
 import { useMyProfile, useUpdateProfile } from '@/features/profile'
-import { deviceTimeZone, listTimeZones } from '@/lib/timezones'
+import { deviceTimeZone, timeZoneOptions } from '@/lib/timezones'
 import { InviteLinkPanel } from '../components/InviteLinkPanel'
 import { useCreateWorkspace, useMembership } from '../hooks'
 
@@ -92,7 +92,7 @@ function ProfileStep({
     resolver: zodResolver(profileSchema),
     defaultValues: defaults,
   })
-  const zones = listTimeZones().map((z) => ({ value: z, label: z.replace(/_/g, ' ') }))
+  const zones = timeZoneOptions(defaults.timezone)
 
   return (
     <form

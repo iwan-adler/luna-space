@@ -8,7 +8,7 @@ import { SelectField, TextField } from '@/components/ui/Field'
 import { PageSpinner } from '@/components/ui/Spinner'
 import { useToast } from '@/components/ui/Toast'
 import { readThemePreference, saveThemePreference, type ThemePreference } from '@/lib/theme'
-import { listTimeZones } from '@/lib/timezones'
+import { timeZoneOptions } from '@/lib/timezones'
 import { useMyProfile, useUpdateProfile } from './hooks'
 
 const schema = z.object({
@@ -68,7 +68,7 @@ export function ProfileSettingsPage() {
           <SelectField
             label="Time zone"
             hint="Used for deadlines and reminders."
-            options={listTimeZones().map((z) => ({ value: z, label: z.replace(/_/g, ' ') }))}
+            options={timeZoneOptions(profile.data.timezone)}
             {...form.register('timezone')}
           />
           <SelectField
