@@ -2,14 +2,17 @@ import { describe, expect, it } from 'vitest'
 import { readPublicEnv } from './env'
 
 describe('readPublicEnv', () => {
+  // Fake, non-secret test value; marked so gitleaks does not flag it.
+  const FAKE_PUBLISHABLE_KEY = 'sb_publishable_123' // gitleaks:allow
+
   it('accepts an https Supabase URL with a publishable key', () => {
     const result = readPublicEnv({
       VITE_SUPABASE_URL: 'https://abc.supabase.co',
-      VITE_SUPABASE_ANON_KEY: 'sb_publishable_123',
+      VITE_SUPABASE_ANON_KEY: FAKE_PUBLISHABLE_KEY,
     })
     expect(result).toEqual({
       ok: true,
-      env: { supabaseUrl: 'https://abc.supabase.co', supabaseAnonKey: 'sb_publishable_123' },
+      env: { supabaseUrl: 'https://abc.supabase.co', supabaseAnonKey: FAKE_PUBLISHABLE_KEY },
     })
   })
 
