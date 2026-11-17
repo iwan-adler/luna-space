@@ -1,0 +1,7 @@
+# gitleaks configuration: default rules plus an allow-list for fake values used in tests.
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Obviously fake, non-secret test values"
+regexes = ['''sb_publishable_123''']
