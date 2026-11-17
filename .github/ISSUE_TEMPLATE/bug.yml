@@ -1,0 +1,32 @@
+name: Bug
+description: Something does not work as specified
+labels: ['type:bug']
+body:
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened, and what did you expect?
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      value: |
+        1.
+    validations:
+      required: true
+  - type: input
+    id: device
+    attributes:
+      label: Device and browser
+      placeholder: Windows / Chrome 1xx, Android / Chrome, installed PWA?
+  - type: input
+    id: error-id
+    attributes:
+      label: Error ID (if shown)
+  - type: textarea
+    id: notes
+    attributes:
+      label: Notes
+      description: Do not paste passwords, tokens or personal data.

@@ -1,0 +1,10 @@
+{
+  "recommendations": [
+    "dbaeumer.vscode-eslint",
+    "esbenp.prettier-vscode",
+    "bradlc.vscode-tailwindcss",
+    "denoland.vscode-deno",
+    "ms-playwright.playwright",
+    "editorconfig.editorconfig"
+  ]
+}

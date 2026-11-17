@@ -1,0 +1,79 @@
+/*
+ * Luna DS design tokens — source: docs/specs/05_uiux.md §4–6, §26.
+ * Light values are the default; dark values apply when the OS prefers dark
+ * (unless the user forced light) or when <html data-theme="dark"> is set.
+ */
+:root {
+  color-scheme: light;
+
+  /* Brand and neutrals */
+  --color-primary: #5b4fe0;
+  --color-primary-hover: #4a3fcc;
+  --color-primary-subtle: #eeecfd;
+  --color-on-primary: #ffffff;
+  --color-accent: #e9b949;
+  --color-bg: #f7f7fb;
+  --color-surface: #ffffff;
+  --color-surface-raised: #ffffff;
+  --color-border: #e4e4ee;
+  --color-text: #1b1d2e;
+  --color-text-muted: #5e6178;
+
+  /* Semantic */
+  --color-success: #1e9e6a;
+  --color-info: #2f6fd6;
+  --color-warning: #c27c0a;
+  --color-danger: #c93c3c;
+  --color-neutral: #8a8da6;
+
+  /* Elevation */
+  --shadow-1: 0 1px 2px rgb(20 23 46 / 0.06);
+  --shadow-2: 0 4px 12px rgb(20 23 46 / 0.1);
+  --shadow-3: 0 12px 32px rgb(20 23 46 / 0.16);
+
+  /* Motion */
+  --motion-fast: 120ms;
+  --motion-base: 200ms;
+  --motion-slow: 320ms;
+  --ease-standard: cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    color-scheme: dark;
+    --color-primary: #8b82f2;
+    --color-primary-hover: #a29bf5;
+    --color-primary-subtle: #25224a;
+    --color-on-primary: #0e1022;
+    --color-accent: #f0c866;
+    --color-bg: #0e1022;
+    --color-surface: #171a33;
+    --color-surface-raised: #20243f;
+    --color-border: #2c3050;
+    --color-text: #ecedf6;
+    --color-text-muted: #a3a6c0;
+  }
+}
+
+:root[data-theme='dark'] {
+  color-scheme: dark;
+  --color-primary: #8b82f2;
+  --color-primary-hover: #a29bf5;
+  --color-primary-subtle: #25224a;
+  --color-on-primary: #0e1022;
+  --color-accent: #f0c866;
+  --color-bg: #0e1022;
+  --color-surface: #171a33;
+  --color-surface-raised: #20243f;
+  --color-border: #2c3050;
+  --color-text: #ecedf6;
+  --color-text-muted: #a3a6c0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --motion-fast: 0ms;
+    --motion-base: 0ms;
+    --motion-slow: 0ms;
+  }
+}

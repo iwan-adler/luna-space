@@ -1,0 +1,31 @@
+# dependencies
+node_modules/
+
+# build and test output
+dist/
+coverage/
+playwright-report/
+test-results/
+*.tsbuildinfo
+
+# environment — only .env.example is committed
+.env
+.env.*
+!.env.example
+
+# Supabase local state
+supabase/.temp/
+supabase/.branches/
+supabase/functions/.env
+
+# generated planning PDFs (rebuild with tools/docs-pdf)
+planning/
+tools/docs-pdf/.cache/
+
+# editors / OS
+.DS_Store
+Thumbs.db
+*.log
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
