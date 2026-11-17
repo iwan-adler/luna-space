@@ -1,22 +1,21 @@
 import { expect, test } from '@playwright/test'
 
-test('home page loads with the app shell', async ({ page }) => {
+test('signed-out visitors land on sign-in', async ({ page }) => {
   await page.goto('/')
   await expect(page).toHaveTitle('Luna Space')
-  await expect(page.getByRole('heading', { level: 1, name: 'Welcome to Luna Space' })).toBeVisible()
-  await expect(page.getByTestId('backend-status')).toBeVisible()
+  await expect(page).toHaveURL(/\/auth\/sign-in$/)
+  await expect(page.getByRole('heading', { name: 'Sign in' })).toBeVisible()
 })
 
-test('client-side routing reaches the sign-in placeholder', async ({ page }) => {
-  await page.goto('/')
-  await page.getByRole('link', { name: 'Placeholder' }).click()
-  await expect(page).toHaveURL(/\/auth\/sign-in$/)
-  await expect(page.getByRole('heading', { level: 1, name: 'Sign in' })).toBeVisible()
+test('sign-in validates input before calling the server', async ({ page }) => {
+  await page.goto('/auth/sign-in')
+  await page.getByRole('button', { name: 'Sign in', exact: true }).click()
+  await expect(page.getByText('Enter a valid email address')).toBeVisible()
 })
 
 test('page has no horizontal scroll at phone width', async ({ page }) => {
   await page.setViewportSize({ width: 360, height: 740 })
-  await page.goto('/')
+  await page.goto('/auth/sign-up')
   const overflow = await page.evaluate(
     () => document.documentElement.scrollWidth - document.documentElement.clientWidth,
   )
@@ -32,9 +31,9 @@ test('production security headers allow the app to run without CSP violations', 
   })
   page.on('pageerror', (err) => violations.push(err.message))
 
-  const response = await page.goto('/')
+  const response = await page.goto('/auth/sign-in')
   expect(response?.headers()['content-security-policy']).toContain("default-src 'self'")
-  await expect(page.getByRole('heading', { level: 1, name: 'Welcome to Luna Space' })).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'Sign in' })).toBeVisible()
   await page.evaluate(() => document.fonts.ready)
   expect(violations).toEqual([])
 })

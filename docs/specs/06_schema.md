@@ -598,7 +598,10 @@ create table public.workspace_invitations (
 create unique index workspace_invitations_one_open
   on public.workspace_invitations (workspace_id)
   where accepted_at is null and revoked_at is null;
-revoke select (token_hash) on public.workspace_invitations from authenticated, anon;
+-- A column-level REVOKE cannot override a table-level GRANT, so grant only the safe columns:
+revoke all on public.workspace_invitations from anon, authenticated;
+grant select (id, workspace_id, created_by, created_at, expires_at, accepted_by, accepted_at, revoked_at)
+  on public.workspace_invitations to authenticated;
 
 create table public.workspace_member_history (
   id             uuid primary key default gen_random_uuid(),

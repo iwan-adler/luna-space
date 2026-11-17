@@ -44,6 +44,18 @@ jobs:
           node-version: lts/*
           cache: npm
       - run: npm ci
+      - uses: supabase/setup-cli@v1
+        with:
+          version: 3.2.0
+      - name: Start local Supabase (auth, REST, database)
+        run: supabase start -x studio,imgproxy,vector,logflare,supavisor,edge-runtime
+      - name: Point the build and tests at the local stack
+        run: |
+          eval "$(supabase status -o env | grep -E '^(API_URL|PUBLISHABLE_KEY|SERVICE_ROLE_KEY)=')"
+          printf 'VITE_SUPABASE_URL=%s\nVITE_SUPABASE_ANON_KEY=%s\n' "$API_URL" "$PUBLISHABLE_KEY" > .env.local
+          # Local-stack demo key (not a secret); used only to create e2e test accounts.
+          echo "E2E_SUPABASE_URL=$API_URL" >> "$GITHUB_ENV"
+          echo "E2E_SERVICE_ROLE_KEY=$SERVICE_ROLE_KEY" >> "$GITHUB_ENV"
       - run: npx playwright install --with-deps chromium
       - run: npm run e2e
       - if: failure()
