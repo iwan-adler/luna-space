@@ -83,6 +83,58 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
+                },"extraction_fields": {
+                  Row: {
+                    "candidate_no": number,"evidence": string | null,"field_key": string,"id": string,"reason": string | null,"rule_id": string | null,"run_id": string,"status": Database["public"]['Enums']["field_status"],"value": Json | null
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "candidate_no"?: number,"evidence"?: string | null,"field_key": string,"id"?: string,"reason"?: string | null,"rule_id"?: string | null,"run_id": string,"status": Database["public"]['Enums']["field_status"],"value"?: Json | null
+                  }
+                  Update: {
+                    "candidate_no"?: number,"evidence"?: string | null,"field_key"?: string,"id"?: string,"reason"?: string | null,"rule_id"?: string | null,"run_id"?: string,"status"?: Database["public"]['Enums']["field_status"],"value"?: Json | null
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "extraction_fields_run_id_fkey"
+      columns: ["run_id"]
+isOneToOne: false
+      referencedRelation: "extraction_runs"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"extraction_runs": {
+                  Row: {
+                    "content_hash": string | null,"content_type": string | null,"error_code": string | null,"expires_at": string | null,"extractor_version": string,"final_url": string | null,"finished_at": string | null,"http_status": number | null,"id": string,"is_recheck": boolean,"opportunity_id": string | null,"requested_by": string | null,"source_url": string,"started_at": string,"status": string,"thin": boolean,"workspace_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "content_hash"?: string | null,"content_type"?: string | null,"error_code"?: string | null,"expires_at"?: string | null,"extractor_version"?: string,"final_url"?: string | null,"finished_at"?: string | null,"http_status"?: number | null,"id"?: string,"is_recheck"?: boolean,"opportunity_id"?: string | null,"requested_by"?: string | null,"source_url": string,"started_at"?: string,"status"?: string,"thin"?: boolean,"workspace_id": string
+                  }
+                  Update: {
+                    "content_hash"?: string | null,"content_type"?: string | null,"error_code"?: string | null,"expires_at"?: string | null,"extractor_version"?: string,"final_url"?: string | null,"finished_at"?: string | null,"http_status"?: number | null,"id"?: string,"is_recheck"?: boolean,"opportunity_id"?: string | null,"requested_by"?: string | null,"source_url"?: string,"started_at"?: string,"status"?: string,"thin"?: boolean,"workspace_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "extraction_runs_opportunity_id_workspace_id_fkey"
+      columns: ["opportunity_id","workspace_id"]
+isOneToOne: false
+      referencedRelation: "opportunities"
+      referencedColumns: ["id","workspace_id"]
+    },{
+      foreignKeyName: "extraction_runs_requested_by_fkey"
+      columns: ["requested_by"]
+isOneToOne: false
+      referencedRelation: "profiles"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "extraction_runs_workspace_id_fkey"
+      columns: ["workspace_id"]
+isOneToOne: false
+      referencedRelation: "workspaces"
+      referencedColumns: ["id"]
+    }
+                  ]
                 },"opportunities": {
                   Row: {
                     "benefits": string | null,"created_at": string,"deleted_at": string | null,"deleted_by": string | null,"description": string | null,"eligibility_criteria": Json | null,"eligibility_text": string | null,"fee_amount": number | null,"fee_currency": string | null,"id": string,"is_free": boolean | null,"location": string | null,"mode": Database["public"]['Enums']["participation_mode"],"official_url": string | null,"organizer": string | null,"owner_id": string | null,"prizes": string | null,"registration_url": string | null,"required_documents": (string)[],"rules_text": string | null,"rules_url": string | null,"search": unknown,"status": Database["public"]['Enums']["opportunity_status"],"tags": (string)[],"team_max": number | null,"team_min": number | null,"title": string,"tracks": (string)[],"type": Database["public"]['Enums']["opportunity_type"],"updated_at": string,"visibility": Database["public"]['Enums']["visibility"],"workspace_id": string
@@ -159,6 +211,12 @@ isOneToOne: false
 isOneToOne: false
       referencedRelation: "opportunities"
       referencedColumns: ["id","workspace_id"]
+    },{
+      foreignKeyName: "opportunity_field_history_run_fk"
+      columns: ["extraction_run_id"]
+isOneToOne: false
+      referencedRelation: "extraction_runs"
+      referencedColumns: ["id"]
     }
                   ]
                 },"opportunity_field_provenance": {
@@ -179,6 +237,12 @@ isOneToOne: false
 isOneToOne: false
       referencedRelation: "opportunities"
       referencedColumns: ["id","workspace_id"]
+    },{
+      foreignKeyName: "opportunity_field_provenance_run_fk"
+      columns: ["extraction_run_id"]
+isOneToOne: false
+      referencedRelation: "extraction_runs"
+      referencedColumns: ["id"]
     },{
       foreignKeyName: "opportunity_field_provenance_verified_by_fkey"
       columns: ["verified_by"]
@@ -345,8 +409,14 @@ isOneToOne: false
             [_ in never]: never
           }
           Functions: {
-            "accept_workspace_invitation":
+            "accept_extraction":
+{ Args: { "p_accepted": Json,"p_dates": Json,"p_fields": Json,"p_run": string }; Returns: string
+                           },
+"accept_workspace_invitation":
 { Args: { "p_token": string }; Returns: Json
+                           },
+"complete_extraction_run":
+{ Args: { "p_content_hash_hex": string,"p_content_type": string,"p_error_code": string,"p_fields": Json,"p_final_url": string,"p_http_status": number,"p_run": string,"p_status": string,"p_thin": boolean }; Returns: undefined
                            },
 "create_workspace":
 { Args: { "p_name": string }; Returns: string
@@ -362,6 +432,9 @@ isOneToOne: false
                            },
 "save_opportunity":
 { Args: { "p_dates"?: Json,"p_fields": Json,"p_id": string,"p_source_url"?: string }; Returns: string
+                           },
+"start_extraction_run":
+{ Args: { "p_url": string }; Returns: Json
                            }
           }
           Enums: {

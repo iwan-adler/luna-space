@@ -36,6 +36,13 @@ const OpportunityDetailPage = lazy(() =>
   opportunities().then((m) => ({ default: m.OpportunityDetailPage })),
 )
 
+const AddOpportunityPage = lazy(() =>
+  opportunities().then((m) => ({ default: m.AddOpportunityPage })),
+)
+const ReviewExtractionPage = lazy(() =>
+  opportunities().then((m) => ({ default: m.ReviewExtractionPage })),
+)
+
 const page = (node: ReactNode) => <Suspense fallback={<PageSpinner />}>{node}</Suspense>
 
 export function App() {
@@ -57,7 +64,9 @@ export function App() {
           <Route element={<AppShell />}>
             <Route index element={<HomePage />} />
             <Route path="opportunities" element={page(<OpportunityListPage />)} />
-            <Route path="opportunities/new" element={page(<OpportunityFormPage />)} />
+            <Route path="opportunities/new" element={page(<AddOpportunityPage />)} />
+            <Route path="opportunities/new/manual" element={page(<OpportunityFormPage />)} />
+            <Route path="opportunities/review/:runId" element={page(<ReviewExtractionPage />)} />
             <Route path="opportunities/:id" element={page(<OpportunityDetailPage />)} />
             <Route path="opportunities/:id/edit" element={page(<OpportunityFormPage />)} />
             <Route path="projects/*" element={<ComingSoonPage />} />

@@ -43,6 +43,7 @@ export function localBackend(): { url: string; serviceKey: string } | null {
 }
 
 export interface TestUser {
+  id?: string
   email: string
   password: string
   name: string
@@ -73,5 +74,64 @@ export async function createTestUser(name: string): Promise<TestUser> {
     }),
   })
   if (!res.ok) throw new Error(`Could not create test user: ${res.status} ${await res.text()}`)
-  return user
+  const created = (await res.json()) as { id?: string }
+  return { ...user, ...(created.id ? { id: created.id } : {}) }
+}
+
+/** PostgREST call with the local service-role key (bypasses RLS; test setup only). */
+export async function serviceRest<T>(path: string, init: RequestInit = {}): Promise<T> {
+  const backend = localBackend()
+  if (!backend) throw new Error('Local Supabase is not running')
+  const res = await fetch(`${backend.url}/rest/v1/${path}`, {
+    ...init,
+    headers: {
+      apikey: backend.serviceKey,
+      Authorization: `Bearer ${backend.serviceKey}`,
+      'Content-Type': 'application/json',
+      Prefer: 'return=representation',
+      ...(init.headers ?? {}),
+    },
+  })
+  if (!res.ok) throw new Error(`REST ${path}: ${res.status} ${await res.text()}`)
+  return (await res.json()) as T
+}
+
+/** Seeds a finished extraction run for a member, as the Edge Function would (test setup only). */
+export async function seedExtractionRun(
+  userId: string,
+  url: string,
+  fields: Record<string, unknown>[],
+): Promise<string> {
+  const [member] = await serviceRest<{ workspace_id: string }[]>(
+    `workspace_members?user_id=eq.${userId}&select=workspace_id`,
+  )
+  if (!member) throw new Error('User has no workspace')
+  const [run] = await serviceRest<{ id: string }[]>('extraction_runs', {
+    method: 'POST',
+    body: JSON.stringify({
+      workspace_id: member.workspace_id,
+      requested_by: userId,
+      source_url: url,
+      final_url: url,
+      http_status: 200,
+      content_type: 'text/html',
+      status: 'succeeded',
+      finished_at: new Date().toISOString(),
+    }),
+  })
+  await serviceRest('extraction_fields', {
+    method: 'POST',
+    body: JSON.stringify(
+      fields.map((f) => ({
+        run_id: run!.id,
+        candidate_no: 1,
+        value: null,
+        evidence: null,
+        rule_id: null,
+        reason: null,
+        ...f,
+      })),
+    ),
+  })
+  return run!.id
 }
