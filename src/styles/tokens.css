@@ -26,6 +26,7 @@
   --color-accent: #5eead4;
   /* Moonlight gold, used sparingly for editorial details */
   --color-moon: #f0d68a;
+  --color-rose: #f9a8d4;
 
   /* Semantic */
   --color-success: #6ee7b7;
@@ -77,6 +78,7 @@
   --color-on-primary: #ffffff;
   --color-accent: #0d9488;
   --color-moon: #9a6a12;
+  --color-rose: #be3f7f;
   --color-success: #0f8a5f;
   --color-info: #1d6fc4;
   --color-warning: #b45f0a;
@@ -113,7 +115,7 @@
     --color-on-primary: #ffffff;
     --color-accent: #0d9488;
     --color-moon: #9a6a12;
-    --color-moon: #9a6a12;
+    --color-rose: #be3f7f;
     --color-success: #0f8a5f;
     --color-info: #1d6fc4;
     --color-warning: #b45f0a;

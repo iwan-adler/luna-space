@@ -10,6 +10,7 @@ import { Dialog } from '@/components/ui/Dialog'
 import { PageSpinner } from '@/components/ui/Spinner'
 import { useToast } from '@/components/ui/Toast'
 import { useAuth } from '@/features/auth'
+import { NotificationBell } from '@/features/notifications'
 import { formatDateOnly } from '@/lib/dates'
 import { STAGE_LABELS } from '../constants'
 import { useLeaveRoom, useMyGuestRooms } from '../guests'
@@ -29,9 +30,9 @@ export function GuestShell() {
             Luna Space
           </Link>
           <Badge tone="info">Guest</Badge>
-          <span className="ml-auto hidden truncate text-caption text-muted sm:block">
-            {user?.email}
-          </span>
+          <span className="ml-auto" />
+          <NotificationBell to="/guest/notifications" />
+          <span className="hidden truncate text-caption text-muted sm:block">{user?.email}</span>
           <Button
             variant="ghost"
             size="sm"

@@ -11,6 +11,7 @@ import {
   UpdatePasswordPage,
 } from '@/features/auth'
 import { HomePage } from '@/features/dashboard'
+import { NotificationsPage } from '@/features/notifications'
 import { ProfileSettingsPage } from '@/features/profile'
 import {
   AcceptInvitePage,
@@ -42,6 +43,8 @@ const AddOpportunityPage = lazy(() =>
 const ReviewExtractionPage = lazy(() =>
   opportunities().then((m) => ({ default: m.ReviewExtractionPage })),
 )
+const calendar = () => import('@/features/calendar')
+const CalendarPage = lazy(() => calendar().then((m) => ({ default: m.CalendarPage })))
 const projects = () => import('@/features/projects')
 const ProjectListPage = lazy(() => projects().then((m) => ({ default: m.ProjectListPage })))
 const ProjectRoomPage = lazy(() => projects().then((m) => ({ default: m.ProjectRoomPage })))
@@ -74,6 +77,7 @@ export function App() {
           <Route index element={page(<GuestHomePage />)} />
           <Route path="rooms/:id" element={page(<GuestRoomPage />)} />
           <Route path="rooms/:id/:tab" element={page(<GuestRoomPage />)} />
+          <Route path="notifications" element={<NotificationsPage />} />
         </Route>
         <Route element={<RequireWorkspace />}>
           <Route element={<AppShell />}>
@@ -88,7 +92,8 @@ export function App() {
             <Route path="projects/:id" element={page(<ProjectRoomPage />)} />
             <Route path="projects/:id/:tab" element={page(<ProjectRoomPage />)} />
             <Route path="tasks" element={page(<MyTasksPage />)} />
-            <Route path="calendar" element={<ComingSoonPage />} />
+            <Route path="calendar" element={page(<CalendarPage />)} />
+            <Route path="notifications" element={<NotificationsPage />} />
             <Route path="chat" element={<ComingSoonPage />} />
             <Route path="vault/*" element={<ComingSoonPage />} />
             <Route path="more" element={<MorePage />} />
