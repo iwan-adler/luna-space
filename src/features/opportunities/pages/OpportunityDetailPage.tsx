@@ -217,7 +217,17 @@ function Overview({ o, tz }: { o: Opportunity; tz: string }) {
                 <dd>
                   {value ? (
                     <ProvenanceChip
-                      row={prov(key) ?? (key === 'fee_amount' ? prov('is_free') : undefined)}
+                      row={
+                        prov(key) ??
+                        prov(
+                          (
+                            { fee_amount: 'is_free', team_min: 'team_max' } as Record<
+                              string,
+                              string
+                            >
+                          )[key] ?? '',
+                        )
+                      }
                     />
                   ) : (
                     <Badge>? Missing</Badge>

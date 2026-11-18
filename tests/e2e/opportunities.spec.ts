@@ -28,6 +28,7 @@ test.describe('opportunities core (Phase 2)', () => {
     await a.goto('/opportunities')
     await expect(a.getByRole('heading', { name: 'No opportunities yet' })).toBeVisible()
     await a.getByRole('link', { name: 'Add your first opportunity' }).click()
+    await a.getByRole('link', { name: 'Enter details manually' }).click()
     await a.getByLabel('Name').fill('Moonshot Hack 2027')
     await a.getByLabel('Organizer').fill('Moon Labs')
     await a.getByLabel('Official website').fill('https://moonlabs.example/hack')
@@ -47,7 +48,7 @@ test.describe('opportunities core (Phase 2)', () => {
     await expect(a.getByTestId('dates-list')).toContainText('20 Jan 2027, 23:59')
 
     // A adds a private scholarship.
-    await a.goto('/opportunities/new')
+    await a.goto('/opportunities/new/manual')
     await a.getByLabel('Type').selectOption('scholarship')
     await a.getByLabel('Name').fill('Quiet Scholarship')
     await a.getByLabel('Visibility').selectOption('private')

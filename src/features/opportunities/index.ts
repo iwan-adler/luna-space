@@ -1,5 +1,7 @@
 export { OpportunityListPage } from './pages/OpportunityListPage'
 export { OpportunityFormPage } from './pages/OpportunityFormPage'
 export { OpportunityDetailPage } from './pages/OpportunityDetailPage'
+export { AddOpportunityPage } from './pages/AddOpportunityPage'
+export { ReviewExtractionPage } from './pages/ReviewExtractionPage'
 export { useOpportunities, useViewerTimeZone } from './hooks'
 export type { Opportunity } from './model'

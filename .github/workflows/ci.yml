@@ -49,8 +49,8 @@ jobs:
       - uses: supabase/setup-cli@v1
         with:
           version: 3.2.0
-      - name: Start local Supabase (auth, REST, database)
-        run: supabase start -x studio,imgproxy,vector,logflare,supavisor,edge-runtime
+      - name: Start local Supabase (auth, REST, database, Edge Functions)
+        run: supabase start -x studio,imgproxy,vector,logflare,supavisor
       - name: Point the build and tests at the local stack
         run: |
           eval "$(supabase status -o env | grep -E '^(API_URL|PUBLISHABLE_KEY|SERVICE_ROLE_KEY)=')"

@@ -1,7 +1,7 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useEffect } from 'react'
 import { Controller, useForm, useWatch } from 'react-hook-form'
-import { Link, useNavigate, useParams } from 'react-router'
+import { Link, useNavigate, useParams, useSearchParams } from 'react-router'
 import { DateTimeInput } from '@/components/patterns/DateTimeInput'
 import { Button } from '@/components/ui/Button'
 import { Alert, Card } from '@/components/ui/Card'
@@ -47,9 +47,17 @@ function OpportunityForm({
   const navigate = useNavigate()
   const toast = useToast()
   const save = useSaveOpportunity()
+  const [params] = useSearchParams()
+  const fallbackReason = params.get('reason')?.slice(0, 200) ?? null
+  const prefillUrl = params.get('url') ?? ''
   const form = useForm<OpportunityFormValues>({
     resolver: zodResolver(opportunityFormSchema),
-    defaultValues: initial ? formFromOpportunity(initial, tz) : emptyForm(tz),
+    defaultValues: initial
+      ? formFromOpportunity(initial, tz)
+      : {
+          ...emptyForm(tz),
+          officialUrl: /^https?:\/\/\S+$/i.test(prefillUrl) ? prefillUrl.slice(0, 2048) : '',
+        },
   })
   const errors = form.formState.errors
   const fee = useWatch({ control: form.control, name: 'fee' })
@@ -92,10 +100,10 @@ function OpportunityForm({
           Cancel
         </Link>
       </div>
-      {!id ? (
-        <Alert tone="info">
-          Automatic extraction from a pasted link arrives in the next phase. For now, enter what you
-          know — missing details are fine and will be flagged.
+      {!id && fallbackReason ? (
+        <Alert tone="warning" data-testid="fallback-reason">
+          We couldn&apos;t read that page automatically: {fallbackReason} Enter what you know —
+          missing details are fine and will be flagged.
         </Alert>
       ) : null}
       {save.error ? <Alert tone="danger">{save.error.message}</Alert> : null}
