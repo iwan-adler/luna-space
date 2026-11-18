@@ -25,7 +25,7 @@ function pagesRootHeaders(): Record<string, string> {
 }
 
 /**
- * Production CSP only allows *.supabase.co. When the build points at the local Supabase stack
+ * Production CSP only allows the production Supabase project. When the build points at the local stack
  * (development, CI end-to-end tests), the preview server additionally allows that loopback origin.
  */
 function previewHeaders(mode: string): Record<string, string> {

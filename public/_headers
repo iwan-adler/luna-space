@@ -1,8 +1,8 @@
 # Cloudflare Pages response headers (TRD TR-SEC-12, TR-SEC-13, TR-SEC-16).
-# connect-src / img-src allow any *.supabase.co project; narrow to the real project
-# host once it exists. Add OSM tiles (R3) and TURN hosts (R4) when those features land.
+# connect-src / img-src allow only the production Supabase project (luna-space).
+# Add OSM tiles (R3) and TURN hosts (R4) when those features land.
 /*
-  Content-Security-Policy: default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data: blob: https://*.supabase.co; font-src 'self' data:; connect-src 'self' https://*.supabase.co wss://*.supabase.co; manifest-src 'self'; worker-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'
+  Content-Security-Policy: default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data: blob: https://ghsmpglbgpvttkdmcrks.supabase.co; font-src 'self' data:; connect-src 'self' https://ghsmpglbgpvttkdmcrks.supabase.co wss://ghsmpglbgpvttkdmcrks.supabase.co; manifest-src 'self'; worker-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'
   Strict-Transport-Security: max-age=31536000; includeSubDomains
   X-Content-Type-Options: nosniff
   Referrer-Policy: strict-origin-when-cross-origin

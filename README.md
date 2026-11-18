@@ -101,5 +101,5 @@ deploys production and every pull request gets a preview URL.
 - [x] AGENTS.md, PR template, issue templates, Dependabot
 - [x] GitHub remote, branch protection, labels and milestones
 - [x] Production security headers (`public/_headers`) tested under CSP
-- [ ] Static host (Cloudflare Pages) connected with preview deployments
-- [ ] Supabase production project linked; migrations pushed
+- [x] Static host connected (Cloudflare Workers static assets: https://lunaspace.rosiwa648.workers.dev)
+- [x] Supabase production project linked; migrations pushed
