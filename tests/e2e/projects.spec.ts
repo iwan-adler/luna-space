@@ -63,7 +63,9 @@ test.describe('project rooms (Phase 4)', () => {
 
     // Drag and drop with the keyboard: move it on to Review.
     const card = a.getByTestId('column-in_progress').getByTestId('task-card').first()
+    await expect(a.getByRole('dialog')).toBeHidden()
     await card.focus()
+    await expect(card).toBeFocused()
     await a.keyboard.press('Space')
     await expect(card).toHaveAttribute('aria-pressed', 'true')
     await a.keyboard.press('ArrowRight')
