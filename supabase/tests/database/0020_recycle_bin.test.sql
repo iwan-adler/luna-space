@@ -68,13 +68,13 @@ update public.tasks set deleted_at = now(), deleted_by = 'aaaaaaaa-0000-0000-000
 update public.notes set deleted_at = now(), deleted_by = 'aaaaaaaa-0000-0000-0000-00000000000a' where id = pg_temp.id('private');
 update public.notes set deleted_at = now(), deleted_by = 'aaaaaaaa-0000-0000-0000-00000000000a' where id = pg_temp.id('note');
 update public.vault_folders set deleted_at = now(), deleted_by = 'aaaaaaaa-0000-0000-0000-00000000000a' where id = pg_temp.id('folder');
-select is((select array_agg(kind || ':' || title order by kind) from public.recycle_bin()),
+select is((select array_agg(kind || ':' || title order by kind, title) from public.recycle_bin()),
           array['folder:Research', 'note:Diary', 'note:Ideas', 'task:Wire the motors'],
           'the owner sees what was deleted (a sub-folder is listed with its folder)');
 
 -- Ben, the partner.
 select pg_temp.login('bbbbbbbb-0000-0000-0000-00000000000b');
-select is((select array_agg(kind || ':' || title order by kind) from public.recycle_bin()),
+select is((select array_agg(kind || ':' || title order by kind, title) from public.recycle_bin()),
           array['folder:Research', 'note:Ideas', 'task:Wire the motors'],
           'the partner sees shared items, not the private note');
 select lives_ok(format($$select public.restore_item('task', %L)$$, pg_temp.id('task')),
