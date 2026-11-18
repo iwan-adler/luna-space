@@ -1,13 +1,12 @@
 import { ArrowRight, Plus, Sparkles, UserPlus } from 'lucide-react'
 import { useMemo } from 'react'
 import { Link } from 'react-router'
-import { DeadlineBadge } from '@/components/patterns/DeadlineBadge'
 import { Button } from '@/components/ui/Button'
+import { UpcomingAgenda } from '@/features/calendar'
 import { Spinner } from '@/components/ui/Spinner'
 import { useAuth } from '@/features/auth'
 import { nextDeadlineOf, useOpportunities, useViewerTimeZone } from '@/features/opportunities'
 import { useCurrentWorkspace, useMembers } from '@/features/workspace'
-import { formatDated } from '@/lib/dates'
 
 function greeting(now = new Date()) {
   const h = now.getHours()
@@ -111,47 +110,7 @@ export function HomePage() {
         </div>
       </div>
 
-      <section aria-labelledby="upcoming-title" className="space-y-4">
-        <div className="flex items-baseline justify-between">
-          <h2 id="upcoming-title" className="text-h2">
-            Upcoming
-          </h2>
-          <Link
-            to="/opportunities"
-            className="inline-flex items-center gap-1 text-body-sm text-muted hover:text-text"
-          >
-            All opportunities <ArrowRight className="size-3.5" aria-hidden />
-          </Link>
-        </div>
-        {opps.isPending ? (
-          <Spinner label="Loading deadlines" />
-        ) : upcoming.length === 0 ? (
-          <p className="panel p-6 text-body-sm text-muted">
-            No upcoming deadlines. Paste a link to a hackathon, internship or scholarship to start
-            tracking it.
-          </p>
-        ) : (
-          <ul className="grid gap-3 sm:grid-cols-2" data-testid="upcoming-list">
-            {upcoming.map(({ o, d }) => (
-              <li key={o.id}>
-                <Link
-                  to={`/opportunities/${o.id}`}
-                  className="panel flex h-full flex-col gap-3 p-5 transition-transform duration-[var(--motion-base)] hover:-translate-y-0.5"
-                >
-                  <div className="flex items-start justify-between gap-3">
-                    <span className="font-medium">{o.title}</span>
-                    <DeadlineBadge value={d.value} viewerTz={tz} />
-                  </div>
-                  <span className="text-body-sm text-muted">
-                    {d.kind === 'registration_deadline' ? 'Registration' : 'Submission'} ·{' '}
-                    {formatDated(d.value)}
-                  </span>
-                </Link>
-              </li>
-            ))}
-          </ul>
-        )}
-      </section>
+      <UpcomingAgenda />
     </section>
   )
 }

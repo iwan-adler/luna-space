@@ -5,7 +5,7 @@ import { zonedLocalToUtcIso, type DateOnly } from '@/lib/dates'
 import { toAppError } from '@/lib/errors'
 import { requireSupabase } from '@/lib/supabase'
 import type { Database } from '@/types/database'
-import { addDays, toFeedItem, type CalendarEvent, type FeedItem } from './model'
+import { addDays, expandRecurring, toFeedItem, type CalendarEvent, type FeedItem } from './model'
 
 type EventInsert = Database['public']['Tables']['calendar_events']['Insert']
 export type EventInput = Pick<
@@ -22,6 +22,8 @@ export type EventInput = Pick<
   | 'timezone'
   | 'visibility'
   | 'reminder_offsets'
+  | 'rrule'
+  | 'exdates'
 >
 
 export const calendarKeys = {
@@ -45,14 +47,16 @@ export function useCalendarFeed(from: DateOnly, to: DateOnly, viewerTz: string) 
             `and(start_date.gte.${from},start_date.lte.${to})`,
             `and(start_date.lt.${from},end_date.gte.${from})`,
             `and(starts_at.gte.${startIso},starts_at.lt.${endIso})`,
+            'rrule.not.is.null',
           ].join(','),
         )
         .limit(2000)
       if (error) throw toAppError(error)
-      return data.flatMap((r) => {
+      const items = data.flatMap((r) => {
         const item = toFeedItem(r)
         return item ? [item] : []
       })
+      return expandRecurring(items, from, to)
     },
   })
 }
@@ -100,6 +104,46 @@ export function useDeleteEvent() {
         .from('calendar_events')
         .update({ deleted_at: new Date().toISOString(), deleted_by: user!.id })
         .eq('id', id)
+      if (error) throw toAppError(error)
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: calendarKeys.all }),
+  })
+}
+
+/** Moves a single (non-repeating) event by whole minutes, keeping its duration (drag in the grid). */
+export function useMoveEvent() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: async (args: {
+      id: string
+      startsAt: string
+      endsAt: string | null
+      deltaMinutes: number
+    }) => {
+      const shift = (iso: string) =>
+        new Date(Date.parse(iso) + args.deltaMinutes * 60_000).toISOString()
+      const { error } = await requireSupabase()
+        .from('calendar_events')
+        .update({
+          starts_at: shift(args.startsAt),
+          ends_at: args.endsAt ? shift(args.endsAt) : null,
+        })
+        .eq('id', args.id)
+      if (error) throw toAppError(error)
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: calendarKeys.all }),
+  })
+}
+
+/** Leaves out one date of a repeating event ("skip this date"). */
+export function useSkipOccurrence() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: async (args: { id: string; exdates: string[]; date: string }) => {
+      const { error } = await requireSupabase()
+        .from('calendar_events')
+        .update({ exdates: [...new Set([...args.exdates, args.date])].sort() })
+        .eq('id', args.id)
       if (error) throw toAppError(error)
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: calendarKeys.all }),

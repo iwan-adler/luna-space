@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest'
 import {
   addDays,
+  expandRecurring,
+  findClashes,
   addMonths,
   groupByDate,
   isoWeekday,
@@ -26,6 +28,9 @@ const item = (over: Partial<FeedItem>): FeedItem => ({
   endsAt: null,
   timezone: null,
   visibility: 'shared',
+  rrule: null,
+  exdates: [],
+  occurrence: null,
   ...over,
 })
 
@@ -101,5 +106,52 @@ describe('layers and links (FR-CAL-02/03)', () => {
       '/projects/p1/board?task=t1',
     )
     expect(sourcePath(item({}))).toBeNull()
+  })
+})
+
+describe('repeating events and clashes (FR-CAL-06/07)', () => {
+  it('expands a weekly timed event at the same local time across a DST change', () => {
+    const weekly = item({
+      allDay: false,
+      startDate: null,
+      startsAt: '2026-10-26T16:00:00Z', // 09:00 in Los Angeles (PDT)
+      endsAt: '2026-10-26T17:00:00Z',
+      timezone: 'America/Los_Angeles',
+      rrule: 'FREQ=WEEKLY',
+    })
+    const occ = expandRecurring([weekly], '2026-10-26', '2026-11-08')
+    // One day of padding either side (zones differ); the view keeps only its own days.
+    expect(occ.slice(0, 2).map((o) => o.startsAt)).toEqual([
+      '2026-10-26T16:00:00.000Z',
+      '2026-11-02T17:00:00.000Z', // still 09:00 after DST ends
+    ])
+    expect(occ[1]!.endsAt).toBe('2026-11-02T18:00:00.000Z')
+    expect(occ.slice(0, 2).map((o) => o.occurrence)).toEqual(['2026-10-26', '2026-11-02'])
+  })
+
+  it('finds overlapping events, close deadlines and deadlines on exam days', () => {
+    const clashes = findClashes(
+      [
+        item({
+          sourceId: 'e1',
+          allDay: false,
+          startDate: null,
+          startsAt: '2026-12-01T04:30:00Z',
+          endsAt: '2026-12-01T05:30:00Z',
+        }),
+        item({
+          sourceId: 'e2',
+          allDay: false,
+          startDate: null,
+          startsAt: '2026-12-01T05:00:00Z',
+          endsAt: '2026-12-01T06:00:00Z',
+        }),
+        item({ sourceId: 'd1', sourceType: 'opportunity_date', startDate: '2026-12-10' }),
+        item({ sourceId: 'd2', sourceType: 'task', startDate: '2026-12-10' }),
+        item({ sourceId: 'x1', kind: 'exam', startDate: '2026-12-10' }),
+      ],
+      'Asia/Kolkata',
+    )
+    expect(clashes.map((c) => c.kind).sort()).toEqual(['deadlines', 'exam', 'exam', 'overlap'])
   })
 })

@@ -1,17 +1,21 @@
-import { ChevronLeft, ChevronRight, Lock, Plus } from 'lucide-react'
-import { useMemo, useState } from 'react'
+import { AlertTriangle, ChevronLeft, ChevronRight, Lock, Plus, Repeat } from 'lucide-react'
+import { useEffect, useMemo, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router'
 import { Button } from '@/components/ui/Button'
 import { Alert } from '@/components/ui/Card'
 import { PageSpinner } from '@/components/ui/Spinner'
+import { useToast } from '@/components/ui/Toast'
 import { useViewerTimeZone } from '@/features/profile'
-import { formatDateOnly, todayIn, type DateOnly } from '@/lib/dates'
+import { formatDateOnly, todayIn, utcIsoToZonedLocal, type DateOnly } from '@/lib/dates'
 import { EventDialog } from './EventDialog'
-import { useCalendarEvent, useCalendarFeed } from './hooks'
+import { useCalendarEvent, useCalendarFeed, useMoveEvent } from './hooks'
+import { TimeGrid } from './TimeGrid'
 import {
   addDays,
   addMonths,
+  findClashes,
   groupByDate,
+  itemKey,
   itemTime,
   LAYERS,
   layerOf,
@@ -23,7 +27,7 @@ import {
   type Layer,
 } from './model'
 
-type View = 'month' | 'week' | 'agenda'
+type View = 'month' | 'week' | 'day' | 'agenda'
 const WEEKDAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
 
 const tone: Record<Layer, string> = {
@@ -48,7 +52,9 @@ export function CalendarPage() {
   const [params, setParams] = useSearchParams()
   const navigate = useNavigate()
   const view = (
-    ['month', 'week', 'agenda'].includes(params.get('view') ?? '') ? params.get('view') : 'month'
+    ['month', 'week', 'day', 'agenda'].includes(params.get('view') ?? '')
+      ? params.get('view')
+      : 'month'
   ) as View
   const focus = (params.get('date') ?? today) as DateOnly
   const hideParam = params.get('hide') ?? ''
@@ -56,8 +62,17 @@ export function CalendarPage() {
     () => new Set(hideParam.split(',').filter(Boolean) as Layer[]),
     [hideParam],
   )
-  const [editing, setEditing] = useState<{ id: string | null; day: DateOnly } | null>(null)
+  const [editing, setEditing] = useState<{
+    id: string | null
+    day: DateOnly
+    startMinutes?: number | null
+    occurrence?: DateOnly | null
+  } | null>(null)
   const editEvent = useCalendarEvent(editing?.id ?? null)
+  const move = useMoveEvent()
+  const toast = useToast()
+  const [showClashes, setShowClashes] = useState(false)
+  const nowMinutes = useNowMinutes(tz)
 
   const days = useMemo(
     () =>
@@ -65,19 +80,26 @@ export function CalendarPage() {
         ? monthGrid(monthOf(focus))
         : view === 'week'
           ? weekDays(focus)
-          : Array.from({ length: 30 }, (_, i) => addDays(focus, i)),
+          : view === 'day'
+            ? [focus]
+            : Array.from({ length: 30 }, (_, i) => addDays(focus, i)),
     [view, focus],
   )
   const from = days[0]!
   const to = days[days.length - 1]!
   const feed = useCalendarFeed(from, to, tz)
-  const byDate = useMemo(
-    () =>
-      groupByDate(
-        (feed.data ?? []).filter((i) => !hidden.has(layerOf(i))),
-        tz,
-      ),
-    [feed.data, tz, hidden],
+  const visible = useMemo(
+    () => (feed.data ?? []).filter((i) => !hidden.has(layerOf(i))),
+    [feed.data, hidden],
+  )
+  const byDate = useMemo(() => groupByDate(visible, tz), [visible, tz])
+  const clashes = useMemo(
+    () => findClashes(feed.data ?? [], tz).filter((c) => c.day >= from && c.day <= to),
+    [feed.data, tz, from, to],
+  )
+  const clashKeys = useMemo(
+    () => new Set(clashes.flatMap((c) => [itemKey(c.a), itemKey(c.b)])),
+    [clashes],
   )
 
   const update = (patch: Record<string, string | null>) => {
@@ -93,7 +115,7 @@ export function CalendarPage() {
       date:
         view === 'month'
           ? `${addMonths(monthOf(focus), dir)}-01`
-          : addDays(focus, dir * (view === 'week' ? 7 : 30)),
+          : addDays(focus, dir * (view === 'week' ? 7 : view === 'day' ? 1 : 30)),
     })
   const toggleLayer = (l: Layer) => {
     const next = new Set(hidden)
@@ -102,7 +124,8 @@ export function CalendarPage() {
     update({ hide: next.size ? [...next].join(',') : null })
   }
   const openItem = (item: FeedItem) => {
-    if (item.sourceType === 'event') setEditing({ id: item.sourceId, day: focus })
+    if (item.sourceType === 'event')
+      setEditing({ id: item.sourceId, day: focus, occurrence: item.occurrence })
     else {
       const path = sourcePath(item)
       if (path) void navigate(path)
@@ -116,7 +139,9 @@ export function CalendarPage() {
           year: 'numeric',
           timeZone: 'UTC',
         }).format(Date.UTC(+focus.slice(0, 4), +focus.slice(5, 7) - 1, 1))
-      : `${formatDateOnly(from)} – ${formatDateOnly(to)}`
+      : view === 'day'
+        ? formatDateOnly(focus, { weekday: true })
+        : `${formatDateOnly(from)} – ${formatDateOnly(to)}`
 
   return (
     <section aria-labelledby="calendar-title" className="space-y-5">
@@ -160,7 +185,7 @@ export function CalendarPage() {
           </button>
         </div>
         <div role="tablist" aria-label="View" className="flex gap-1.5">
-          {(['month', 'week', 'agenda'] as const).map((v) => (
+          {(['month', 'week', 'day', 'agenda'] as const).map((v) => (
             <button
               key={v}
               role="tab"
@@ -189,6 +214,38 @@ export function CalendarPage() {
         </div>
       </div>
 
+      {clashes.length ? (
+        <div className="panel border-warning/40 p-3" data-testid="clash-banner">
+          <button
+            type="button"
+            onClick={() => setShowClashes((v) => !v)}
+            aria-expanded={showClashes}
+            className="flex w-full items-center gap-2 text-left text-body-sm"
+          >
+            <AlertTriangle className="size-4 shrink-0 text-warning" aria-hidden />
+            <span className="flex-1">
+              {clashes.length} {clashes.length === 1 ? 'clash' : 'clashes'} in this view
+            </span>
+            <span className="text-caption text-muted">{showClashes ? 'Hide' : 'Show'}</span>
+          </button>
+          {showClashes ? (
+            <ul className="mt-2 space-y-1 text-body-sm text-muted">
+              {clashes.map((c) => (
+                <li key={`${itemKey(c.a)}|${itemKey(c.b)}`}>
+                  {formatDateOnly(c.day)}: <span className="text-text">{c.a.title}</span>{' '}
+                  {c.kind === 'overlap'
+                    ? 'overlaps'
+                    : c.kind === 'exam'
+                      ? 'is an exam on the day of'
+                      : 'is within 24 hours of'}{' '}
+                  <span className="text-text">{c.b.title}</span>
+                </li>
+              ))}
+            </ul>
+          ) : null}
+        </div>
+      ) : null}
+
       {feed.isPending ? (
         <PageSpinner label="Loading calendar" />
       ) : feed.error ? (
@@ -200,6 +257,31 @@ export function CalendarPage() {
         </Alert>
       ) : view === 'agenda' ? (
         <Agenda days={days} byDate={byDate} tz={tz} today={today} onOpen={openItem} />
+      ) : view === 'week' || view === 'day' ? (
+        <TimeGrid
+          days={days}
+          items={visible}
+          tz={tz}
+          today={today}
+          nowMinutes={nowMinutes}
+          clashKeys={clashKeys}
+          onOpen={openItem}
+          onCreateAt={(day, minutes) => setEditing({ id: null, day, startMinutes: minutes })}
+          onMove={(item, delta) =>
+            move.mutate(
+              {
+                id: item.sourceId,
+                startsAt: item.startsAt!,
+                endsAt: item.endsAt,
+                deltaMinutes: delta,
+              },
+              {
+                onSuccess: () => toast.show(`Moved "${item.title}"`, 'success'),
+                onError: () => toast.show("Couldn't move the event.", 'error'),
+              },
+            )
+          }
+        />
       ) : (
         <div className="panel overflow-hidden p-0" data-testid={`calendar-${view}`}>
           <div className="grid grid-cols-7 border-b border-hairline">
@@ -230,8 +312,13 @@ export function CalendarPage() {
                   </button>
                   <ul className="space-y-1">
                     {items.slice(0, max).map((item) => (
-                      <li key={`${item.sourceType}:${item.sourceId}:${d}`}>
-                        <ItemChip item={item} tz={tz} onOpen={openItem} />
+                      <li key={`${itemKey(item)}:${d}`}>
+                        <ItemChip
+                          item={item}
+                          tz={tz}
+                          onOpen={openItem}
+                          clash={clashKeys.has(itemKey(item))}
+                        />
                       </li>
                     ))}
                     {items.length > max ? (
@@ -261,6 +348,9 @@ export function CalendarPage() {
           event={editing.id ? (editEvent.data ?? null) : null}
           day={editing.day}
           viewerTz={tz}
+          startMinutes={editing.startMinutes ?? null}
+          occurrence={editing.occurrence ?? null}
+          others={(feed.data ?? []).filter((i) => i.sourceType === 'event' && !i.allDay)}
         />
       ) : null}
     </section>
@@ -271,10 +361,12 @@ function ItemChip({
   item,
   tz,
   onOpen,
+  clash = false,
 }: {
   item: FeedItem
   tz: string
   onOpen: (i: FeedItem) => void
+  clash?: boolean
 }) {
   const layer = layerOf(item)
   const time = itemTime(item, tz)
@@ -286,7 +378,9 @@ function ItemChip({
       data-testid="calendar-item"
       className={`flex w-full items-center gap-1 truncate rounded-md border px-1.5 py-0.5 text-left text-[11px] leading-4 hover:brightness-125 ${tone[layer]}`}
     >
+      {clash ? <AlertTriangle className="size-3 shrink-0 text-warning" aria-label="Clash" /> : null}
       {time ? <span className="shrink-0 text-muted">{time}</span> : null}
+      {item.rrule ? <Repeat className="size-2.5 shrink-0" aria-label="Repeats" /> : null}
       {item.visibility === 'private' ? (
         <Lock className="size-2.5 shrink-0" aria-label="Private" />
       ) : null}
@@ -327,7 +421,7 @@ function Agenda({
             {byDate.get(d)!.map((item) => {
               const layer = layerOf(item)
               return (
-                <li key={`${item.sourceType}:${item.sourceId}`}>
+                <li key={itemKey(item)}>
                   <button
                     type="button"
                     onClick={() => onOpen(item)}
@@ -351,4 +445,19 @@ function Agenda({
       ))}
     </ol>
   )
+}
+
+/** Minutes since local midnight in the viewer's zone, refreshed every minute (the "now" line). */
+function useNowMinutes(tz: string): number {
+  const read = () => {
+    const local = utcIsoToZonedLocal(new Date().toISOString(), tz)
+    return Number(local.slice(11, 13)) * 60 + Number(local.slice(14, 16))
+  }
+  const [minutes, setMinutes] = useState(read)
+  useEffect(() => {
+    const t = window.setInterval(() => setMinutes(read()), 60_000)
+    return () => window.clearInterval(t)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tz])
+  return minutes
 }

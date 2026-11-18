@@ -1,4 +1,5 @@
-import { utcIsoToZonedLocal, type DateOnly } from '@/lib/dates'
+import { utcIsoToZonedLocal, zonedLocalToUtcIso, type DateOnly } from '@/lib/dates'
+import { occurrenceDates } from './recurrence'
 import type { Database } from '@/types/database'
 
 type FeedRow = Database['public']['Views']['calendar_feed']['Row']
@@ -21,6 +22,10 @@ export interface FeedItem {
   endsAt: string | null
   timezone: string | null
   visibility: 'shared' | 'private'
+  rrule: string | null
+  exdates: DateOnly[]
+  /** Set on items expanded from a repeating event: the local date of this occurrence. */
+  occurrence: DateOnly | null
 }
 
 export function toFeedItem(r: FeedRow): FeedItem | null {
@@ -38,6 +43,9 @@ export function toFeedItem(r: FeedRow): FeedItem | null {
     endsAt: r.ends_at,
     timezone: r.timezone,
     visibility: r.visibility ?? 'shared',
+    rrule: r.rrule ?? null,
+    exdates: r.exdates ?? [],
+    occurrence: null,
   }
 }
 
@@ -178,3 +186,112 @@ export const REMINDER_OPTIONS: { value: number | null; label: string }[] = [
   { value: 4320, label: '3 days before' },
   { value: 10080, label: '1 week before' },
 ]
+
+/** Unique key of an item, distinguishing occurrences of a repeating event. */
+export const itemKey = (i: FeedItem) => `${i.sourceType}:${i.sourceId}:${i.occurrence ?? ''}`
+
+/**
+ * Replaces each repeating event with its occurrences between `from` and `to` (FR-CAL-06).
+ * Timed occurrences keep their wall-clock time in the event's own zone.
+ */
+export function expandRecurring(items: FeedItem[], from: DateOnly, to: DateOnly): FeedItem[] {
+  const out: FeedItem[] = []
+  for (const item of items) {
+    if (!item.rrule) {
+      out.push(item)
+      continue
+    }
+    if (item.allDay && item.startDate) {
+      const span = item.endDate ? daysBetweenDates(item.startDate, item.endDate) : 0
+      for (const d of occurrenceDates(
+        item.startDate,
+        item.rrule,
+        item.exdates,
+        addDays(from, -span),
+        to,
+      ))
+        out.push({ ...item, startDate: d, endDate: span ? addDays(d, span) : null, occurrence: d })
+    } else if (item.startsAt && item.timezone) {
+      const local = utcIsoToZonedLocal(item.startsAt, item.timezone)
+      const anchor = local.slice(0, 10)
+      const time = local.slice(11)
+      const duration = item.endsAt ? Date.parse(item.endsAt) - Date.parse(item.startsAt) : 0
+      for (const d of occurrenceDates(
+        anchor,
+        item.rrule,
+        item.exdates,
+        addDays(from, -1),
+        addDays(to, 1),
+      )) {
+        const startsAt = zonedLocalToUtcIso(`${d}T${time}`, item.timezone)
+        out.push({
+          ...item,
+          startsAt,
+          endsAt: item.endsAt ? new Date(Date.parse(startsAt) + duration).toISOString() : null,
+          occurrence: d,
+        })
+      }
+    }
+  }
+  return out
+}
+
+function daysBetweenDates(a: DateOnly, b: DateOnly): number {
+  return Math.round((ms(b) - ms(a)) / 86_400_000)
+}
+
+/** Minutes from local midnight of `day` (viewer zone) to an instant; may be < 0 or > 1440. */
+export function minutesInDay(iso: string, day: DateOnly, viewerTz: string): number {
+  const local = utcIsoToZonedLocal(iso, viewerTz)
+  const d = local.slice(0, 10)
+  return (
+    daysBetweenDates(day, d) * 1440 + Number(local.slice(11, 13)) * 60 + Number(local.slice(14, 16))
+  )
+}
+
+export interface Clash {
+  a: FeedItem
+  b: FeedItem
+  kind: 'overlap' | 'deadlines' | 'exam'
+  day: DateOnly
+}
+
+const isDeadline = (i: FeedItem) => i.sourceType === 'opportunity_date' || i.sourceType === 'task'
+const instant = (i: FeedItem) =>
+  i.startsAt ? Date.parse(i.startsAt) : i.startDate ? Date.parse(`${i.startDate}T12:00:00Z`) : NaN
+
+/**
+ * Clash warnings (FR-CAL-07): timed events that overlap, deadlines within 24 hours of each
+ * other, and deadlines on the day of an exam.
+ */
+export function findClashes(items: FeedItem[], viewerTz: string): Clash[] {
+  const out: Clash[] = []
+  const timed = items
+    .filter((i) => i.sourceType === 'event' && !i.allDay && i.startsAt)
+    .sort((x, y) => Date.parse(x.startsAt!) - Date.parse(y.startsAt!))
+  for (let i = 0; i < timed.length; i++) {
+    const a = timed[i]!
+    const aEnd = Date.parse(a.endsAt ?? a.startsAt!) || Date.parse(a.startsAt!) + 3_600_000
+    for (let j = i + 1; j < timed.length; j++) {
+      const b = timed[j]!
+      if (Date.parse(b.startsAt!) >= aEnd) break
+      out.push({ a, b, kind: 'overlap', day: itemDates(b, viewerTz)[0]! })
+    }
+  }
+  const deadlines = items.filter(isDeadline).sort((x, y) => instant(x) - instant(y))
+  for (let i = 0; i + 1 < deadlines.length; i++) {
+    const a = deadlines[i]!
+    const b = deadlines[i + 1]!
+    if (instant(b) - instant(a) < 24 * 3_600_000 && a.sourceId !== b.sourceId)
+      out.push({ a, b, kind: 'deadlines', day: itemDates(b, viewerTz)[0]! })
+  }
+  const examDays = new Map<DateOnly, FeedItem>()
+  for (const e of items.filter((i) => i.sourceType === 'event' && i.kind === 'exam'))
+    for (const d of itemDates(e, viewerTz)) examDays.set(d, e)
+  for (const d of deadlines)
+    for (const day of itemDates(d, viewerTz)) {
+      const exam = examDays.get(day)
+      if (exam) out.push({ a: exam, b: d, kind: 'exam', day })
+    }
+  return out
+}
