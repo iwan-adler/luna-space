@@ -136,13 +136,13 @@ export function ProjectRoomPage({ base = '/projects' }: { base?: string }) {
         </header>
 
         <nav aria-label="Project sections" className="-mx-4 overflow-x-auto px-4 md:mx-0 md:px-0">
-          <ul className="flex w-max gap-1 rounded-full border border-hairline bg-surface-raised/70 p-1">
+          <ul className="flex w-max gap-1.5">
             {TABS.map((t) => (
               <li key={t.id}>
                 <NavLink
                   to={`${base}/${p.id}/${t.id}`}
                   aria-current={tab === t.id ? 'page' : undefined}
-                  className={`block rounded-full px-3.5 py-1 text-body-sm ${tab === t.id ? 'bg-hairline text-text' : 'text-muted hover:text-text'}`}
+                  className={`block rounded-full px-4 py-1.5 text-body-sm ${tab === t.id ? 'nav-active' : 'border border-border text-muted hover:text-text'}`}
                 >
                   {t.label}
                 </NavLink>

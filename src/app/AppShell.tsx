@@ -1,5 +1,5 @@
 import * as Menu from '@radix-ui/react-dropdown-menu'
-import { ChevronRight, CircleUser, LogOut, MoreHorizontal, Users } from 'lucide-react'
+import { ChevronRight, CircleUser, LogOut, MoreHorizontal, Settings, Users } from 'lucide-react'
 import { Link, NavLink, Outlet, useNavigate } from 'react-router'
 import { MoonLogo } from '@/components/patterns/MoonLogo'
 import { useAuth } from '@/features/auth'
@@ -9,86 +9,101 @@ import { useCurrentWorkspace } from '@/features/workspace'
 import { mobileNav, primaryNav } from './navigation'
 
 const sideLink = ({ isActive }: { isActive: boolean }) =>
-  `group relative flex items-center gap-3 rounded-full px-3.5 py-2 text-body-sm transition-colors duration-[var(--motion-fast)] ${
-    isActive ? 'bg-primary-subtle font-medium text-text' : 'text-muted hover:text-text'
+  `group relative flex items-center gap-3 rounded-[14px] px-3.5 py-2.5 text-body-sm transition-colors duration-[var(--motion-fast)] ${
+    isActive ? 'nav-active font-medium' : 'text-muted hover:bg-hairline hover:text-text'
   }`
 
-/** Soft-night shell: quiet sidebar and floating bottom bar (UI spec §9–11, ADR 0005). */
+/**
+ * Framed dashboard shell (ADR 0010): a dark sidebar card and the page inside one rounded frame on
+ * large screens; a top bar and floating bottom bar on phones (UI spec §9–11).
+ */
 export function AppShell() {
   const ws = useCurrentWorkspace()
   return (
-    <div className="flex min-h-dvh">
+    <div className="min-h-dvh lg:p-4">
       <a
         href="#main"
         className="sr-only focus:not-sr-only focus:absolute focus:top-3 focus:left-3 focus:z-50 focus:rounded-full focus:bg-surface-raised focus:px-4 focus:py-2"
       >
         Skip to content
       </a>
-
-      <aside className="sticky top-0 hidden h-dvh w-64 shrink-0 flex-col px-4 py-6 lg:flex">
-        <Link
-          to="/"
-          className="flex items-center gap-2.5 px-2 text-[17px] font-semibold tracking-[-0.02em]"
-        >
-          <MoonLogo className="size-7" />
-          Luna Space
-        </Link>
-        <div className="absolute top-6 right-4">
-          <NotificationBell />
-        </div>
-        <p className="eyebrow mt-8 mb-3 truncate px-3.5" title={ws.workspaceName}>
-          {ws.workspaceName}
-        </p>
-        <nav aria-label="Main" className="flex flex-col gap-0.5">
-          {primaryNav.map((item) => (
-            <NavLink key={item.to} to={item.to} end={item.to === '/'} className={sideLink}>
-              {({ isActive }) => (
-                <>
-                  <item.icon
-                    className={`size-[18px] ${isActive ? 'text-primary' : ''}`}
-                    strokeWidth={1.75}
-                    aria-hidden
-                  />
-                  {item.label}
-                  {item.phase ? (
-                    <span className="ml-auto text-[11px] text-muted/60 opacity-0 transition-opacity group-hover:opacity-100">
-                      soon
-                    </span>
-                  ) : null}
-                </>
-              )}
-            </NavLink>
-          ))}
-        </nav>
-        <div className="mt-auto px-1">
-          <AccountMenu wide />
-        </div>
-      </aside>
-
-      <div className="flex min-w-0 flex-1 flex-col">
-        <header className="sticky top-0 z-30 flex h-16 items-center gap-3 glass px-5 lg:hidden">
+      <div className="app-frame flex min-h-dvh lg:min-h-[calc(100dvh-2rem)] lg:gap-4 lg:p-3">
+        <aside className="sidebar-card sticky top-7 hidden h-[calc(100dvh-3.5rem)] w-60 shrink-0 flex-col p-4 lg:flex">
           <Link
             to="/"
-            className="flex items-center gap-2 text-[17px] font-semibold tracking-[-0.02em]"
+            className="flex items-center gap-2.5 px-2 pt-1 text-[17px] font-semibold tracking-[-0.02em]"
           >
             <MoonLogo className="size-7" />
             Luna Space
           </Link>
-          <div className="flex-1" />
-          <NotificationBell />
-          <AccountMenu />
-        </header>
-        <main
-          id="main"
-          className="mx-auto w-full max-w-5xl flex-1 px-5 pt-6 pb-32 lg:px-10 lg:pt-12 lg:pb-16"
-        >
-          <Outlet />
-        </main>
+          <p className="mt-8 mb-2 truncate px-3.5 text-caption text-muted" title={ws.workspaceName}>
+            {ws.workspaceName}
+          </p>
+          <nav aria-label="Main" className="flex flex-col gap-1">
+            {primaryNav.map((item) => (
+              <NavLink key={item.to} to={item.to} end={item.to === '/'} className={sideLink}>
+                {({ isActive }) => (
+                  <>
+                    <item.icon
+                      className={`size-[18px] ${isActive ? 'text-text' : ''}`}
+                      strokeWidth={1.75}
+                      aria-hidden
+                    />
+                    {item.label}
+                    {item.phase ? (
+                      <span className="ml-auto text-[11px] text-muted/60 opacity-0 transition-opacity group-hover:opacity-100">
+                        soon
+                      </span>
+                    ) : null}
+                  </>
+                )}
+              </NavLink>
+            ))}
+          </nav>
+          <nav aria-label="Account" className="mt-auto flex flex-col gap-1">
+            <NavLink to="/settings/profile" className={sideLink}>
+              <Settings className="size-[18px]" strokeWidth={1.75} aria-hidden />
+              Settings
+            </NavLink>
+            <NavLink to="/settings/workspace" className={sideLink}>
+              <Users className="size-[18px]" strokeWidth={1.75} aria-hidden />
+              Workspace
+            </NavLink>
+          </nav>
+        </aside>
+
+        <div className="flex min-w-0 flex-1 flex-col">
+          <header className="glass sticky top-0 z-30 flex h-16 items-center gap-3 px-5 lg:hidden">
+            <Link
+              to="/"
+              className="flex items-center gap-2 text-[17px] font-semibold tracking-[-0.02em]"
+            >
+              <MoonLogo className="size-7" />
+              Luna Space
+            </Link>
+            <div className="flex-1" />
+            <NotificationBell />
+            <AccountMenu />
+          </header>
+          <header className="hidden items-center justify-end gap-2.5 px-4 pt-3 lg:flex">
+            <NotificationBell />
+            <Link to="/settings/profile" aria-label="Settings" className="icon-btn">
+              <Settings className="size-[18px]" strokeWidth={1.75} aria-hidden />
+            </Link>
+            <AccountMenu wide />
+          </header>
+          <main
+            id="main"
+            className="mx-auto w-full max-w-6xl flex-1 px-5 pt-6 pb-32 lg:px-6 lg:pt-4 lg:pb-8"
+          >
+            <Outlet />
+          </main>
+        </div>
       </div>
 
       <nav
         aria-label="Main"
-        className="fixed inset-x-4 bottom-[calc(12px+env(safe-area-inset-bottom))] z-30 flex rounded-full glass border border-hairline p-1.5 shadow-2 lg:hidden"
+        className="glass fixed inset-x-4 bottom-[calc(12px+env(safe-area-inset-bottom))] z-30 flex rounded-full border border-hairline p-1.5 shadow-2 lg:hidden"
       >
         {[
           ...primaryNav.filter((i) => mobileNav.includes(i.to)),
@@ -100,7 +115,7 @@ export function AppShell() {
             end={item.to === '/'}
             className={({ isActive }) =>
               `flex flex-1 flex-col items-center gap-0.5 rounded-full py-1.5 text-[11px] transition-colors ${
-                isActive ? 'bg-primary-subtle text-primary' : 'text-muted'
+                isActive ? 'nav-active' : 'text-muted'
               }`
             }
           >
@@ -125,22 +140,27 @@ function AccountMenu({ wide = false }: { wide?: boolean }) {
     <Menu.Root>
       <Menu.Trigger
         className={`flex items-center gap-2.5 rounded-full text-body-sm transition-colors hover:bg-hairline ${
-          wide ? 'w-full px-2 py-2' : 'p-1'
+          wide ? 'py-1 pr-3 pl-1' : 'p-1'
         }`}
         aria-label={`Account menu for ${name}`}
       >
         <span
           aria-hidden
-          className="flex size-8 items-center justify-center rounded-full bg-primary/15 text-body-sm font-semibold text-primary"
+          className="btn-primary flex size-9 items-center justify-center rounded-full text-body-sm font-semibold"
         >
           {name.slice(0, 1).toUpperCase()}
         </span>
-        {wide ? <span className="min-w-0 flex-1 truncate text-left text-muted">{name}</span> : null}
+        {wide ? (
+          <span className="min-w-0 text-left leading-tight">
+            <span className="block max-w-44 truncate font-medium text-text">{name}</span>
+            <span className="block max-w-44 truncate text-caption text-muted">{user?.email}</span>
+          </span>
+        ) : null}
       </Menu.Trigger>
       <Menu.Portal>
         <Menu.Content
-          align={wide ? 'start' : 'end'}
-          side={wide ? 'top' : 'bottom'}
+          align="end"
+          side="bottom"
           sideOffset={8}
           className="z-50 min-w-56 rounded-2xl glass border border-hairline p-1.5 shadow-3"
         >

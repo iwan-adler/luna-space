@@ -34,11 +34,11 @@ export function NotificationBell({ to = '/notifications' }: { to?: string }) {
       to={to}
       aria-label={n ? `Notifications, ${n} unread` : 'Notifications'}
       data-testid="notification-bell"
-      className="relative grid size-9 place-items-center rounded-full text-muted transition-colors hover:bg-hairline hover:text-text"
+      className="icon-btn relative"
     >
       <Bell className="size-[18px]" strokeWidth={1.75} aria-hidden />
       {n ? (
-        <span className="btn-aurora absolute -top-0.5 -right-0.5 grid h-4 min-w-4 place-items-center rounded-full px-1 text-[10px] leading-none font-semibold">
+        <span className="btn-primary absolute -top-0.5 -right-0.5 grid h-4 min-w-4 place-items-center rounded-full px-1 text-[10px] leading-none font-semibold">
           {n > 99 ? '99+' : n}
         </span>
       ) : null}
@@ -179,7 +179,7 @@ function ReminderSettings() {
   return (
     <Card className="space-y-4">
       <div>
-        <h2 className="font-display text-[28px] leading-8">Reminder settings</h2>
+        <h2 className="text-h2">Reminder settings</h2>
         <p className="text-body-sm text-muted">
           Applies to deadlines of opportunities you&apos;re interested in or working on. Date-only
           deadlines remind you at 09:00 in your time zone.
@@ -270,7 +270,7 @@ function DevicePushCard() {
           <BellRing className="size-5" aria-hidden />
         </span>
         <div className="min-w-0 flex-1">
-          <h2 className="font-display text-[28px] leading-8">Notifications on this device</h2>
+          <h2 className="text-h2">Notifications on this device</h2>
           <p className="text-body-sm text-muted" data-testid="push-state">
             {state === null ? 'Checking this device.' : PUSH_TEXT[state]}
           </p>

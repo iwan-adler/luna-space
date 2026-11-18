@@ -35,68 +35,85 @@ export function HomePage() {
   const thisWeek = upcoming.filter((x) => x.d.info.daysLeft <= 7).length
 
   return (
-    <section aria-labelledby="home-title" className="space-y-10">
-      <header className="panel relative overflow-hidden p-7 sm:p-9">
-        <div
-          aria-hidden
-          className="pointer-events-none absolute -top-24 -right-16 size-72 rounded-full bg-primary/20 blur-3xl"
-        />
-        <div
-          aria-hidden
-          className="pointer-events-none absolute -bottom-28 left-10 size-56 rounded-full bg-accent/10 blur-3xl"
-        />
-        <p className="eyebrow">{ws.workspaceName}</p>
-        <div aria-hidden className="hairline-moon mt-3 w-24" />
-        <h1 id="home-title" className="mt-3 font-display text-display">
-          {greeting()}
+    <section aria-labelledby="home-title" className="space-y-6">
+      <header>
+        <h1 id="home-title" className="text-display">
+          Welcome
           {me ? (
             <>
-              , <em className="text-aurora pr-1">{me.displayName}</em>
+              , <span className="text-highlight">{me.displayName}</span>
             </>
           ) : null}
-          <Sparkles className="ml-2 inline size-7 text-moon/80" strokeWidth={1.5} aria-hidden />
         </h1>
-        <p className="mt-2 min-h-6 text-body text-muted" data-testid="week-summary">
-          {opps.isPending
-            ? ''
-            : thisWeek === 0
-              ? 'Nothing due this week. A good time to look for the next opportunity.'
-              : `${thisWeek} deadline${thisWeek === 1 ? '' : 's'} this week.`}
+        <p className="mt-1 text-body text-muted">
+          {greeting()} · here&apos;s your {ws.workspaceName} overview
         </p>
-        <div className="mt-6 flex flex-wrap items-center gap-4">
-          <Link to="/opportunities/new">
-            <Button icon={<Plus className="size-4" aria-hidden />}>Add opportunity</Button>
-          </Link>
-          <div
-            data-testid="partner-card"
-            className="flex items-center gap-2 text-body-sm text-muted"
-          >
-            {members.isPending ? (
-              <Spinner className="size-4" label="Loading members" />
-            ) : partner ? (
-              <>
-                <span className="flex size-7 items-center justify-center rounded-full bg-hairline text-caption font-semibold text-text">
-                  {partner.displayName.slice(0, 1).toUpperCase()}
-                </span>
-                <span>
-                  with <span className="text-text">{partner.displayName}</span>
-                </span>
-              </>
-            ) : (
-              <Link
-                to="/settings/workspace"
-                className="inline-flex items-center gap-1.5 hover:text-text"
-              >
-                <UserPlus className="size-4" strokeWidth={1.75} aria-hidden /> Invite your partner
-              </Link>
-            )}
+      </header>
+
+      <div className="grid gap-4 md:grid-cols-3">
+        <div className="panel panel-corner flex flex-col justify-between gap-6 p-5">
+          <div className="flex items-center justify-between">
+            <h2 className="text-body font-medium">This week</h2>
+            <Link to="/calendar" className="icon-btn size-8" aria-label="Open calendar">
+              <ArrowRight className="size-4" aria-hidden />
+            </Link>
+          </div>
+          <div>
+            <p className="text-[40px] leading-none font-semibold tracking-[-0.03em]">
+              {opps.isPending ? '–' : thisWeek}
+            </p>
+            <p className="mt-2 min-h-5 text-body-sm text-muted" data-testid="week-summary">
+              {opps.isPending
+                ? ''
+                : thisWeek === 0
+                  ? 'Nothing due this week. A good time to look for the next opportunity.'
+                  : `${thisWeek} deadline${thisWeek === 1 ? '' : 's'} this week.`}
+            </p>
           </div>
         </div>
-      </header>
+
+        <div className="panel panel-glow flex flex-col items-center justify-center gap-3 p-6 text-center">
+          <h2 className="text-body font-medium">Found something worth doing?</h2>
+          <p className="max-w-64 text-body-sm text-muted">
+            Paste a link to a hackathon, internship or scholarship and Luna Space fills in the
+            details.
+          </p>
+          <Link to="/opportunities/new" className="mt-1">
+            <Button icon={<Plus className="size-4" aria-hidden />}>Add opportunity</Button>
+          </Link>
+        </div>
+
+        <div className="panel flex flex-col justify-between gap-6 p-5" data-testid="partner-card">
+          <div className="flex items-center justify-between">
+            <h2 className="text-body font-medium">Your partner</h2>
+            <Sparkles className="size-4 text-highlight" strokeWidth={1.75} aria-hidden />
+          </div>
+          {members.isPending ? (
+            <Spinner className="size-4" label="Loading members" />
+          ) : partner ? (
+            <div className="flex items-center gap-3">
+              <span className="btn-primary flex size-11 items-center justify-center rounded-full text-body font-semibold">
+                {partner.displayName.slice(0, 1).toUpperCase()}
+              </span>
+              <div>
+                <p className="font-medium">{partner.displayName}</p>
+                <p className="text-body-sm text-muted">Shares this workspace with you</p>
+              </div>
+            </div>
+          ) : (
+            <Link
+              to="/settings/workspace"
+              className="inline-flex items-center gap-2 text-body-sm text-muted hover:text-text"
+            >
+              <UserPlus className="size-4" strokeWidth={1.75} aria-hidden /> Invite your partner
+            </Link>
+          )}
+        </div>
+      </div>
 
       <section aria-labelledby="upcoming-title" className="space-y-4">
         <div className="flex items-baseline justify-between">
-          <h2 id="upcoming-title" className="font-display text-[28px] leading-8">
+          <h2 id="upcoming-title" className="text-h2">
             Upcoming
           </h2>
           <Link

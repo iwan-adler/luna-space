@@ -1,59 +1,56 @@
 /*
- * Luna DS tokens — "Aurora glass" with editorial type (ADR 0007, supersedes ADR 0005).
- * Frosted, translucent surfaces over a drifting violet / teal / pink aurora.
- * Dark is the default. Light ("aurora day") applies with <html data-theme="light">, or with
+ * Luna DS tokens — "Mauve" (ADR 0010, supersedes ADR 0007 "Aurora glass").
+ * A framed dashboard: deep plum canvas, near-black cards with soft mauve glows, pill controls.
+ * Dark is the default. Light applies with <html data-theme="light">, or with
  * data-theme="system" when the OS prefers light.
  */
 :root {
   color-scheme: dark;
 
-  /* Canvas and glass surfaces (translucent: the aurora shows through) */
-  --color-bg: #06071a;
-  --color-surface: rgb(255 255 255 / 0.05);
-  --color-surface-raised: rgb(26 28 66 / 0.78);
-  --color-border: rgb(255 255 255 / 0.16);
-  --color-hairline: rgb(255 255 255 / 0.09);
+  /* Canvas, frame and surfaces */
+  --color-bg: #120e12;
+  --page-glow: radial-gradient(1200px 720px at 50% -12%, #3b2e37 0%, transparent 70%);
+  --frame-fill: linear-gradient(165deg, #4a3d46 0%, #2b2229 42%, #1a1519 100%);
+  --color-sidebar: #0b090b;
+  --color-surface: #0f0c0f;
+  --color-surface-raised: #1d181c;
+  --color-border: rgb(255 255 255 / 0.15);
+  --color-hairline: rgb(255 255 255 / 0.08);
 
   /* Text */
-  --color-text: #f1f2ff;
-  --color-text-muted: #a3a9d6;
+  --color-text: #f5eff3;
+  --color-text-muted: #a99aa4;
 
-  /* Accent: aurora violet, with teal as the secondary accent */
-  --color-primary: #a898ff;
-  --color-primary-hover: #bcafff;
-  --color-primary-subtle: rgb(168 152 255 / 0.14);
+  /* Accents: dusty mauve, a soft pink highlight */
+  --color-primary: #d7a6c6;
+  --color-primary-hover: #e6bcd8;
+  --color-primary-subtle: rgb(215 166 198 / 0.14);
   --color-on-primary: #ffffff;
-  --color-accent: #5eead4;
-  /* Moonlight gold, used sparingly for editorial details */
-  --color-moon: #f0d68a;
-  --color-rose: #f9a8d4;
+  --color-accent: #bba5b5;
+  --color-highlight: #ebb6d8;
+  --color-rose: #f0a6c8;
 
   /* Semantic */
-  --color-success: #6ee7b7;
-  --color-info: #7dd3fc;
-  --color-warning: #fcc27a;
-  --color-danger: #fb8fa8;
-  --color-neutral: #8b90c0;
+  --color-success: #6fdc9a;
+  --color-info: #9cc3f5;
+  --color-warning: #f2c27a;
+  --color-danger: #f39aa8;
+  --color-neutral: #8c7f88;
 
-  /* Aurora */
-  --aurora-1: rgb(124 92 255 / 0.62);
-  --aurora-2: rgb(45 212 191 / 0.42);
-  --aurora-3: rgb(244 114 182 / 0.45);
-  --aurora-opacity: 0.95;
-  --stars-opacity: 0.55;
-  --gradient-primary: linear-gradient(120deg, #7c5cff 0%, #b86bff 45%, #f472b6 100%);
-  --gradient-text: linear-gradient(100deg, #c4b5ff 0%, #8ef0e0 50%, #ffa8d6 100%);
-  --glow-primary: 0 10px 30px -10px rgb(150 110 255 / 0.75);
-
-  /* Glass */
-  --glass-fill: linear-gradient(180deg, rgb(255 255 255 / 0.085), rgb(255 255 255 / 0.03));
-  --glass-blur: blur(18px) saturate(150%);
-  --glass-edge: inset 0 1px 0 rgb(255 255 255 / 0.1);
+  /* Glows and gradients */
+  --glow-card: radial-gradient(120% 95% at 50% 125%, rgb(205 140 188 / 0.42), transparent 62%);
+  --glow-corner: radial-gradient(90% 80% at 85% 0%, rgb(205 140 188 / 0.22), transparent 60%);
+  --gradient-primary: linear-gradient(180deg, #b78ca8 0%, #7a5a6f 100%);
+  --glow-primary: 0 10px 28px -10px rgb(205 140 188 / 0.7);
+  --nav-active: linear-gradient(90deg, #8d6c82 0%, #59455a 100%);
+  --nav-active-glow:
+    inset 0 1px 0 rgb(255 255 255 / 0.14), 0 8px 24px -10px rgb(205 140 188 / 0.65);
+  --control-fill: rgb(0 0 0 / 0.38);
 
   /* Elevation */
-  --shadow-1: var(--glass-edge), 0 10px 30px rgb(2 3 20 / 0.35);
-  --shadow-2: var(--glass-edge), 0 16px 40px rgb(2 3 20 / 0.5);
-  --shadow-3: var(--glass-edge), 0 28px 70px rgb(2 3 20 / 0.65);
+  --shadow-1: 0 1px 0 rgb(255 255 255 / 0.04) inset, 0 12px 32px rgb(0 0 0 / 0.35);
+  --shadow-2: 0 18px 44px rgb(0 0 0 / 0.5);
+  --shadow-3: 0 28px 70px rgb(0 0 0 / 0.62);
 
   /* Motion */
   --motion-fast: 120ms;
@@ -62,78 +59,78 @@
   --ease-standard: cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 
-/* Light ("aurora day"): white frosted glass over a pastel aurora */
+/* Light: the same frame and pills on a pale mauve-grey canvas with white cards */
 :root[data-theme='light'] {
   color-scheme: light;
-  --color-bg: #f3f2ff;
-  --color-surface: rgb(255 255 255 / 0.58);
-  --color-surface-raised: rgb(255 255 255 / 0.86);
-  --color-border: rgb(60 50 140 / 0.16);
-  --color-hairline: rgb(60 50 140 / 0.09);
-  --color-text: #17153a;
-  --color-text-muted: #5d5b85;
-  --color-primary: #6a4ce0;
-  --color-primary-hover: #5a3cd0;
-  --color-primary-subtle: rgb(106 76 224 / 0.1);
+  --color-bg: #e8e1e6;
+  --page-glow: radial-gradient(1200px 720px at 50% -12%, #f6eef3 0%, transparent 70%);
+  --frame-fill: linear-gradient(165deg, #faf6f9 0%, #efe7ed 45%, #e4dae1 100%);
+  --color-sidebar: #ffffff;
+  --color-surface: #ffffff;
+  --color-surface-raised: #ffffff;
+  --color-border: rgb(70 35 60 / 0.16);
+  --color-hairline: rgb(70 35 60 / 0.09);
+  --color-text: #1f1620;
+  --color-text-muted: #6f616d;
+  --color-primary: #8c4d7b;
+  --color-primary-hover: #783f68;
+  --color-primary-subtle: rgb(140 77 123 / 0.1);
   --color-on-primary: #ffffff;
-  --color-accent: #0d9488;
-  --color-moon: #9a6a12;
-  --color-rose: #be3f7f;
-  --color-success: #0f8a5f;
-  --color-info: #1d6fc4;
+  --color-accent: #7c6a77;
+  --color-highlight: #a3518a;
+  --color-rose: #b4427f;
+  --color-success: #1d8a5c;
+  --color-info: #2f62c4;
   --color-warning: #b45f0a;
-  --color-danger: #c2364f;
-  --color-neutral: #8a88aa;
-  --aurora-1: rgb(150 120 255 / 0.4);
-  --aurora-2: rgb(80 220 200 / 0.3);
-  --aurora-3: rgb(255 140 200 / 0.32);
-  --aurora-opacity: 0.9;
-  --stars-opacity: 0;
-  --gradient-primary: linear-gradient(120deg, #6a4ce0 0%, #9b4fe0 50%, #db4f9a 100%);
-  --gradient-text: linear-gradient(100deg, #5b3fd0 0%, #0d8f84 50%, #c43b86 100%);
-  --glow-primary: 0 10px 26px -12px rgb(106 76 224 / 0.6);
-  --glass-fill: linear-gradient(180deg, rgb(255 255 255 / 0.72), rgb(255 255 255 / 0.5));
-  --glass-edge: inset 0 1px 0 rgb(255 255 255 / 0.8);
-  --shadow-1: var(--glass-edge), 0 8px 28px rgb(40 30 110 / 0.08);
-  --shadow-2: var(--glass-edge), 0 14px 36px rgb(40 30 110 / 0.14);
-  --shadow-3: var(--glass-edge), 0 26px 64px rgb(40 30 110 / 0.2);
+  --color-danger: #c0364f;
+  --color-neutral: #998a96;
+  --glow-card: radial-gradient(120% 95% at 50% 125%, rgb(190 120 170 / 0.22), transparent 62%);
+  --glow-corner: radial-gradient(90% 80% at 85% 0%, rgb(190 120 170 / 0.14), transparent 60%);
+  --gradient-primary: linear-gradient(180deg, #a8698f 0%, #7c4a6b 100%);
+  --glow-primary: 0 10px 24px -12px rgb(140 77 123 / 0.6);
+  --nav-active: linear-gradient(90deg, rgb(140 77 123 / 0.2) 0%, rgb(140 77 123 / 0.07) 100%);
+  --nav-active-glow: inset 0 0 0 1px rgb(140 77 123 / 0.18);
+  --control-fill: #ffffff;
+  --shadow-1: 0 1px 2px rgb(60 30 55 / 0.05), 0 10px 28px rgb(60 30 55 / 0.07);
+  --shadow-2: 0 14px 36px rgb(60 30 55 / 0.13);
+  --shadow-3: 0 26px 64px rgb(60 30 55 / 0.2);
 }
 
 @media (prefers-color-scheme: light) {
   :root[data-theme='system'] {
     color-scheme: light;
-    --color-bg: #f3f2ff;
-    --color-surface: rgb(255 255 255 / 0.58);
-    --color-surface-raised: rgb(255 255 255 / 0.86);
-    --color-border: rgb(60 50 140 / 0.16);
-    --color-hairline: rgb(60 50 140 / 0.09);
-    --color-text: #17153a;
-    --color-text-muted: #5d5b85;
-    --color-primary: #6a4ce0;
-    --color-primary-hover: #5a3cd0;
-    --color-primary-subtle: rgb(106 76 224 / 0.1);
+    --color-bg: #e8e1e6;
+    --page-glow: radial-gradient(1200px 720px at 50% -12%, #f6eef3 0%, transparent 70%);
+    --frame-fill: linear-gradient(165deg, #faf6f9 0%, #efe7ed 45%, #e4dae1 100%);
+    --color-sidebar: #ffffff;
+    --color-surface: #ffffff;
+    --color-surface-raised: #ffffff;
+    --color-border: rgb(70 35 60 / 0.16);
+    --color-hairline: rgb(70 35 60 / 0.09);
+    --color-text: #1f1620;
+    --color-text-muted: #6f616d;
+    --color-primary: #8c4d7b;
+    --color-primary-hover: #783f68;
+    --color-primary-subtle: rgb(140 77 123 / 0.1);
     --color-on-primary: #ffffff;
-    --color-accent: #0d9488;
-    --color-moon: #9a6a12;
-    --color-rose: #be3f7f;
-    --color-success: #0f8a5f;
-    --color-info: #1d6fc4;
+    --color-accent: #7c6a77;
+    --color-highlight: #a3518a;
+    --color-rose: #b4427f;
+    --color-success: #1d8a5c;
+    --color-info: #2f62c4;
     --color-warning: #b45f0a;
-    --color-danger: #c2364f;
-    --color-neutral: #8a88aa;
-    --aurora-1: rgb(150 120 255 / 0.4);
-    --aurora-2: rgb(80 220 200 / 0.3);
-    --aurora-3: rgb(255 140 200 / 0.32);
-    --aurora-opacity: 0.9;
-    --stars-opacity: 0;
-    --gradient-primary: linear-gradient(120deg, #6a4ce0 0%, #9b4fe0 50%, #db4f9a 100%);
-    --gradient-text: linear-gradient(100deg, #5b3fd0 0%, #0d8f84 50%, #c43b86 100%);
-    --glow-primary: 0 10px 26px -12px rgb(106 76 224 / 0.6);
-    --glass-fill: linear-gradient(180deg, rgb(255 255 255 / 0.72), rgb(255 255 255 / 0.5));
-    --glass-edge: inset 0 1px 0 rgb(255 255 255 / 0.8);
-    --shadow-1: var(--glass-edge), 0 8px 28px rgb(40 30 110 / 0.08);
-    --shadow-2: var(--glass-edge), 0 14px 36px rgb(40 30 110 / 0.14);
-    --shadow-3: var(--glass-edge), 0 26px 64px rgb(40 30 110 / 0.2);
+    --color-danger: #c0364f;
+    --color-neutral: #998a96;
+    --glow-card: radial-gradient(120% 95% at 50% 125%, rgb(190 120 170 / 0.22), transparent 62%);
+    --glow-corner: radial-gradient(90% 80% at 85% 0%, rgb(190 120 170 / 0.14), transparent 60%);
+    --gradient-primary: linear-gradient(180deg, #a8698f 0%, #7c4a6b 100%);
+    --glow-primary: 0 10px 24px -12px rgb(140 77 123 / 0.6);
+    --nav-active: linear-gradient(90deg, rgb(140 77 123 / 0.2) 0%, rgb(140 77 123 / 0.07) 100%);
+    --nav-active-glow: inset 0 0 0 1px rgb(140 77 123 / 0.18);
+    --control-fill: #ffffff;
+    --shadow-1: 0 1px 2px rgb(60 30 55 / 0.05), 0 10px 28px rgb(60 30 55 / 0.07);
+    --shadow-2: 0 14px 36px rgb(60 30 55 / 0.13);
+    --shadow-3: 0 26px 64px rgb(60 30 55 / 0.2);
   }
 }
 

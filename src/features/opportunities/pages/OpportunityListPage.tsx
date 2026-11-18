@@ -86,11 +86,7 @@ export function OpportunityListPage() {
         <h1 id="opp-title" className="flex-1 font-display text-h1">
           Opportunities
         </h1>
-        <div
-          role="tablist"
-          aria-label="View"
-          className="flex rounded-full border border-hairline bg-surface-raised/70 p-1"
-        >
+        <div role="tablist" aria-label="View" className="flex gap-1.5">
           {(['list', 'pipeline'] as const).map((v) => (
             <button
               key={v}
@@ -98,7 +94,7 @@ export function OpportunityListPage() {
               type="button"
               aria-selected={view === v}
               onClick={() => set('view', v, 'list')}
-              className={`rounded-full px-3.5 py-1 text-body-sm ${view === v ? 'bg-hairline text-text' : 'text-muted hover:text-text'}`}
+              className={`rounded-full px-4 py-1.5 text-body-sm ${view === v ? 'nav-active' : 'border border-border text-muted hover:text-text'}`}
             >
               {v === 'list' ? 'List' : 'Pipeline'}
             </button>
