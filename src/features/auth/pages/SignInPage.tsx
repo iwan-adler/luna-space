@@ -57,7 +57,7 @@ export function SignInPage() {
   return (
     <div className="space-y-5">
       <div>
-        <h1 className="text-h1 font-semibold">Sign in</h1>
+        <h1 className="font-display text-h1">Sign in</h1>
         {inviting ? (
           <p className="mt-1 text-body-sm text-muted">
             Sign in or create an account to accept your invitation.

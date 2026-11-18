@@ -83,7 +83,7 @@ export function OpportunityListPage() {
   return (
     <section aria-labelledby="opp-title" className="space-y-4">
       <div className="flex flex-wrap items-center gap-3">
-        <h1 id="opp-title" className="flex-1 text-h1 font-semibold">
+        <h1 id="opp-title" className="flex-1 font-display text-h1">
           Opportunities
         </h1>
         <div

@@ -9,7 +9,7 @@ export function ComingSoonPage() {
   return (
     <section aria-labelledby="soon-title" className="mx-auto max-w-md py-16 text-center">
       <MoonLogo className="mx-auto mb-5 size-12 opacity-80" />
-      <h1 id="soon-title" className="text-h1 font-semibold">
+      <h1 id="soon-title" className="font-display text-h1">
         {item?.label ?? 'Coming soon'}
       </h1>
       <p className="mt-2 text-muted">

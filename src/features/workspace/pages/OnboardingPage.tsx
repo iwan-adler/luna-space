@@ -64,7 +64,7 @@ export function OnboardingPage() {
         ) : null}
         {step === 3 && workspaceId ? (
           <div className="space-y-4">
-            <h1 className="text-h1 font-semibold">Invite your partner</h1>
+            <h1 className="font-display text-h1">Invite your partner</h1>
             <p className="text-body-sm text-muted">
               Luna Space is built for two. Send your partner this link — it works once and expires
               in 7 days. You can also do this later in Settings.
@@ -106,7 +106,7 @@ function ProfileStep({
         update.mutate({ display_name: v.displayName, timezone: v.timezone }, { onSuccess: onDone }),
       )}
     >
-      <h1 className="text-h1 font-semibold">Welcome! Tell us about you</h1>
+      <h1 className="font-display text-h1">Welcome! Tell us about you</h1>
       {update.error ? <Alert tone="danger">{update.error.message}</Alert> : null}
       <TextField
         label="Your name"
@@ -135,7 +135,7 @@ function WorkspaceStep({ onDone }: { onDone: (workspaceId: string) => void }) {
       className="space-y-4"
       onSubmit={form.handleSubmit((v) => create.mutate(v.name, { onSuccess: onDone }))}
     >
-      <h1 className="text-h1 font-semibold">Name your workspace</h1>
+      <h1 className="font-display text-h1">Name your workspace</h1>
       <p className="text-body-sm text-muted">
         A private space for you and one partner. You can rename it later.
       </p>

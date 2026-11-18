@@ -38,7 +38,7 @@ export function WorkspaceSettingsPage() {
 
   return (
     <section aria-labelledby="ws-title" className="max-w-2xl space-y-6">
-      <h1 id="ws-title" className="text-h1 font-semibold">
+      <h1 id="ws-title" className="font-display text-h1">
         Workspace settings
       </h1>
 

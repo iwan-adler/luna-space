@@ -21,7 +21,7 @@ export function AcceptInvitePage() {
   return (
     <AuthFrame>
       <div className="space-y-4">
-        <h1 className="text-h1 font-semibold">You&apos;re invited</h1>
+        <h1 className="font-display text-h1">You&apos;re invited</h1>
         <p className="text-body-sm text-muted">
           Your partner invited you to share a private Luna Space workspace — opportunities,
           projects, deadlines and chat for the two of you.

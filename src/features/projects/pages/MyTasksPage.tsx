@@ -32,7 +32,7 @@ export function MyTasksPage() {
 
   return (
     <section aria-labelledby="my-tasks-title" className="space-y-4">
-      <h1 id="my-tasks-title" className="text-h1 font-semibold">
+      <h1 id="my-tasks-title" className="font-display text-h1">
         My tasks
       </h1>
       {tasks.isPending ? (

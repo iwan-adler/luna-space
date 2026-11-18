@@ -22,7 +22,7 @@ export function ResetPasswordPage() {
 
   return (
     <div className="space-y-4">
-      <h1 className="text-h1 font-semibold">Reset password</h1>
+      <h1 className="font-display text-h1">Reset password</h1>
       {sent ? (
         <Alert tone="success">
           If an account exists for that email, a reset link is on its way.

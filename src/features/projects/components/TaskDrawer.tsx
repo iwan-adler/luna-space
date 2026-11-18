@@ -45,7 +45,7 @@ export function TaskDrawer({
       <RadixDialog.Portal>
         <RadixDialog.Overlay className="fixed inset-0 z-40 bg-black/45 backdrop-blur-[2px]" />
         <RadixDialog.Content
-          className="fixed inset-y-0 right-0 z-50 flex w-full max-w-lg flex-col border-l border-hairline bg-surface-raised shadow-3 outline-none"
+          className="fixed inset-y-0 right-0 z-50 flex w-full max-w-lg flex-col glass border-l border-hairline shadow-3 outline-none"
           aria-describedby={undefined}
         >
           {task ? (
@@ -112,7 +112,7 @@ function TaskDetails({
             if (v && v !== task.title) save({ title: v })
             else setTitle(task.title)
           }}
-          className="field-sizing-content min-h-9 flex-1 resize-none rounded-[10px] bg-transparent px-1 text-h2 font-semibold outline-none focus-visible:bg-hairline"
+          className="field-sizing-content min-h-9 flex-1 resize-none rounded-[10px] bg-transparent px-1 font-display text-[28px] leading-8 outline-none focus-visible:bg-hairline"
         />
         <RadixDialog.Close
           className="grid size-9 place-items-center rounded-full text-muted hover:bg-hairline hover:text-text"
@@ -337,7 +337,6 @@ function Subtasks({
               {
                 title: v,
                 parentTaskId: parent.id,
-                position: positionAt(subtasks, subtasks.length),
               },
               { onSuccess: () => setTitle('') },
             )

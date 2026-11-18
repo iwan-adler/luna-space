@@ -215,7 +215,7 @@ function Column({
     if (!value) return
     setTitle('') // clear now so the next title can be typed while this one saves
     create.mutate(
-      { title: value, status, position: positionAt(tasks, tasks.length) },
+      { title: value, status },
       {
         onError: () => {
           setTitle((current) => current || value)

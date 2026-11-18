@@ -9,7 +9,7 @@ import { mobileNav, primaryNav } from './navigation'
 
 const sideLink = ({ isActive }: { isActive: boolean }) =>
   `group relative flex items-center gap-3 rounded-full px-3.5 py-2 text-body-sm transition-colors duration-[var(--motion-fast)] ${
-    isActive ? 'bg-hairline font-medium text-text' : 'text-muted hover:text-text'
+    isActive ? 'bg-primary-subtle font-medium text-text' : 'text-muted hover:text-text'
   }`
 
 /** Soft-night shell: quiet sidebar and floating bottom bar (UI spec §9–11, ADR 0005). */
@@ -62,7 +62,7 @@ export function AppShell() {
       </aside>
 
       <div className="flex min-w-0 flex-1 flex-col">
-        <header className="sticky top-0 z-30 flex h-16 items-center gap-3 bg-bg/70 px-5 backdrop-blur-xl lg:hidden">
+        <header className="sticky top-0 z-30 flex h-16 items-center gap-3 glass px-5 lg:hidden">
           <Link
             to="/"
             className="flex items-center gap-2 text-[17px] font-semibold tracking-[-0.02em]"
@@ -83,7 +83,7 @@ export function AppShell() {
 
       <nav
         aria-label="Main"
-        className="fixed inset-x-4 bottom-[calc(12px+env(safe-area-inset-bottom))] z-30 flex rounded-full border border-hairline bg-surface-raised/85 p-1.5 shadow-2 backdrop-blur-xl lg:hidden"
+        className="fixed inset-x-4 bottom-[calc(12px+env(safe-area-inset-bottom))] z-30 flex rounded-full glass border border-hairline p-1.5 shadow-2 lg:hidden"
       >
         {[
           ...primaryNav.filter((i) => mobileNav.includes(i.to)),
@@ -95,7 +95,7 @@ export function AppShell() {
             end={item.to === '/'}
             className={({ isActive }) =>
               `flex flex-1 flex-col items-center gap-0.5 rounded-full py-1.5 text-[11px] transition-colors ${
-                isActive ? 'bg-hairline text-primary' : 'text-muted'
+                isActive ? 'bg-primary-subtle text-primary' : 'text-muted'
               }`
             }
           >
@@ -137,7 +137,7 @@ function AccountMenu({ wide = false }: { wide?: boolean }) {
           align={wide ? 'start' : 'end'}
           side={wide ? 'top' : 'bottom'}
           sideOffset={8}
-          className="z-50 min-w-56 rounded-2xl border border-hairline bg-surface-raised/95 p-1.5 shadow-3 backdrop-blur-xl"
+          className="z-50 min-w-56 rounded-2xl glass border border-hairline p-1.5 shadow-3"
         >
           <Menu.Item className={item} onSelect={() => navigate('/settings/profile')}>
             <CircleUser className="size-4" strokeWidth={1.75} aria-hidden /> Profile
@@ -171,7 +171,7 @@ export function MorePage() {
   const extra = primaryNav.filter((i) => !mobileNav.includes(i.to))
   return (
     <section aria-labelledby="more-title" className="space-y-6">
-      <h1 id="more-title" className="text-h1 font-semibold">
+      <h1 id="more-title" className="font-display text-h1">
         More
       </h1>
       <nav aria-label="More" className="panel divide-y divide-hairline overflow-hidden p-0">

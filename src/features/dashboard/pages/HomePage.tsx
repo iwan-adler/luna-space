@@ -39,13 +39,22 @@ export function HomePage() {
       <header className="panel relative overflow-hidden p-7 sm:p-9">
         <div
           aria-hidden
-          className="pointer-events-none absolute -top-24 -right-16 size-64 rounded-full bg-primary/10 blur-3xl"
+          className="pointer-events-none absolute -top-24 -right-16 size-72 rounded-full bg-primary/20 blur-3xl"
+        />
+        <div
+          aria-hidden
+          className="pointer-events-none absolute -bottom-28 left-10 size-56 rounded-full bg-accent/10 blur-3xl"
         />
         <p className="eyebrow">{ws.workspaceName}</p>
-        <h1 id="home-title" className="mt-3 text-display font-semibold">
+        <div aria-hidden className="hairline-moon mt-3 w-24" />
+        <h1 id="home-title" className="mt-3 font-display text-display">
           {greeting()}
-          {me ? `, ${me.displayName}` : ''}
-          <Sparkles className="ml-2 inline size-6 text-primary/80" strokeWidth={1.5} aria-hidden />
+          {me ? (
+            <>
+              , <em className="text-aurora pr-1">{me.displayName}</em>
+            </>
+          ) : null}
+          <Sparkles className="ml-2 inline size-7 text-moon/80" strokeWidth={1.5} aria-hidden />
         </h1>
         <p className="mt-2 min-h-6 text-body text-muted" data-testid="week-summary">
           {opps.isPending
@@ -87,7 +96,7 @@ export function HomePage() {
 
       <section aria-labelledby="upcoming-title" className="space-y-4">
         <div className="flex items-baseline justify-between">
-          <h2 id="upcoming-title" className="text-h2 font-semibold">
+          <h2 id="upcoming-title" className="font-display text-[28px] leading-8">
             Upcoming
           </h2>
           <Link

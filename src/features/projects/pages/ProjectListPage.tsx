@@ -29,7 +29,7 @@ export function ProjectListPage() {
   return (
     <section aria-labelledby="projects-title" className="space-y-4">
       <div className="flex flex-wrap items-center gap-3">
-        <h1 id="projects-title" className="flex-1 text-h1 font-semibold">
+        <h1 id="projects-title" className="flex-1 font-display text-h1">
           Projects
         </h1>
         <Button icon={<Plus className="size-4" aria-hidden />} onClick={() => setCreating(true)}>

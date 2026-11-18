@@ -240,7 +240,7 @@ function Review({
   return (
     <section aria-labelledby="review-title" className="max-w-4xl space-y-4">
       <div className="flex flex-wrap items-center gap-2">
-        <h1 id="review-title" className="flex-1 text-h1 font-semibold">
+        <h1 id="review-title" className="flex-1 font-display text-h1">
           Review extracted details
         </h1>
         {(['confirmed', 'inferred', 'missing', 'conflicting'] as const).map((s) =>
