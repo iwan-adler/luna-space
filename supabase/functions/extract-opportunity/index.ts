@@ -1,9 +1,12 @@
 // Edge Function: extract-opportunity (TRD §8, FR-OPP-06–13).
-// POST { url } with the member's JWT → { ok, runId, thin } or { ok: false, code, reason, runId? }.
+// POST { url, text? } with the member's JWT → { ok, runId, thin } or { ok: false, code, reason, runId? }.
+// `text` is the page content the person pasted when the site blocks automated reading; it is parsed
+// instead of fetching. Blocked fetches answer with `canPaste: true` so the app can offer that.
 // The page is fetched through safeFetch (SSRF guards); results are stored with the service role so
 // clients cannot forge "extracted" values. Expected failures return HTTP 200 with ok:false.
 import { createClient } from 'npm:@supabase/supabase-js@2.119.0'
 import { EXTRACTOR_VERSION, extractFromHtml } from '../_shared/extract/extract.ts'
+import { extractFromPastedText } from '../_shared/extract/paste.ts'
 import { robotsAllows, safeFetch } from '../_shared/safe-fetch.ts'
 
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!
@@ -79,12 +82,21 @@ Deno.serve(async (req) => {
   if (!authorization) return json({ ok: false, code: 'NOT_SIGNED_IN' }, 401, origin)
 
   let url: unknown
+  let text: unknown
   try {
     const body = await req.json()
     url = body?.url
+    text = body?.text
   } catch {
     return json(
       { ok: false, code: 'INVALID_URL', reason: 'Send { "url": "https://…" }' },
+      400,
+      origin,
+    )
+  }
+  if (text !== undefined && (typeof text !== 'string' || text.length > 300_000 || !text.trim())) {
+    return json(
+      { ok: false, code: 'INVALID_TEXT', reason: 'Paste the page text (up to 300,000 characters)' },
       400,
       origin,
     )
@@ -133,6 +145,34 @@ Deno.serve(async (req) => {
     })
 
   try {
+    if (typeof text === 'string') {
+      const pasted = extractFromPastedText(text, {
+        pageUrl: url.trim(),
+        now: new Date(),
+        defaultTimeZone: DEFAULT_TZ,
+      })
+      const saved = await complete({
+        p_status: 'succeeded',
+        p_final_url: url.trim(),
+        p_content_type: 'text/plain; source=paste',
+        p_thin: pasted.thin,
+        p_fields: pasted.fields,
+      })
+      if (saved.error) throw new Error(saved.error.message)
+      console.log(
+        JSON.stringify({
+          fn: 'extract-opportunity',
+          errorId,
+          runId,
+          outcome: 'ok_paste',
+          thin: pasted.thin,
+          version: EXTRACTOR_VERSION,
+          ms: Date.now() - started,
+        }),
+      )
+      return json({ ok: true, runId, thin: pasted.thin }, 200, origin)
+    }
+
     // robots.txt for the path (TRD §8.3); unreachable robots.txt counts as "allowed".
     const target = new URL(url.trim())
     const robots = await safeFetch(`${target.origin}/robots.txt`, {
@@ -150,6 +190,7 @@ Deno.serve(async (req) => {
           runId,
           code: 'ROBOTS_DISALLOWED',
           reason: 'This site asks automated tools not to read this page',
+          canPaste: true,
         },
         200,
         origin,
@@ -172,7 +213,25 @@ Deno.serve(async (req) => {
           ms: Date.now() - started,
         }),
       )
-      return json({ ok: false, runId, code: page.code, reason: page.reason }, 200, origin)
+      return json(
+        {
+          ok: false,
+          runId,
+          code: page.code,
+          reason: page.reason,
+          // Sites that refuse servers (403, 429, bot checks) can still be read from a paste.
+          canPaste: [
+            'HTTP_ERROR',
+            'FETCH_TIMEOUT',
+            'FETCH_FAILED',
+            'UNSUPPORTED_CONTENT',
+            'TOO_LARGE',
+            'TOO_MANY_REDIRECTS',
+          ].includes(page.code),
+        },
+        200,
+        origin,
+      )
     }
 
     const result = extractFromHtml(page.body, {
