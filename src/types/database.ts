@@ -127,6 +127,38 @@ isOneToOne: true
       referencedColumns: ["id"]
     }
                   ]
+                },"chat_read_state": {
+                  Row: {
+                    "last_read_at": string,"last_read_message_id": string | null,"user_id": string,"workspace_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "last_read_at"?: string,"last_read_message_id"?: string | null,"user_id": string,"workspace_id": string
+                  }
+                  Update: {
+                    "last_read_at"?: string,"last_read_message_id"?: string | null,"user_id"?: string,"workspace_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "chat_read_state_last_read_message_id_fkey"
+      columns: ["last_read_message_id"]
+isOneToOne: false
+      referencedRelation: "messages"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "chat_read_state_user_id_fkey"
+      columns: ["user_id"]
+isOneToOne: false
+      referencedRelation: "profiles"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "chat_read_state_workspace_id_fkey"
+      columns: ["workspace_id"]
+isOneToOne: false
+      referencedRelation: "workspaces"
+      referencedColumns: ["id"]
+    }
+                  ]
                 },"checklist_items": {
                   Row: {
                     "assignee_id": string | null,"checklist_id": string,"client_id": string | null,"done_at": string | null,"done_by": string | null,"due_date": string | null,"for_user_id": string | null,"id": string,"is_done": boolean,"label": string,"position": number,"workspace_id": string
@@ -277,14 +309,14 @@ isOneToOne: false
                   ]
                 },"files": {
                   Row: {
-                    "bucket": string,"created_at": string,"deleted_at": string | null,"deleted_by": string | null,"file_name": string,"guest_visible": boolean,"id": string,"mime_type": string,"owner_id": string | null,"project_id": string | null,"sha256": string | null,"size_bytes": number,"storage_path": string,"task_id": string | null,"upload_state": string,"visibility": Database["public"]['Enums']["visibility"],"workspace_id": string
+                    "bucket": string,"created_at": string,"deleted_at": string | null,"deleted_by": string | null,"file_name": string,"guest_visible": boolean,"id": string,"message_id": string | null,"mime_type": string,"owner_id": string | null,"project_id": string | null,"sha256": string | null,"size_bytes": number,"storage_path": string,"task_id": string | null,"upload_state": string,"visibility": Database["public"]['Enums']["visibility"],"workspace_id": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "bucket"?: string,"created_at"?: string,"deleted_at"?: string | null,"deleted_by"?: string | null,"file_name": string,"guest_visible"?: boolean,"id"?: string,"mime_type": string,"owner_id"?: string | null,"project_id"?: string | null,"sha256"?: string | null,"size_bytes": number,"storage_path": string,"task_id"?: string | null,"upload_state"?: string,"visibility"?: Database["public"]['Enums']["visibility"],"workspace_id": string
+                    "bucket"?: string,"created_at"?: string,"deleted_at"?: string | null,"deleted_by"?: string | null,"file_name": string,"guest_visible"?: boolean,"id"?: string,"message_id"?: string | null,"mime_type": string,"owner_id"?: string | null,"project_id"?: string | null,"sha256"?: string | null,"size_bytes": number,"storage_path": string,"task_id"?: string | null,"upload_state"?: string,"visibility"?: Database["public"]['Enums']["visibility"],"workspace_id": string
                   }
                   Update: {
-                    "bucket"?: string,"created_at"?: string,"deleted_at"?: string | null,"deleted_by"?: string | null,"file_name"?: string,"guest_visible"?: boolean,"id"?: string,"mime_type"?: string,"owner_id"?: string | null,"project_id"?: string | null,"sha256"?: string | null,"size_bytes"?: number,"storage_path"?: string,"task_id"?: string | null,"upload_state"?: string,"visibility"?: Database["public"]['Enums']["visibility"],"workspace_id"?: string
+                    "bucket"?: string,"created_at"?: string,"deleted_at"?: string | null,"deleted_by"?: string | null,"file_name"?: string,"guest_visible"?: boolean,"id"?: string,"message_id"?: string | null,"mime_type"?: string,"owner_id"?: string | null,"project_id"?: string | null,"sha256"?: string | null,"size_bytes"?: number,"storage_path"?: string,"task_id"?: string | null,"upload_state"?: string,"visibility"?: Database["public"]['Enums']["visibility"],"workspace_id"?: string
                   }
                   Relationships: [
                     {
@@ -293,6 +325,12 @@ isOneToOne: false
 isOneToOne: false
       referencedRelation: "profiles"
       referencedColumns: ["id"]
+    },{
+      foreignKeyName: "files_message_id_workspace_id_fkey"
+      columns: ["message_id","workspace_id"]
+isOneToOne: false
+      referencedRelation: "messages"
+      referencedColumns: ["id","workspace_id"]
     },{
       foreignKeyName: "files_owner_id_fkey"
       columns: ["owner_id"]
@@ -313,6 +351,70 @@ isOneToOne: false
       referencedColumns: ["id","workspace_id"]
     },{
       foreignKeyName: "files_workspace_id_fkey"
+      columns: ["workspace_id"]
+isOneToOne: false
+      referencedRelation: "workspaces"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"message_reactions": {
+                  Row: {
+                    "created_at": string,"emoji": string,"message_id": string,"user_id": string,"workspace_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "created_at"?: string,"emoji": string,"message_id": string,"user_id": string,"workspace_id": string
+                  }
+                  Update: {
+                    "created_at"?: string,"emoji"?: string,"message_id"?: string,"user_id"?: string,"workspace_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "message_reactions_message_id_workspace_id_fkey"
+      columns: ["message_id","workspace_id"]
+isOneToOne: false
+      referencedRelation: "messages"
+      referencedColumns: ["id","workspace_id"]
+    },{
+      foreignKeyName: "message_reactions_user_id_fkey"
+      columns: ["user_id"]
+isOneToOne: false
+      referencedRelation: "profiles"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"messages": {
+                  Row: {
+                    "body": string | null,"client_id": string | null,"created_at": string,"deleted_at": string | null,"edited_at": string | null,"id": string,"kind": string,"metadata": NonNullable<Json>,"project_id": string | null,"reply_to_id": string | null,"search": unknown,"sender_id": string | null,"workspace_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "body"?: string | null,"client_id"?: string | null,"created_at"?: string,"deleted_at"?: string | null,"edited_at"?: string | null,"id"?: string,"kind"?: string,"metadata"?: NonNullable<Json>,"project_id"?: string | null,"reply_to_id"?: string | null,"search"?: never,"sender_id"?: string | null,"workspace_id": string
+                  }
+                  Update: {
+                    "body"?: string | null,"client_id"?: string | null,"created_at"?: string,"deleted_at"?: string | null,"edited_at"?: string | null,"id"?: string,"kind"?: string,"metadata"?: NonNullable<Json>,"project_id"?: string | null,"reply_to_id"?: string | null,"search"?: never,"sender_id"?: string | null,"workspace_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "messages_project_id_workspace_id_fkey"
+      columns: ["project_id","workspace_id"]
+isOneToOne: false
+      referencedRelation: "projects"
+      referencedColumns: ["id","workspace_id"]
+    },{
+      foreignKeyName: "messages_reply_to_id_workspace_id_fkey"
+      columns: ["reply_to_id","workspace_id"]
+isOneToOne: false
+      referencedRelation: "messages"
+      referencedColumns: ["id","workspace_id"]
+    },{
+      foreignKeyName: "messages_sender_id_fkey"
+      columns: ["sender_id"]
+isOneToOne: false
+      referencedRelation: "profiles"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "messages_workspace_id_fkey"
       columns: ["workspace_id"]
 isOneToOne: false
       referencedRelation: "workspaces"
@@ -1077,6 +1179,9 @@ isOneToOne: false
                            },
 "mark_all_notifications_read":
 { Args: Record<PropertyKey, never>; Returns: number
+                           },
+"mark_chat_read":
+{ Args: { "p_message": string }; Returns: undefined
                            },
 "project_directory":
 { Args: { "p_project": string }; Returns: {

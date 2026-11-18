@@ -231,13 +231,7 @@ export async function uploadFile(args: {
   if (confirmError) throw toAppError(confirmError)
 }
 
-export async function signedFileUrl(path: string): Promise<string> {
-  const { data, error } = await db().storage.from('workspace-files').createSignedUrl(path, 60, {
-    download: true,
-  })
-  if (error) throw new AppError('Could not open the file.')
-  return data.signedUrl
-}
+export { signedFileUrl } from '@/lib/files'
 
 /** Members decide which files guests can see (FR-GUEST-08). */
 export async function setFileGuestVisible(id: string, visible: boolean): Promise<void> {
