@@ -435,3 +435,7 @@ verify_jwt = false
 # calendar-ics is fetched by calendar apps with a private token in the URL, not a user JWT.
 [functions.calendar-ics]
 verify_jwt = false
+
+# maintenance is called nightly by pg_cron with its own bearer token, not a user JWT.
+[functions.maintenance]
+verify_jwt = false

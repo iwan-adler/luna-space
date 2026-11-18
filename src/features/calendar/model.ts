@@ -22,6 +22,8 @@ export interface FeedItem {
   endsAt: string | null
   timezone: string | null
   visibility: 'shared' | 'private'
+  /** Who owns the source record (null for checklist items). */
+  ownerId?: string | null
   rrule: string | null
   exdates: DateOnly[]
   /** Set on items expanded from a repeating event: the local date of this occurrence. */
@@ -43,6 +45,7 @@ export function toFeedItem(r: FeedRow): FeedItem | null {
     endsAt: r.ends_at,
     timezone: r.timezone,
     visibility: r.visibility ?? 'shared',
+    ownerId: r.owner_id,
     rrule: r.rrule ?? null,
     exdates: r.exdates ?? [],
     occurrence: null,
@@ -55,6 +58,11 @@ const fromMs = (t: number): DateOnly => new Date(t).toISOString().slice(0, 10)
 
 export function addDays(d: DateOnly, n: number): DateOnly {
   return fromMs(ms(d) + n * 86_400_000)
+}
+
+/** Whole days from `a` to `b` (negative when `b` is earlier). */
+export function daysBetween(a: DateOnly, b: DateOnly): number {
+  return Math.round((ms(b) - ms(a)) / 86_400_000)
 }
 
 /** ISO weekday: 1 = Monday … 7 = Sunday. */

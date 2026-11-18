@@ -76,7 +76,7 @@ export function CalendarPage() {
     day: DateOnly
     startMinutes?: number | null
     occurrence?: DateOnly | null
-  } | null>(null)
+  } | null>(() => (params.get('new') === 'event' ? { id: null, day: today } : null))
   const editEvent = useCalendarEvent(editing?.id ?? null)
   const move = useMoveEvent()
   const toast = useToast()
@@ -363,7 +363,15 @@ export function CalendarPage() {
         <EventDialog
           key={editing.id ?? `new-${editing.day}`}
           open
-          onOpenChange={(open) => !open && setEditing(null)}
+          onOpenChange={(open) => {
+            if (open) return
+            setEditing(null)
+            if (params.has('new')) {
+              const next = new URLSearchParams(params)
+              next.delete('new')
+              setParams(next, { replace: true })
+            }
+          }}
           event={editing.id ? (editEvent.data ?? null) : null}
           day={editing.day}
           viewerTz={tz}

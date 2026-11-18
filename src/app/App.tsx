@@ -1,3 +1,4 @@
+import { DataSettingsPage, RecycleBinPage } from '@/features/data'
 import { SearchPage } from '@/features/search'
 import { VaultPage } from '@/features/vault'
 import { lazy, Suspense, type ReactNode } from 'react'
@@ -105,6 +106,8 @@ export function App() {
             <Route path="vault" element={page(<VaultPage />)} />
             <Route path="vault/:folderId" element={page(<VaultPage />)} />
             <Route path="search" element={page(<SearchPage />)} />
+            <Route path="trash" element={page(<RecycleBinPage />)} />
+            <Route path="settings/data" element={page(<DataSettingsPage />)} />
             <Route path="more" element={<MorePage />} />
             <Route path="settings/profile" element={<ProfileSettingsPage />} />
             <Route path="settings/workspace" element={<WorkspaceSettingsPage />} />

@@ -1,5 +1,13 @@
 import * as Menu from '@radix-ui/react-dropdown-menu'
-import { ChevronRight, CircleUser, LogOut, MoreHorizontal, Settings, Users } from 'lucide-react'
+import {
+  ChevronRight,
+  CircleUser,
+  Database,
+  LogOut,
+  MoreHorizontal,
+  Settings,
+  Users,
+} from 'lucide-react'
 import { Link, NavLink, Outlet, useNavigate } from 'react-router'
 import { MoonLogo } from '@/components/patterns/MoonLogo'
 import { useAuth } from '@/features/auth'
@@ -71,6 +79,10 @@ export function AppShell() {
             <NavLink to="/settings/workspace" className={sideLink}>
               <Users className="size-[18px]" strokeWidth={1.75} aria-hidden />
               Workspace
+            </NavLink>
+            <NavLink to="/settings/data" className={sideLink}>
+              <Database className="size-[18px]" strokeWidth={1.75} aria-hidden />
+              Your data
             </NavLink>
           </nav>
         </aside>
@@ -222,6 +234,11 @@ export function MorePage() {
         <Link to="/settings/workspace" className={moreRow}>
           <Users className="size-5 text-muted" strokeWidth={1.75} aria-hidden />
           <span className="flex-1">Workspace settings</span>
+          <ChevronRight className="size-4 text-muted" aria-hidden />
+        </Link>
+        <Link to="/settings/data" className={moreRow}>
+          <Database className="size-5 text-muted" strokeWidth={1.75} aria-hidden />
+          <span className="flex-1">Your data and recycle bin</span>
           <ChevronRight className="size-4 text-muted" aria-hidden />
         </Link>
         <button
