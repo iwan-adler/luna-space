@@ -299,6 +299,50 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
+                },"notes": {
+                  Row: {
+                    "body_md": string,"client_id": string | null,"created_at": string,"deleted_at": string | null,"deleted_by": string | null,"folder_id": string | null,"guest_visible": boolean,"id": string,"kind": string,"owner_id": string | null,"pinned": boolean,"project_id": string | null,"search": unknown,"tags": (string)[],"title": string,"updated_at": string,"updated_by": string | null,"version": number,"visibility": Database["public"]['Enums']["visibility"],"workspace_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "body_md"?: string,"client_id"?: string | null,"created_at"?: string,"deleted_at"?: string | null,"deleted_by"?: string | null,"folder_id"?: string | null,"guest_visible"?: boolean,"id"?: string,"kind"?: string,"owner_id"?: string | null,"pinned"?: boolean,"project_id"?: string | null,"search"?: never,"tags"?: (string)[],"title": string,"updated_at"?: string,"updated_by"?: string | null,"version"?: number,"visibility"?: Database["public"]['Enums']["visibility"],"workspace_id": string
+                  }
+                  Update: {
+                    "body_md"?: string,"client_id"?: string | null,"created_at"?: string,"deleted_at"?: string | null,"deleted_by"?: string | null,"folder_id"?: string | null,"guest_visible"?: boolean,"id"?: string,"kind"?: string,"owner_id"?: string | null,"pinned"?: boolean,"project_id"?: string | null,"search"?: never,"tags"?: (string)[],"title"?: string,"updated_at"?: string,"updated_by"?: string | null,"version"?: number,"visibility"?: Database["public"]['Enums']["visibility"],"workspace_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "notes_deleted_by_fkey"
+      columns: ["deleted_by"]
+isOneToOne: false
+      referencedRelation: "profiles"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "notes_owner_id_fkey"
+      columns: ["owner_id"]
+isOneToOne: false
+      referencedRelation: "profiles"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "notes_project_id_workspace_id_fkey"
+      columns: ["project_id","workspace_id"]
+isOneToOne: false
+      referencedRelation: "projects"
+      referencedColumns: ["id","workspace_id"]
+    },{
+      foreignKeyName: "notes_updated_by_fkey"
+      columns: ["updated_by"]
+isOneToOne: false
+      referencedRelation: "profiles"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "notes_workspace_id_fkey"
+      columns: ["workspace_id"]
+isOneToOne: false
+      referencedRelation: "workspaces"
+      referencedColumns: ["id"]
+    }
+                  ]
                 },"notification_preferences": {
                   Row: {
                     "deadline_reminder_days": (number)[],"email_enabled": boolean,"lockscreen_details": boolean,"push_enabled": boolean,"quiet_end": string,"quiet_start": string,"timed_reminder_minutes": (number)[],"type_settings": NonNullable<Json>,"updated_at": string,"user_id": string
@@ -1025,6 +1069,9 @@ isOneToOne: false
                            },
 "save_checklist_as_template":
 { Args: { "p_checklist": string,"p_title": string }; Returns: string
+                           },
+"save_note":
+{ Args: { "p_body": string,"p_id": string,"p_title": string,"p_version": number }; Returns: Json
                            },
 "save_opportunity":
 { Args: { "p_dates"?: Json,"p_fields": Json,"p_id": string,"p_source_url"?: string }; Returns: string
