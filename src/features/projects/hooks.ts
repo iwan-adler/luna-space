@@ -355,7 +355,7 @@ export function useProjectRealtime(projectId: string) {
     const invalidate = (key: readonly unknown[]) => () =>
       void qc.invalidateQueries({ queryKey: key })
     const channel = client
-      .channel(`project:${projectId}`)
+      .channel(`project:${projectId}:${crypto.randomUUID()}`) // unique per subscriber
       .on(
         'postgres_changes',
         { event: '*', schema: 'public', table: 'tasks', filter: `project_id=eq.${projectId}` },

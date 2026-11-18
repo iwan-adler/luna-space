@@ -168,3 +168,11 @@ export function formatDated(value: DatedValue): string {
   if (value.at_time) return formatInstant(value.at_time, value.source_timezone ?? 'UTC')
   return '—'
 }
+
+/** Adds hours to a wall-clock "YYYY-MM-DDTHH:mm" value without any time-zone conversion. */
+export function addHoursLocal(local: string, hours: number): string {
+  const m = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})$/.exec(local)
+  if (!m) return local
+  const t = Date.UTC(+m[1]!, +m[2]! - 1, +m[3]!, +m[4]! + hours, +m[5]!)
+  return new Date(t).toISOString().slice(0, 16)
+}

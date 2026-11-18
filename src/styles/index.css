@@ -25,6 +25,7 @@
   --color-danger: var(--color-danger);
   --color-neutral: var(--color-neutral);
   --color-moon: var(--color-moon);
+  --color-rose: var(--color-rose);
 
   --font-sans: 'Inter Variable', 'Segoe UI', Roboto, sans-serif;
   --font-mono: 'JetBrains Mono Variable', Consolas, monospace;

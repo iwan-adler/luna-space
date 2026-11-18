@@ -4,6 +4,7 @@ import { Link, NavLink, Outlet, useNavigate } from 'react-router'
 import { MoonLogo } from '@/components/patterns/MoonLogo'
 import { useAuth } from '@/features/auth'
 import { useMyProfile } from '@/features/profile'
+import { NotificationBell } from '@/features/notifications'
 import { useCurrentWorkspace } from '@/features/workspace'
 import { mobileNav, primaryNav } from './navigation'
 
@@ -32,6 +33,9 @@ export function AppShell() {
           <MoonLogo className="size-7" />
           Luna Space
         </Link>
+        <div className="absolute top-6 right-4">
+          <NotificationBell />
+        </div>
         <p className="eyebrow mt-8 mb-3 truncate px-3.5" title={ws.workspaceName}>
           {ws.workspaceName}
         </p>
@@ -71,6 +75,7 @@ export function AppShell() {
             Luna Space
           </Link>
           <div className="flex-1" />
+          <NotificationBell />
           <AccountMenu />
         </header>
         <main

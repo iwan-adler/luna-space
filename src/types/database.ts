@@ -63,6 +63,50 @@ isOneToOne: false
                   Relationships: [
                     
                   ]
+                },"calendar_events": {
+                  Row: {
+                    "all_day": boolean,"created_at": string,"deleted_at": string | null,"deleted_by": string | null,"description": string | null,"end_date": string | null,"ends_at": string | null,"exdates": (string)[],"id": string,"kind": Database["public"]['Enums']["event_kind"],"location": string | null,"opportunity_id": string | null,"owner_id": string | null,"project_id": string | null,"reminder_offsets": (number)[],"rrule": string | null,"start_date": string | null,"starts_at": string | null,"timezone": string | null,"title": string,"updated_at": string,"visibility": Database["public"]['Enums']["visibility"],"workspace_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "all_day"?: boolean,"created_at"?: string,"deleted_at"?: string | null,"deleted_by"?: string | null,"description"?: string | null,"end_date"?: string | null,"ends_at"?: string | null,"exdates"?: (string)[],"id"?: string,"kind"?: Database["public"]['Enums']["event_kind"],"location"?: string | null,"opportunity_id"?: string | null,"owner_id"?: string | null,"project_id"?: string | null,"reminder_offsets"?: (number)[],"rrule"?: string | null,"start_date"?: string | null,"starts_at"?: string | null,"timezone"?: string | null,"title": string,"updated_at"?: string,"visibility"?: Database["public"]['Enums']["visibility"],"workspace_id": string
+                  }
+                  Update: {
+                    "all_day"?: boolean,"created_at"?: string,"deleted_at"?: string | null,"deleted_by"?: string | null,"description"?: string | null,"end_date"?: string | null,"ends_at"?: string | null,"exdates"?: (string)[],"id"?: string,"kind"?: Database["public"]['Enums']["event_kind"],"location"?: string | null,"opportunity_id"?: string | null,"owner_id"?: string | null,"project_id"?: string | null,"reminder_offsets"?: (number)[],"rrule"?: string | null,"start_date"?: string | null,"starts_at"?: string | null,"timezone"?: string | null,"title"?: string,"updated_at"?: string,"visibility"?: Database["public"]['Enums']["visibility"],"workspace_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "calendar_events_deleted_by_fkey"
+      columns: ["deleted_by"]
+isOneToOne: false
+      referencedRelation: "profiles"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "calendar_events_opportunity_id_workspace_id_fkey"
+      columns: ["opportunity_id","workspace_id"]
+isOneToOne: false
+      referencedRelation: "opportunities"
+      referencedColumns: ["id","workspace_id"]
+    },{
+      foreignKeyName: "calendar_events_owner_id_fkey"
+      columns: ["owner_id"]
+isOneToOne: false
+      referencedRelation: "profiles"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "calendar_events_project_id_workspace_id_fkey"
+      columns: ["project_id","workspace_id"]
+isOneToOne: false
+      referencedRelation: "projects"
+      referencedColumns: ["id","workspace_id"]
+    },{
+      foreignKeyName: "calendar_events_workspace_id_fkey"
+      columns: ["workspace_id"]
+isOneToOne: false
+      referencedRelation: "workspaces"
+      referencedColumns: ["id"]
+    }
+                  ]
                 },"checklist_items": {
                   Row: {
                     "assignee_id": string | null,"checklist_id": string,"client_id": string | null,"done_at": string | null,"done_by": string | null,"due_date": string | null,"for_user_id": string | null,"id": string,"is_done": boolean,"label": string,"position": number,"workspace_id": string
@@ -249,6 +293,58 @@ isOneToOne: false
       referencedColumns: ["id","workspace_id"]
     },{
       foreignKeyName: "files_workspace_id_fkey"
+      columns: ["workspace_id"]
+isOneToOne: false
+      referencedRelation: "workspaces"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"notification_preferences": {
+                  Row: {
+                    "deadline_reminder_days": (number)[],"email_enabled": boolean,"lockscreen_details": boolean,"push_enabled": boolean,"quiet_end": string,"quiet_start": string,"timed_reminder_minutes": (number)[],"type_settings": NonNullable<Json>,"updated_at": string,"user_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "deadline_reminder_days"?: (number)[],"email_enabled"?: boolean,"lockscreen_details"?: boolean,"push_enabled"?: boolean,"quiet_end"?: string,"quiet_start"?: string,"timed_reminder_minutes"?: (number)[],"type_settings"?: NonNullable<Json>,"updated_at"?: string,"user_id": string
+                  }
+                  Update: {
+                    "deadline_reminder_days"?: (number)[],"email_enabled"?: boolean,"lockscreen_details"?: boolean,"push_enabled"?: boolean,"quiet_end"?: string,"quiet_start"?: string,"timed_reminder_minutes"?: (number)[],"type_settings"?: NonNullable<Json>,"updated_at"?: string,"user_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "notification_preferences_user_id_fkey"
+      columns: ["user_id"]
+isOneToOne: true
+      referencedRelation: "profiles"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"notifications": {
+                  Row: {
+                    "actor_id": string | null,"body": string | null,"created_at": string,"dedupe_key": string,"entity_id": string | null,"entity_type": string | null,"id": string,"link_path": string | null,"pushed_at": string | null,"read_at": string | null,"recipient_id": string,"title": string,"type": string,"workspace_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "actor_id"?: string | null,"body"?: string | null,"created_at"?: string,"dedupe_key": string,"entity_id"?: string | null,"entity_type"?: string | null,"id"?: string,"link_path"?: string | null,"pushed_at"?: string | null,"read_at"?: string | null,"recipient_id": string,"title": string,"type": string,"workspace_id": string
+                  }
+                  Update: {
+                    "actor_id"?: string | null,"body"?: string | null,"created_at"?: string,"dedupe_key"?: string,"entity_id"?: string | null,"entity_type"?: string | null,"id"?: string,"link_path"?: string | null,"pushed_at"?: string | null,"read_at"?: string | null,"recipient_id"?: string,"title"?: string,"type"?: string,"workspace_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "notifications_actor_id_fkey"
+      columns: ["actor_id"]
+isOneToOne: false
+      referencedRelation: "profiles"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "notifications_recipient_id_fkey"
+      columns: ["recipient_id"]
+isOneToOne: false
+      referencedRelation: "profiles"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "notifications_workspace_id_fkey"
       columns: ["workspace_id"]
 isOneToOne: false
       referencedRelation: "workspaces"
@@ -585,6 +681,56 @@ isOneToOne: false
                   Relationships: [
                     
                   ]
+                },"reminders": {
+                  Row: {
+                    "attempts": number,"checklist_item_id": string | null,"created_at": string,"dedupe_key": string,"event_id": string | null,"id": string,"last_error": string | null,"link_path": string,"opportunity_date_id": string | null,"origin": string,"remind_at": string,"sent_at": string | null,"status": string,"task_id": string | null,"title": string,"user_id": string,"workspace_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "attempts"?: number,"checklist_item_id"?: string | null,"created_at"?: string,"dedupe_key": string,"event_id"?: string | null,"id"?: string,"last_error"?: string | null,"link_path": string,"opportunity_date_id"?: string | null,"origin": string,"remind_at": string,"sent_at"?: string | null,"status"?: string,"task_id"?: string | null,"title": string,"user_id": string,"workspace_id": string
+                  }
+                  Update: {
+                    "attempts"?: number,"checklist_item_id"?: string | null,"created_at"?: string,"dedupe_key"?: string,"event_id"?: string | null,"id"?: string,"last_error"?: string | null,"link_path"?: string,"opportunity_date_id"?: string | null,"origin"?: string,"remind_at"?: string,"sent_at"?: string | null,"status"?: string,"task_id"?: string | null,"title"?: string,"user_id"?: string,"workspace_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "reminders_checklist_item_id_fkey"
+      columns: ["checklist_item_id"]
+isOneToOne: false
+      referencedRelation: "checklist_items"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "reminders_event_id_fkey"
+      columns: ["event_id"]
+isOneToOne: false
+      referencedRelation: "calendar_events"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "reminders_opportunity_date_id_fkey"
+      columns: ["opportunity_date_id"]
+isOneToOne: false
+      referencedRelation: "opportunity_dates"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "reminders_task_id_fkey"
+      columns: ["task_id"]
+isOneToOne: false
+      referencedRelation: "tasks"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "reminders_user_id_fkey"
+      columns: ["user_id"]
+isOneToOne: false
+      referencedRelation: "profiles"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "reminders_workspace_id_fkey"
+      columns: ["workspace_id"]
+isOneToOne: false
+      referencedRelation: "workspaces"
+      referencedColumns: ["id"]
+    }
+                  ]
                 },"task_comments": {
                   Row: {
                     "author_id": string | null,"body": string,"created_at": string,"deleted_at": string | null,"edited_at": string | null,"id": string,"task_id": string,"workspace_id": string
@@ -788,7 +934,15 @@ isOneToOne: false
                 }
           }
           Views: {
-            [_ in never]: never
+            "calendar_feed": {
+                  Row: {
+                    "all_day": boolean | null,"end_date": string | null,"ends_at": string | null,"kind": string | null,"owner_id": string | null,"parent_id": string | null,"source_id": string | null,"source_type": string | null,"start_date": string | null,"starts_at": string | null,"timezone": string | null,"title": string | null,"visibility": Database["public"]['Enums']["visibility"] | null,"workspace_id": string | null
+                  }
+                  ComputedFields: never
+                  Relationships: [
+                    
+                  ]
+                }
           }
           Functions: {
             "accept_extraction":
@@ -823,6 +977,9 @@ isOneToOne: false
                            },
 "leave_project":
 { Args: { "p_project": string }; Returns: Json
+                           },
+"mark_all_notifications_read":
+{ Args: Record<PropertyKey, never>; Returns: number
                            },
 "project_directory":
 { Args: { "p_project": string }; Returns: {

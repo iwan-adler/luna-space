@@ -32,6 +32,9 @@ Add a library only in the phase that first needs it (ADR 0001).
   `workspace_id = (select private.current_workspace_id())`; add owner/partner/outsider/anon tests.
   `supabase/tests/database/0000_rls_coverage.test.sql` fails CI if any table lacks RLS.
 - No DELETE policies on content tables: soft delete via `deleted_at`.
+- Grant table privileges explicitly in the migration that creates a table: `revoke all … from anon,
+authenticated` first, then grant only what is needed. Hosted projects add no default grants
+  (migration 0012), so a table without grants is unreachable in production.
 - Never put the service-role key or any secret in frontend code. Only `VITE_*` variables reach the
   browser; `npm run check:bundle-secrets` enforces this on `dist/`.
 - Dates: date-only values are SQL `date` and ISO `YYYY-MM-DD` strings in TS; never pass them
