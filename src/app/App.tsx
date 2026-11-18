@@ -1,3 +1,5 @@
+import { SearchPage } from '@/features/search'
+import { VaultPage } from '@/features/vault'
 import { lazy, Suspense, type ReactNode } from 'react'
 import { Route, Routes } from 'react-router'
 import { PageSpinner } from '@/components/ui/Spinner'
@@ -21,7 +23,6 @@ import {
 } from '@/features/workspace'
 import { publicEnv } from '@/lib/env'
 import { AppShell, MorePage } from './AppShell'
-import { ComingSoonPage } from './ComingSoonPage'
 import { ConfigMissingPage } from './ConfigMissingPage'
 import { NotFoundPage } from './NotFoundPage'
 
@@ -101,7 +102,9 @@ export function App() {
             <Route path="notes" element={page(<NotesPage />)} />
             <Route path="notes/:id" element={page(<NotesPage />)} />
             <Route path="chat" element={page(<ChatPage />)} />
-            <Route path="vault/*" element={<ComingSoonPage />} />
+            <Route path="vault" element={page(<VaultPage />)} />
+            <Route path="vault/:folderId" element={page(<VaultPage />)} />
+            <Route path="search" element={page(<SearchPage />)} />
             <Route path="more" element={<MorePage />} />
             <Route path="settings/profile" element={<ProfileSettingsPage />} />
             <Route path="settings/workspace" element={<WorkspaceSettingsPage />} />

@@ -27,7 +27,7 @@ export const primaryNav: NavItem[] = [
   { to: '/calendar', label: 'Calendar', icon: CalendarDays },
   { to: '/notes', label: 'Notes', icon: NotebookPen },
   { to: '/chat', label: 'Chat', icon: MessageCircle },
-  { to: '/vault', label: 'Vault', icon: Library, phase: 'Phase 7' },
+  { to: '/vault', label: 'Vault', icon: Library },
 ]
 
 /** Mobile bottom bar: Home, Opportunities, Projects, Chat, More (UI spec §8). */
