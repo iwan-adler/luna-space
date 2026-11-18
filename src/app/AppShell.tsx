@@ -4,6 +4,7 @@ import { Link, NavLink, Outlet, useNavigate } from 'react-router'
 import { MoonLogo } from '@/components/patterns/MoonLogo'
 import { useAuth } from '@/features/auth'
 import { useMyProfile } from '@/features/profile'
+import { useChatRealtime, useChatUnread } from '@/features/chat'
 import { NotificationBell } from '@/features/notifications'
 import { useCurrentWorkspace } from '@/features/workspace'
 import { mobileNav, primaryNav } from './navigation'
@@ -50,6 +51,7 @@ export function AppShell() {
                       aria-hidden
                     />
                     {item.label}
+                    {item.to === '/chat' ? <ChatBadge /> : null}
                     {item.phase ? (
                       <span className="ml-auto text-[11px] text-muted/60 opacity-0 transition-opacity group-hover:opacity-100">
                         soon
@@ -232,5 +234,22 @@ export function MorePage() {
         </button>
       </nav>
     </section>
+  )
+}
+
+/** Unread messages from the partner, kept live on every page (FR-CHAT-06). */
+function ChatBadge() {
+  useChatRealtime()
+  const unread = useChatUnread()
+  const n = unread.data ?? 0
+  if (!n) return null
+  return (
+    <span
+      className="btn-primary ml-auto grid h-5 min-w-5 place-items-center rounded-full px-1.5 text-[11px] font-semibold"
+      aria-label={`${n} unread`}
+      data-testid="chat-unread"
+    >
+      {n > 99 ? '99+' : n}
+    </span>
   )
 }

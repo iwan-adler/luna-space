@@ -26,7 +26,7 @@ export const primaryNav: NavItem[] = [
   { to: '/tasks', label: 'My tasks', icon: ListChecks },
   { to: '/calendar', label: 'Calendar', icon: CalendarDays },
   { to: '/notes', label: 'Notes', icon: NotebookPen },
-  { to: '/chat', label: 'Chat', icon: MessageCircle, phase: 'Phase 6' },
+  { to: '/chat', label: 'Chat', icon: MessageCircle },
   { to: '/vault', label: 'Vault', icon: Library, phase: 'Phase 7' },
 ]
 

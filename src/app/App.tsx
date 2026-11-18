@@ -43,6 +43,8 @@ const AddOpportunityPage = lazy(() =>
 const ReviewExtractionPage = lazy(() =>
   opportunities().then((m) => ({ default: m.ReviewExtractionPage })),
 )
+const chat = () => import('@/features/chat')
+const ChatPage = lazy(() => chat().then((m) => ({ default: m.ChatPage })))
 const notes = () => import('@/features/notes')
 const NotesPage = lazy(() => notes().then((m) => ({ default: m.NotesPage })))
 const calendar = () => import('@/features/calendar')
@@ -98,7 +100,7 @@ export function App() {
             <Route path="notifications" element={<NotificationsPage />} />
             <Route path="notes" element={page(<NotesPage />)} />
             <Route path="notes/:id" element={page(<NotesPage />)} />
-            <Route path="chat" element={<ComingSoonPage />} />
+            <Route path="chat" element={page(<ChatPage />)} />
             <Route path="vault/*" element={<ComingSoonPage />} />
             <Route path="more" element={<MorePage />} />
             <Route path="settings/profile" element={<ProfileSettingsPage />} />
