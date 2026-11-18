@@ -1,18 +1,29 @@
-import { Link2, PencilLine } from 'lucide-react'
+import { ClipboardPaste, Link2, PencilLine } from 'lucide-react'
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router'
 import { Button } from '@/components/ui/Button'
 import { Alert, Card } from '@/components/ui/Card'
 import { TextField } from '@/components/ui/Field'
+import { inputClass } from '@/components/ui/styles'
 import { EXTRACT_MESSAGES, findDuplicate, startExtraction } from '../extraction'
 
-/** /opportunities/new — paste a link (FR-OPP-06) or enter details manually (FR-OPP-13). */
+const MAX_PASTE = 300_000
+
+/**
+ * /opportunities/new — paste a link (FR-OPP-06) or enter details manually (FR-OPP-13). Many
+ * listing sites (Devpost, Unstop…) refuse requests from servers; then the page text can be pasted
+ * and the same extraction runs on it.
+ */
 export function AddOpportunityPage() {
   const navigate = useNavigate()
   const [url, setUrl] = useState('')
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [duplicate, setDuplicate] = useState<{ id: string; title: string } | null>(null)
+  const [pasteOpen, setPasteOpen] = useState(false)
+  const [blockedReason, setBlockedReason] = useState<string | null>(null)
+  const [text, setText] = useState('')
+  const [pasteError, setPasteError] = useState<string | null>(null)
 
   const manualLink = (reason?: string) => {
     const p = new URLSearchParams()
@@ -20,13 +31,15 @@ export function AddOpportunityPage() {
     if (reason) p.set('reason', reason)
     return `/opportunities/new/manual${p.size ? `?${p}` : ''}`
   }
+  const validUrl = (value: string) => /^https?:\/\/\S+$/i.test(value)
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError(null)
     setDuplicate(null)
+    setBlockedReason(null)
     const value = url.trim()
-    if (!/^https?:\/\/\S+$/i.test(value)) {
+    if (!validUrl(value)) {
       setError('Paste a full link starting with https://')
       return
     }
@@ -47,8 +60,41 @@ export function AddOpportunityPage() {
         setError(EXTRACT_MESSAGES[code] ?? null)
         return
       }
-      // Any fetch problem: continue with the manual form, keeping the link (FR-OPP-13).
+      if (result.canPaste) {
+        // The site blocks servers: offer reading a paste of the page instead.
+        setBlockedReason(EXTRACT_MESSAGES[code] ?? result.reason ?? EXTRACT_MESSAGES.SERVER_ERROR!)
+        setPasteOpen(true)
+        return
+      }
       navigate(manualLink(result.reason ?? EXTRACT_MESSAGES[code] ?? EXTRACT_MESSAGES.SERVER_ERROR))
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  const readPaste = async () => {
+    setPasteError(null)
+    const value = url.trim()
+    if (!validUrl(value)) {
+      setError('Add the link too, so the opportunity keeps its source.')
+      return
+    }
+    if (text.trim().length < 40) {
+      setPasteError(
+        'Paste the whole page: select everything (Ctrl+A), copy (Ctrl+C) and paste here.',
+      )
+      return
+    }
+    setBusy(true)
+    try {
+      const result = await startExtraction(value, text.slice(0, MAX_PASTE))
+      if (result.ok && result.runId) {
+        navigate(`/opportunities/review/${result.runId}`)
+        return
+      }
+      setPasteError(
+        EXTRACT_MESSAGES[result.code ?? 'SERVER_ERROR'] ?? EXTRACT_MESSAGES.SERVER_ERROR!,
+      )
     } finally {
       setBusy(false)
     }
@@ -75,8 +121,12 @@ export function AddOpportunityPage() {
             error={error ?? undefined}
             autoFocus
           />
-          <Button type="submit" loading={busy} icon={<Link2 className="size-4" aria-hidden />}>
-            {busy ? 'Reading the page…' : 'Fetch details'}
+          <Button
+            type="submit"
+            loading={busy && !pasteOpen}
+            icon={<Link2 className="size-4" aria-hidden />}
+          >
+            {busy && !pasteOpen ? 'Reading the page…' : 'Fetch details'}
           </Button>
         </form>
         {duplicate ? (
@@ -89,8 +139,64 @@ export function AddOpportunityPage() {
           </Alert>
         ) : null}
       </Card>
-      <p className="text-body-sm text-muted">
-        No link, or the page needs a login?{' '}
+
+      {pasteOpen ? (
+        <Card className="space-y-3" data-testid="paste-panel">
+          {blockedReason ? (
+            <Alert tone="warning">
+              {blockedReason} You can still bring the details in: open the page in your browser,
+              select everything and copy it, then paste it below.
+            </Alert>
+          ) : null}
+          <div className="space-y-1.5">
+            <label htmlFor="pasted-page" className="block text-body-sm font-medium text-muted">
+              Page text
+            </label>
+            <textarea
+              id="pasted-page"
+              rows={8}
+              value={text}
+              onChange={(e) => {
+                setText(e.target.value)
+                setPasteError(null)
+              }}
+              placeholder="On a computer: Ctrl+A, then Ctrl+C on the opportunity page, and Ctrl+V here. On a phone: select all, copy, then paste here."
+              className={inputClass}
+            />
+            {pasteError ? <p className="text-caption text-danger">{pasteError}</p> : null}
+            <p className="text-caption text-muted">
+              Only what you paste is read. The text itself is not kept; the details found are shown
+              for you to check.
+            </p>
+          </div>
+          <div className="flex flex-wrap items-center gap-3">
+            <Button
+              loading={busy}
+              icon={<ClipboardPaste className="size-4" aria-hidden />}
+              onClick={() => void readPaste()}
+            >
+              {busy ? 'Reading…' : 'Read pasted text'}
+            </Button>
+            <Link
+              to={manualLink(blockedReason ?? undefined)}
+              className="text-body-sm text-muted hover:text-text"
+            >
+              Enter details manually instead
+            </Link>
+          </div>
+        </Card>
+      ) : null}
+
+      <p className="flex flex-wrap gap-x-4 gap-y-1 text-body-sm text-muted">
+        {pasteOpen ? null : (
+          <button
+            type="button"
+            onClick={() => setPasteOpen(true)}
+            className="inline-flex items-center gap-1 font-medium text-primary hover:underline"
+          >
+            <ClipboardPaste className="size-4" aria-hidden /> Paste the page text instead
+          </button>
+        )}
         <Link
           to={manualLink()}
           className="inline-flex items-center gap-1 font-medium text-primary hover:underline"

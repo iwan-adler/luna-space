@@ -33,6 +33,40 @@ test.describe('URL extraction (Phase 3)', () => {
     )
   })
 
+  test('a pasted page is read when the site blocks automated reading', async ({
+    browser,
+    isMobile,
+  }) => {
+    test.skip(isMobile, 'runs once on desktop')
+    const user = await createTestUser('Pia')
+    const page = await (await browser.newContext()).newPage()
+    await onboardWithInvite(page, user, 'Paste Crew')
+    await page.goto('/opportunities/new')
+    await page
+      .getByLabel('Link to the opportunity')
+      .fill('https://example.test/hackathons/code-sprint')
+    await page.getByRole('button', { name: 'Paste the page text instead' }).click()
+    await page
+      .getByLabel('Page text')
+      .fill(
+        [
+          'Code Sprint 2026',
+          'Online',
+          'Free',
+          'Registration Deadline',
+          'Dec 1, 2027, 11:59 PM IST',
+          'Team Size',
+          '2 - 4 Members',
+          'Prizes',
+          'Winner: ₹50,000',
+        ].join('\n'),
+      )
+    await page.getByRole('button', { name: 'Read pasted text' }).click()
+    await expect(page).toHaveURL(/\/opportunities\/review\//, { timeout: 30_000 })
+    await expect(page.getByLabel('Name')).toHaveValue('Code Sprint 2026')
+    await expect(page.getByLabel('Maximum team size')).toHaveValue('4')
+  })
+
   test('review: statuses, resolve a conflict, check an inferred value, save with provenance (AC-08–AC-12)', async ({
     browser,
     isMobile,

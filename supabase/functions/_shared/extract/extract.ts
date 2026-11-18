@@ -3,7 +3,7 @@ import { findDates, parseIsoish } from './dates.ts'
 import { mergeCandidates } from './merge.ts'
 import type { Candidate, DateKey, ExtractContext, FeeValue, FieldResult } from './types.ts'
 
-export const EXTRACTOR_VERSION = '1'
+export const EXTRACTOR_VERSION = '2'
 
 const clip = (s: string, n = 500) => (s.length > n ? `${s.slice(0, n - 1)}…` : s)
 const squash = (s: string) => s.replace(/\s+/g, ' ').trim()
@@ -312,7 +312,7 @@ const DATE_LABELS: { key: DateKey; re: RegExp }[] = [
   },
   {
     key: 'submission_deadline',
-    re: /\b(submissions?|project submission|final submission|submit)\b[^.\n]{0,40}?\b(close|closes|closing|deadline|due|by|ends?|until)\b|\bsubmission deadline\b|\bsubmit by\b/i,
+    re: /\b(submissions?|project submission|final submission|submit)\b[^.\n]{0,40}?\b(close|closes|closing|deadline|due|by|ends?|until)\b|\bsubmission deadline\b|\bsubmit by\b|^deadline\b|\bsubmission (period|window)\b/i,
   },
   {
     key: 'event_start',
@@ -322,7 +322,12 @@ const DATE_LABELS: { key: DateKey; re: RegExp }[] = [
     key: 'event_end',
     re: /\b(event|hackathon|programme|program)\b[^.\n]{0,25}?\b(ends?|concludes?)\b/i,
   },
+  // Timeline entries such as "Starts: 20 Nov" / "Ends: 5 Dec" (inferred: they may belong to a round).
+  { key: 'event_start', re: /^(starts?( on)?|start date|begins?( on)?)\s*[:\-–]/i },
+  { key: 'event_end', re: /^(ends?( on)?|end date)\s*[:\-–]/i },
 ]
+const TIMELINE_LABEL = /^(starts?( on)?|start date|begins?( on)?|ends?( on)?|end date)\s*[:\-–]/i
+const PERIOD = /\b(submission|hackathon|event) (period|window)\b/i
 const REG_RANGE = /\b(registrations?|applications?)\b[^.\n]{0,30}?\b(open|window|period)\b/i
 
 function fromDates(page: Page, ctx: ExtractContext, add: (c: Candidate) => void) {
@@ -350,6 +355,9 @@ function fromDates(page: Page, ctx: ExtractContext, add: (c: Candidate) => void)
       const reasons = [
         first.inferred,
         proximity ? 'date found near, not next to, the label' : null,
+        TIMELINE_LABEL.test(line)
+          ? 'taken from a timeline entry, which may belong to one round'
+          : null,
       ].filter(Boolean)
       const base = { evidence: clip(evidence), ruleId: `label.${key}`, priority: 2 }
       if (first.rangeEnd && (key === 'registration_deadline' || REG_RANGE.test(line))) {
@@ -360,6 +368,22 @@ function fromDates(page: Page, ctx: ExtractContext, add: (c: Candidate) => void)
           confidence: reasons.length ? 'inferred' : 'confirmed',
           ...(reasons.length ? { reason: reasons.join('; ') } : {}),
         })
+      } else if (
+        key === 'submission_deadline' &&
+        PERIOD.test(line) &&
+        (first.rangeEnd || dates.length >= 2)
+      ) {
+        // "Submission period: 20 Oct – 21 Dec": the end is the deadline, the start opens the event.
+        const confidence = reasons.length ? 'inferred' : 'confirmed'
+        const reason = reasons.length ? { reason: reasons.join('; ') } : {}
+        add({
+          ...base,
+          field: 'submission_deadline',
+          value: (first.rangeEnd ?? dates[dates.length - 1]!).value,
+          confidence,
+          ...reason,
+        })
+        add({ ...base, field: 'event_start', value: first.value, confidence, ...reason })
       } else if (first.rangeEnd && (key === 'event_start' || key === 'event_end')) {
         add({
           ...base,
@@ -485,6 +509,17 @@ const CURRENCY: Record<string, string> = {
 }
 
 function fromFee(page: Page, add: (c: Candidate) => void) {
+  const bare = page.lines.slice(0, 40).find((l) => /^(free|free entry|no fee)$/i.test(l))
+  if (bare)
+    add({
+      field: 'fee',
+      value: { is_free: true, amount: null, currency: null } satisfies FeeValue,
+      evidence: clip(bare),
+      ruleId: 'line.fee_free',
+      confidence: 'inferred',
+      reason: 'a standalone "Free" near the top of the page',
+      priority: 3,
+    })
   for (const line of page.lines) {
     if (
       /\b(no|zero|nil)\s+(registration|entry|participation|application)\s+fees?\b|\b(free|free of cost) (to (participate|enter|apply|join)|registration|entry|of charge)\b|\b(registration|entry|participation)\s+(is\s+)?free\b|\bfee\s*[:\-–]\s*(free|nil|none|₹\s?0|0)\b/i.test(
@@ -551,6 +586,22 @@ function fromMode(page: Page, add: (c: Candidate) => void) {
         return
       }
     }
+  }
+  const bare = page.lines
+    .slice(0, 40)
+    .find((l) => /^(online|offline|hybrid|in[- ]person|virtual|on[- ]site)$/i.test(l))
+  const bareHit = bare ? MODE_WORDS.find((w) => w.re.test(bare)) : undefined
+  if (bare && bareHit) {
+    add({
+      field: 'mode',
+      value: bareHit.value,
+      evidence: clip(bare),
+      ruleId: 'line.mode',
+      confidence: 'inferred',
+      reason: 'a standalone mode word near the top of the page',
+      priority: 3,
+    })
+    return
   }
   const text = page.lines.slice(0, 80).join(' ')
   const hits = MODE_WORDS.filter((w) =>
@@ -663,6 +714,20 @@ function fromSections(page: Page, add: (c: Candidate) => void) {
     }
   }
   inlineLabel(page, /venue|location|where/, 'location', 'label.location', add)
+  const about = section(
+    page,
+    /^(about( the)? (challenge|hackathon|competition|event|program(me)?|opportunity|internship|scholarship)|all about the (competition|hackathon|event)|overview|description|about)[:：]?$/i,
+    6,
+  )
+  if (about)
+    add({
+      field: 'description',
+      value: about.lines.join('\n').slice(0, 2000),
+      evidence: clip(`${about.title}: ${about.lines.join(' ')}`),
+      ruleId: 'section.about',
+      confidence: 'confirmed',
+      priority: 3,
+    })
   for (const [re, field, rule] of [
     [
       /^(required documents|documents required|documents needed|what you need|documents)[:：]?$/i,

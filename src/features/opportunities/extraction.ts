@@ -14,7 +14,8 @@ export const EXTRACT_MESSAGES: Record<string, string> = {
   FETCH_BLOCKED: 'This address cannot be fetched.',
   FETCH_TIMEOUT: 'The page took too long to respond.',
   FETCH_FAILED: 'The site could not be reached.',
-  HTTP_ERROR: 'The site returned an error page.',
+  HTTP_ERROR:
+    'The site refused to share the page with Luna Space (many sites block automated reading).',
   UNSUPPORTED_CONTENT: 'The link is not a web page (for example a PDF).',
   TOO_LARGE: 'The page is too large to read.',
   TOO_MANY_REDIRECTS: 'The link redirects too many times.',
@@ -31,13 +32,17 @@ const startResult = z.object({
   thin: z.boolean().optional(),
   code: z.string().optional(),
   reason: z.string().optional(),
+  canPaste: z.boolean().optional(),
 })
 export type StartResult = z.infer<typeof startResult>
 
-/** Calls the extract-opportunity Edge Function (FR-OPP-06). */
-export async function startExtraction(url: string): Promise<StartResult> {
+/**
+ * Calls the extract-opportunity Edge Function (FR-OPP-06). With `text`, the function parses the
+ * page content the person pasted instead of fetching the link (sites that block servers).
+ */
+export async function startExtraction(url: string, text?: string): Promise<StartResult> {
   const { data, error } = await requireSupabase().functions.invoke('extract-opportunity', {
-    body: { url },
+    body: text === undefined ? { url } : { url, text },
   })
   if (error) {
     const ctx = (error as { context?: Response }).context
