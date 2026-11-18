@@ -1,4 +1,5 @@
 import { useId } from 'react'
+import { controlClass } from '@/components/ui/styles'
 import { timeZoneOptions } from '@/lib/timezones'
 
 export interface DateTimeValue {
@@ -25,10 +26,10 @@ export function DateTimeInput({
 }) {
   const id = useId()
   const zones = timeZoneOptions(value.timezone)
-  const control = 'rounded-sm border border-border bg-surface px-2 py-1.5 text-body-sm'
+  const control = controlClass
   return (
     <fieldset className="space-y-1">
-      <legend className="text-body-sm font-medium">{label}</legend>
+      <legend className="mb-1 text-body-sm font-medium text-muted">{label}</legend>
       <div className="flex flex-wrap items-center gap-2">
         <input
           id={`${id}-date`}

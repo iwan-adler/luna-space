@@ -10,7 +10,7 @@ async function pair(browser: Browser): Promise<{ a: Page; b: Page }> {
   await a.getByRole('button', { name: 'Go to my dashboard' }).click()
   const b = await (await browser.newContext({ timezoneId: 'America/Los_Angeles' })).newPage()
   await acceptInvite(b, url, ub)
-  await expect(b.getByRole('heading', { name: 'Welcome, Ben' })).toBeVisible()
+  await expect(b.getByRole('heading', { level: 1, name: /, Ben/ })).toBeVisible()
   return { a, b }
 }
 

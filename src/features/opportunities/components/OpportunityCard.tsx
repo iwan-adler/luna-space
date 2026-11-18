@@ -31,12 +31,15 @@ export function OpportunityCard({
 
   return (
     <article
-      className="rounded-md border border-border bg-surface p-3 shadow-1 transition-colors hover:border-primary/40"
+      className="panel relative p-5 transition-transform duration-[var(--motion-base)] hover:-translate-y-0.5"
       data-testid="opportunity-card"
     >
       <div className="flex flex-wrap items-start gap-2">
-        <h3 className="min-w-0 flex-1 text-h3 font-semibold">
-          <Link to={`/opportunities/${opp.id}`} className="hover:text-primary hover:underline">
+        <h3 className="min-w-0 flex-1 text-h3 font-medium">
+          <Link
+            to={`/opportunities/${opp.id}`}
+            className="after:absolute after:inset-0 hover:text-primary"
+          >
             {opp.title}
           </Link>
           {opp.visibility === 'private' ? (
@@ -51,8 +54,8 @@ export function OpportunityCard({
           />
         ) : null}
       </div>
-      <div className="mt-2 flex flex-wrap items-center gap-2">
-        <Badge tone="primary">{TYPE_LABELS[opp.type]}</Badge>
+      <div className="relative z-10 mt-3 flex flex-wrap items-center gap-2">
+        <Badge>{TYPE_LABELS[opp.type]}</Badge>
         <Badge>
           {opp.mode !== 'unknown' ? MODE_LABELS[opp.mode] : 'Mode ?'}
           {opp.location ? (

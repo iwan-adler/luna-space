@@ -29,7 +29,7 @@ export function UpdatePasswordPage() {
 
   return (
     <form onSubmit={onSubmit} className="space-y-4" noValidate>
-      <h1 className="text-h1 font-bold">Choose a new password</h1>
+      <h1 className="text-h1 font-semibold">Choose a new password</h1>
       {error ? <Alert tone="danger">{error}</Alert> : null}
       <TextField
         label="New password"

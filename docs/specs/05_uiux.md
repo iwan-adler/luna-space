@@ -21,6 +21,8 @@ This specification defines how Luna Space **looks, feels and behaves**. It cover
 
 ## 2. Visual direction
 
+> **Decision:** Superseded in part by [ADR 0005](../adr/0005-soft-night-visual-direction.md) (18 Nov 2026): the product is **dark-first ("Soft night")** with a single moonlight-gold accent. The palette values in §4 are replaced by `src/styles/tokens.css`; structure, components and accessibility rules in this document still apply.
+
 - **Theme:** "Night sky workspace" — a calm, deep-indigo dark theme and a clean, airy light theme. The moon motif appears only in the logo, the empty-state illustrations and the focus timer; the interface itself stays quiet.
 - **Character:** modern productivity tool — generous spacing, soft 10 px radii, thin borders instead of heavy shadows, purposeful colour used for status and primary actions only.
 - **Avoid:** admin-dashboard look (dense grey tables everywhere, gradient headers, rainbow charts), decorative glassmorphism, emoji-heavy UI.

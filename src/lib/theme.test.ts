@@ -7,15 +7,18 @@ describe('theme', () => {
     document.documentElement.removeAttribute('data-theme')
   })
 
-  it('defaults to following the system', () => {
-    expect(readThemePreference()).toBe('system')
+  it('defaults to the dark "Soft night" theme', () => {
+    expect(readThemePreference()).toBe('dark')
   })
 
   it('persists and applies an explicit choice', () => {
+    saveThemePreference('light')
+    expect(readThemePreference()).toBe('light')
+    expect(document.documentElement.dataset.theme).toBe('light')
+    saveThemePreference('system')
+    expect(document.documentElement.dataset.theme).toBe('system')
     saveThemePreference('dark')
     expect(readThemePreference()).toBe('dark')
     expect(document.documentElement.dataset.theme).toBe('dark')
-    saveThemePreference('system')
-    expect(document.documentElement.hasAttribute('data-theme')).toBe(false)
   })
 })

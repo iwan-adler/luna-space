@@ -10,7 +10,7 @@ export function ConfigMissingPage() {
         <MoonLogo className="size-8" />
         Luna Space
       </div>
-      <h1 className="text-h1 font-bold">Backend not configured</h1>
+      <h1 className="text-h1 font-semibold">Backend not configured</h1>
       <Alert tone="warning" data-testid="backend-status">
         {publicEnv.ok ? 'Configured.' : publicEnv.problems.join('; ')}
       </Alert>

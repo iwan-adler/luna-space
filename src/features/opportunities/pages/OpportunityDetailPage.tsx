@@ -78,7 +78,7 @@ export function OpportunityDetailPage() {
         ← Opportunities
       </Link>
       <header className="flex flex-wrap items-center gap-3">
-        <h1 id="opp-name" className="min-w-0 flex-1 text-h1 font-bold">
+        <h1 id="opp-name" className="min-w-0 flex-1 text-h1 font-semibold">
           {o.title}
           {o.visibility === 'private' ? (
             <Badge className="ml-2 align-middle">

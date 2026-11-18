@@ -5,15 +5,17 @@ type Variant = 'primary' | 'secondary' | 'ghost' | 'danger'
 type Size = 'sm' | 'md' | 'lg'
 
 const variants: Record<Variant, string> = {
-  primary: 'bg-primary text-on-primary hover:bg-primary-hover',
-  secondary: 'border border-border bg-surface text-text hover:bg-primary-subtle',
-  ghost: 'text-text hover:bg-primary-subtle',
-  danger: 'bg-danger text-white hover:opacity-90',
+  primary:
+    'bg-primary text-on-primary hover:bg-primary-hover shadow-[0_8px_24px_-10px_var(--color-primary)]',
+  secondary:
+    'border border-hairline bg-surface-raised text-text hover:border-border hover:bg-surface',
+  ghost: 'text-muted hover:bg-hairline hover:text-text',
+  danger: 'bg-danger/90 text-bg hover:bg-danger',
 }
 const sizes: Record<Size, string> = {
-  sm: 'h-8 px-3 text-body-sm',
-  md: 'h-10 px-4 text-body',
-  lg: 'h-11 px-5 text-body',
+  sm: 'h-8 px-3.5 text-body-sm',
+  md: 'h-10 px-5 text-body-sm',
+  lg: 'h-12 px-6 text-body',
 }
 
 export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
@@ -39,7 +41,7 @@ export function Button({
       type={type}
       disabled={disabled || loading}
       aria-busy={loading || undefined}
-      className={`inline-flex items-center justify-center gap-2 rounded-md font-medium transition-colors duration-[var(--motion-fast)] disabled:cursor-not-allowed disabled:opacity-60 ${variants[variant]} ${sizes[size]} ${className}`}
+      className={`inline-flex items-center justify-center gap-2 rounded-full font-medium tracking-[-0.005em] transition-all duration-[var(--motion-base)] ease-[var(--ease-standard)] active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-45 disabled:shadow-none ${variants[variant]} ${sizes[size]} ${className}`}
       {...rest}
     >
       {loading ? <Spinner className="size-4" /> : icon}

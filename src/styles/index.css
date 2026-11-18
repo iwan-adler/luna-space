@@ -14,6 +14,7 @@
   --color-surface: var(--color-surface);
   --color-surface-raised: var(--color-surface-raised);
   --color-border: var(--color-border);
+  --color-hairline: var(--color-hairline);
   --color-text: var(--color-text);
   --color-muted: var(--color-text-muted);
   --color-success: var(--color-success);
@@ -31,19 +32,20 @@
   --text-body-sm: 13px;
   --text-body-sm--line-height: 20px;
   --text-body: 15px;
-  --text-body--line-height: 22px;
-  --text-h3: 16px;
-  --text-h3--line-height: 24px;
-  --text-h2: 20px;
-  --text-h2--line-height: 28px;
-  --text-h1: 24px;
+  --text-body--line-height: 23px;
+  --text-h3: 15px;
+  --text-h3--line-height: 22px;
+  --text-h2: 19px;
+  --text-h2--line-height: 26px;
+  --text-h1: 26px;
   --text-h1--line-height: 32px;
-  --text-display: 30px;
-  --text-display--line-height: 36px;
+  --text-display: 34px;
+  --text-display--line-height: 40px;
 
-  --radius-sm: 6px;
-  --radius-md: 10px;
-  --radius-lg: 16px;
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 18px;
+  --radius-xl: 22px;
 
   --shadow-1: var(--shadow-1);
   --shadow-2: var(--shadow-2);
@@ -56,9 +58,37 @@
   }
   body {
     @apply bg-bg font-sans text-body text-text antialiased;
+    font-feature-settings: 'cv11', 'ss01';
+    /* A faint night sky: gold moonlight top-right, indigo haze top-left. */
+    background-image:
+      radial-gradient(900px 520px at 85% -10%, var(--glow-gold), transparent 70%),
+      radial-gradient(700px 480px at -10% 0%, var(--glow-indigo), transparent 70%);
+    background-attachment: fixed;
+  }
+  h1,
+  h2,
+  h3 {
+    letter-spacing: -0.015em;
+  }
+  ::selection {
+    background: color-mix(in srgb, var(--color-primary) 30%, transparent);
   }
   :focus-visible {
     outline: 2px solid var(--color-primary);
     outline-offset: 2px;
+    border-radius: 6px;
+  }
+}
+
+@layer components {
+  /* Rounded panel with a soft sheen instead of heavy borders or shadows. */
+  .panel {
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--color-hairline);
+    background: var(--panel-sheen), var(--color-surface);
+    box-shadow: var(--shadow-1);
+  }
+  .eyebrow {
+    @apply text-caption font-medium tracking-[0.14em] text-muted uppercase;
   }
 }

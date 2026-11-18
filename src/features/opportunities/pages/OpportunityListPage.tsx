@@ -21,7 +21,8 @@ import { nextDeadline, type Opportunity } from '../model'
 type Sort = 'deadline' | 'recent' | 'name'
 type Window = 'any' | '7' | '30'
 
-const selectClass = 'rounded-sm border border-border bg-surface px-2 py-1.5 text-body-sm'
+const selectClass =
+  'rounded-full border border-hairline bg-surface-raised/70 px-3.5 py-2 text-body-sm text-muted hover:text-text'
 
 /** /opportunities — list and pipeline views; all filters live in the URL (UI spec §13). */
 export function OpportunityListPage() {
@@ -82,10 +83,14 @@ export function OpportunityListPage() {
   return (
     <section aria-labelledby="opp-title" className="space-y-4">
       <div className="flex flex-wrap items-center gap-3">
-        <h1 id="opp-title" className="flex-1 text-h1 font-bold">
+        <h1 id="opp-title" className="flex-1 text-h1 font-semibold">
           Opportunities
         </h1>
-        <div role="tablist" aria-label="View" className="flex rounded-md bg-surface p-1 shadow-1">
+        <div
+          role="tablist"
+          aria-label="View"
+          className="flex rounded-full border border-hairline bg-surface-raised/70 p-1"
+        >
           {(['list', 'pipeline'] as const).map((v) => (
             <button
               key={v}
@@ -93,7 +98,7 @@ export function OpportunityListPage() {
               type="button"
               aria-selected={view === v}
               onClick={() => set('view', v, 'list')}
-              className={`rounded-sm px-3 py-1 text-body-sm font-medium ${view === v ? 'bg-primary-subtle text-primary' : 'text-muted'}`}
+              className={`rounded-full px-3.5 py-1 text-body-sm ${view === v ? 'bg-hairline text-text' : 'text-muted hover:text-text'}`}
             >
               {v === 'list' ? 'List' : 'Pipeline'}
             </button>
@@ -111,7 +116,7 @@ export function OpportunityListPage() {
           onChange={(e) => set('q', e.target.value)}
           placeholder="Search name, organizer, tag"
           aria-label="Search opportunities"
-          className="min-w-48 flex-1 rounded-sm border border-border bg-surface px-3 py-1.5 text-body-sm"
+          className="min-w-48 flex-1 rounded-full border border-hairline bg-surface-raised/70 px-4 py-2 text-body-sm placeholder:text-muted/70"
         />
         <select
           aria-label="Type"
@@ -222,8 +227,12 @@ export function OpportunityListPage() {
           {STATUS_GROUPS.map((g) => {
             const items = filtered.filter((o) => g.statuses.includes(o.status))
             return (
-              <section key={g.id} aria-label={g.label} className="rounded-md bg-surface/60 p-2">
-                <h2 className="mb-2 px-1 text-body-sm font-semibold">
+              <section
+                key={g.id}
+                aria-label={g.label}
+                className="rounded-[18px] border border-hairline p-2.5"
+              >
+                <h2 className="eyebrow mb-3 px-1.5 pt-1">
                   {g.label} <span className="text-muted">· {items.length}</span>
                 </h2>
                 <div className="space-y-2">

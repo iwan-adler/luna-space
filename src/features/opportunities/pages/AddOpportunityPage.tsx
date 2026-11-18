@@ -59,7 +59,7 @@ export function AddOpportunityPage() {
       <Link to="/opportunities" className="text-body-sm text-muted hover:underline">
         ← Opportunities
       </Link>
-      <h1 id="add-title" className="text-h1 font-bold">
+      <h1 id="add-title" className="text-h1 font-semibold">
         Add an opportunity
       </h1>
       <Card className="space-y-3">

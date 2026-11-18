@@ -38,7 +38,7 @@ export function WorkspaceSettingsPage() {
 
   return (
     <section aria-labelledby="ws-title" className="max-w-2xl space-y-6">
-      <h1 id="ws-title" className="text-h1 font-bold">
+      <h1 id="ws-title" className="text-h1 font-semibold">
         Workspace settings
       </h1>
 
@@ -75,7 +75,7 @@ export function WorkspaceSettingsPage() {
         ) : members.error ? (
           <Alert tone="danger">{members.error.message}</Alert>
         ) : (
-          <ul className="divide-y divide-border" data-testid="member-list">
+          <ul className="divide-y divide-hairline" data-testid="member-list">
             {members.data.map((m) => (
               <li key={m.userId} className="flex items-center justify-between py-2">
                 <span className="font-medium">
@@ -94,7 +94,7 @@ export function WorkspaceSettingsPage() {
         <Card>
           <h2 className="mb-2 text-h3 font-semibold">Invite your partner</h2>
           {invitation.data ? (
-            <div className="mb-3 flex flex-wrap items-center justify-between gap-2 rounded-sm bg-bg px-3 py-2 text-body-sm">
+            <div className="mb-3 flex flex-wrap items-center justify-between gap-2 rounded-[14px] bg-hairline px-4 py-3 text-body-sm">
               <span>
                 An invitation link is active until {formatDateTime(invitation.data.expiresAt)}.
               </span>
