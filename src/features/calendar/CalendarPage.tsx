@@ -1,4 +1,12 @@
-import { AlertTriangle, ChevronLeft, ChevronRight, Lock, Plus, Repeat } from 'lucide-react'
+import {
+  AlertTriangle,
+  CalendarSync,
+  ChevronLeft,
+  ChevronRight,
+  Lock,
+  Plus,
+  Repeat,
+} from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router'
 import { Button } from '@/components/ui/Button'
@@ -9,6 +17,7 @@ import { useViewerTimeZone } from '@/features/profile'
 import { formatDateOnly, todayIn, utcIsoToZonedLocal, type DateOnly } from '@/lib/dates'
 import { EventDialog } from './EventDialog'
 import { useCalendarEvent, useCalendarFeed, useMoveEvent } from './hooks'
+import { SyncDialog } from './SyncDialog'
 import { TimeGrid } from './TimeGrid'
 import {
   addDays,
@@ -72,6 +81,7 @@ export function CalendarPage() {
   const move = useMoveEvent()
   const toast = useToast()
   const [showClashes, setShowClashes] = useState(false)
+  const [syncing, setSyncing] = useState(false)
   const nowMinutes = useNowMinutes(tz)
 
   const days = useMemo(
@@ -152,6 +162,13 @@ export function CalendarPage() {
             {heading}
           </h1>
         </div>
+        <Button
+          variant="secondary"
+          icon={<CalendarSync className="size-4" aria-hidden />}
+          onClick={() => setSyncing(true)}
+        >
+          Sync
+        </Button>
         <Button
           icon={<Plus className="size-4" aria-hidden />}
           onClick={() =>
@@ -339,6 +356,8 @@ export function CalendarPage() {
           </div>
         </div>
       )}
+
+      <SyncDialog open={syncing} onOpenChange={setSyncing} />
 
       {editing && (!editing.id || editEvent.data) ? (
         <EventDialog

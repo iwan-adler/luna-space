@@ -107,6 +107,26 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
+                },"calendar_feed_tokens": {
+                  Row: {
+                    "created_at": string,"last_used_at": string | null,"token_hash": string,"user_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "created_at"?: string,"last_used_at"?: string | null,"token_hash": string,"user_id": string
+                  }
+                  Update: {
+                    "created_at"?: string,"last_used_at"?: string | null,"token_hash"?: string,"user_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "calendar_feed_tokens_user_id_fkey"
+      columns: ["user_id"]
+isOneToOne: true
+      referencedRelation: "profiles"
+      referencedColumns: ["id"]
+    }
+                  ]
                 },"checklist_items": {
                   Row: {
                     "assignee_id": string | null,"checklist_id": string,"client_id": string | null,"done_at": string | null,"done_by": string | null,"due_date": string | null,"for_user_id": string | null,"id": string,"is_done": boolean,"label": string,"position": number,"workspace_id": string
@@ -1018,6 +1038,11 @@ isOneToOne: false
 "accept_workspace_invitation":
 { Args: { "p_token": string }; Returns: Json
                            },
+"calendar_feed_for_token":
+{ Args: { "p_token": string }; Returns: {
+              "all_day": boolean,"description": string,"end_date": string,"ends_at": string,"exdates": (string)[],"kind": string,"location": string,"parent_id": string,"rrule": string,"source_id": string,"source_type": string,"start_date": string,"starts_at": string,"timezone": string,"title": string,"updated_at": string
+            }[]
+                           },
 "claim_push_batch":
 { Args: { "p_limit"?: number }; Returns: {
               "body": string,"link_path": string,"notification_id": string,"recipient_id": string,"show_details": boolean,"subscriptions": Json,"title": string
@@ -1031,6 +1056,9 @@ isOneToOne: false
                            },
 "convert_opportunity_to_project":
 { Args: { "p_opportunity": string }; Returns: string
+                           },
+"create_calendar_feed_token":
+{ Args: Record<PropertyKey, never>; Returns: Json
                            },
 "create_checklist_from_template":
 { Args: { "p_project": string,"p_template": string }; Returns: string
@@ -1060,6 +1088,9 @@ isOneToOne: false
                            },
 "report_client_error":
 { Args: { "p_app_version": string,"p_error_id": string,"p_message": string,"p_route": string }; Returns: undefined
+                           },
+"revoke_calendar_feed_token":
+{ Args: Record<PropertyKey, never>; Returns: undefined
                            },
 "revoke_project_invitation":
 { Args: { "p_invitation": string }; Returns: Json
