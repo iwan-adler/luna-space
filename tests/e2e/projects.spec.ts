@@ -65,7 +65,7 @@ test.describe('project rooms (Phase 4)', () => {
     const card = a.getByTestId('column-in_progress').getByTestId('task-card').first()
     await card.focus()
     await a.keyboard.press('Space')
-    await expect(a.getByText('Over In progress.')).toBeAttached()
+    await expect(card).toHaveAttribute('aria-pressed', 'true')
     await a.keyboard.press('ArrowRight')
     await expect(a.getByText('Over Review.')).toBeAttached()
     await a.keyboard.press('Space')
