@@ -63,6 +63,82 @@ isOneToOne: false
                   Relationships: [
                     
                   ]
+                },"checklist_items": {
+                  Row: {
+                    "assignee_id": string | null,"checklist_id": string,"client_id": string | null,"done_at": string | null,"done_by": string | null,"due_date": string | null,"for_user_id": string | null,"id": string,"is_done": boolean,"label": string,"position": number,"workspace_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "assignee_id"?: string | null,"checklist_id": string,"client_id"?: string | null,"done_at"?: string | null,"done_by"?: string | null,"due_date"?: string | null,"for_user_id"?: string | null,"id"?: string,"is_done"?: boolean,"label": string,"position"?: number,"workspace_id": string
+                  }
+                  Update: {
+                    "assignee_id"?: string | null,"checklist_id"?: string,"client_id"?: string | null,"done_at"?: string | null,"done_by"?: string | null,"due_date"?: string | null,"for_user_id"?: string | null,"id"?: string,"is_done"?: boolean,"label"?: string,"position"?: number,"workspace_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "checklist_items_assignee_id_fkey"
+      columns: ["assignee_id"]
+isOneToOne: false
+      referencedRelation: "profiles"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "checklist_items_checklist_id_workspace_id_fkey"
+      columns: ["checklist_id","workspace_id"]
+isOneToOne: false
+      referencedRelation: "checklists"
+      referencedColumns: ["id","workspace_id"]
+    },{
+      foreignKeyName: "checklist_items_done_by_fkey"
+      columns: ["done_by"]
+isOneToOne: false
+      referencedRelation: "profiles"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "checklist_items_for_user_id_fkey"
+      columns: ["for_user_id"]
+isOneToOne: false
+      referencedRelation: "profiles"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"checklists": {
+                  Row: {
+                    "created_at": string,"created_by": string | null,"deleted_at": string | null,"id": string,"project_id": string | null,"template_id": string | null,"title": string,"trip_id": string | null,"workspace_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "created_at"?: string,"created_by"?: string | null,"deleted_at"?: string | null,"id"?: string,"project_id"?: string | null,"template_id"?: string | null,"title": string,"trip_id"?: string | null,"workspace_id": string
+                  }
+                  Update: {
+                    "created_at"?: string,"created_by"?: string | null,"deleted_at"?: string | null,"id"?: string,"project_id"?: string | null,"template_id"?: string | null,"title"?: string,"trip_id"?: string | null,"workspace_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "checklists_created_by_fkey"
+      columns: ["created_by"]
+isOneToOne: false
+      referencedRelation: "profiles"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "checklists_project_id_workspace_id_fkey"
+      columns: ["project_id","workspace_id"]
+isOneToOne: false
+      referencedRelation: "projects"
+      referencedColumns: ["id","workspace_id"]
+    },{
+      foreignKeyName: "checklists_template_id_fkey"
+      columns: ["template_id"]
+isOneToOne: false
+      referencedRelation: "templates"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "checklists_workspace_id_fkey"
+      columns: ["workspace_id"]
+isOneToOne: false
+      referencedRelation: "workspaces"
+      referencedColumns: ["id"]
+    }
+                  ]
                 },"client_errors": {
                   Row: {
                     "app_version": string | null,"created_at": string,"error_id": string,"id": string,"message": string | null,"route": string | null,"user_id": string | null
@@ -129,6 +205,50 @@ isOneToOne: false
       referencedColumns: ["id"]
     },{
       foreignKeyName: "extraction_runs_workspace_id_fkey"
+      columns: ["workspace_id"]
+isOneToOne: false
+      referencedRelation: "workspaces"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"files": {
+                  Row: {
+                    "bucket": string,"created_at": string,"deleted_at": string | null,"deleted_by": string | null,"file_name": string,"id": string,"mime_type": string,"owner_id": string | null,"project_id": string | null,"sha256": string | null,"size_bytes": number,"storage_path": string,"task_id": string | null,"upload_state": string,"visibility": Database["public"]['Enums']["visibility"],"workspace_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "bucket"?: string,"created_at"?: string,"deleted_at"?: string | null,"deleted_by"?: string | null,"file_name": string,"id"?: string,"mime_type": string,"owner_id"?: string | null,"project_id"?: string | null,"sha256"?: string | null,"size_bytes": number,"storage_path": string,"task_id"?: string | null,"upload_state"?: string,"visibility"?: Database["public"]['Enums']["visibility"],"workspace_id": string
+                  }
+                  Update: {
+                    "bucket"?: string,"created_at"?: string,"deleted_at"?: string | null,"deleted_by"?: string | null,"file_name"?: string,"id"?: string,"mime_type"?: string,"owner_id"?: string | null,"project_id"?: string | null,"sha256"?: string | null,"size_bytes"?: number,"storage_path"?: string,"task_id"?: string | null,"upload_state"?: string,"visibility"?: Database["public"]['Enums']["visibility"],"workspace_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "files_deleted_by_fkey"
+      columns: ["deleted_by"]
+isOneToOne: false
+      referencedRelation: "profiles"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "files_owner_id_fkey"
+      columns: ["owner_id"]
+isOneToOne: false
+      referencedRelation: "profiles"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "files_project_id_workspace_id_fkey"
+      columns: ["project_id","workspace_id"]
+isOneToOne: false
+      referencedRelation: "projects"
+      referencedColumns: ["id","workspace_id"]
+    },{
+      foreignKeyName: "files_task_id_workspace_id_fkey"
+      columns: ["task_id","workspace_id"]
+isOneToOne: false
+      referencedRelation: "tasks"
+      referencedColumns: ["id","workspace_id"]
+    },{
+      foreignKeyName: "files_workspace_id_fkey"
       columns: ["workspace_id"]
 isOneToOne: false
       referencedRelation: "workspaces"
@@ -291,6 +411,70 @@ isOneToOne: false
                   Relationships: [
                     
                   ]
+                },"project_members": {
+                  Row: {
+                    "project_id": string,"role_label": string | null,"user_id": string,"workspace_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "project_id": string,"role_label"?: string | null,"user_id": string,"workspace_id": string
+                  }
+                  Update: {
+                    "project_id"?: string,"role_label"?: string | null,"user_id"?: string,"workspace_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "project_members_project_id_workspace_id_fkey"
+      columns: ["project_id","workspace_id"]
+isOneToOne: false
+      referencedRelation: "projects"
+      referencedColumns: ["id","workspace_id"]
+    },{
+      foreignKeyName: "project_members_workspace_id_user_id_fkey"
+      columns: ["workspace_id","user_id"]
+isOneToOne: false
+      referencedRelation: "workspace_members"
+      referencedColumns: ["workspace_id","user_id"]
+    }
+                  ]
+                },"projects": {
+                  Row: {
+                    "category": Database["public"]['Enums']["project_category"],"created_at": string,"deleted_at": string | null,"deleted_by": string | null,"end_date": string | null,"id": string,"links": NonNullable<Json>,"name": string,"opportunity_id": string | null,"owner_id": string | null,"repo_urls": (string)[],"search": unknown,"stage": Database["public"]['Enums']["project_stage"],"start_date": string | null,"summary": string | null,"updated_at": string,"visibility": Database["public"]['Enums']["visibility"],"workspace_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "category"?: Database["public"]['Enums']["project_category"],"created_at"?: string,"deleted_at"?: string | null,"deleted_by"?: string | null,"end_date"?: string | null,"id"?: string,"links"?: NonNullable<Json>,"name": string,"opportunity_id"?: string | null,"owner_id"?: string | null,"repo_urls"?: (string)[],"search"?: never,"stage"?: Database["public"]['Enums']["project_stage"],"start_date"?: string | null,"summary"?: string | null,"updated_at"?: string,"visibility"?: Database["public"]['Enums']["visibility"],"workspace_id": string
+                  }
+                  Update: {
+                    "category"?: Database["public"]['Enums']["project_category"],"created_at"?: string,"deleted_at"?: string | null,"deleted_by"?: string | null,"end_date"?: string | null,"id"?: string,"links"?: NonNullable<Json>,"name"?: string,"opportunity_id"?: string | null,"owner_id"?: string | null,"repo_urls"?: (string)[],"search"?: never,"stage"?: Database["public"]['Enums']["project_stage"],"start_date"?: string | null,"summary"?: string | null,"updated_at"?: string,"visibility"?: Database["public"]['Enums']["visibility"],"workspace_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "projects_deleted_by_fkey"
+      columns: ["deleted_by"]
+isOneToOne: false
+      referencedRelation: "profiles"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "projects_opportunity_id_workspace_id_fkey"
+      columns: ["opportunity_id","workspace_id"]
+isOneToOne: false
+      referencedRelation: "opportunities"
+      referencedColumns: ["id","workspace_id"]
+    },{
+      foreignKeyName: "projects_owner_id_fkey"
+      columns: ["owner_id"]
+isOneToOne: false
+      referencedRelation: "profiles"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "projects_workspace_id_fkey"
+      columns: ["workspace_id"]
+isOneToOne: false
+      referencedRelation: "workspaces"
+      referencedColumns: ["id"]
+    }
+                  ]
                 },"rate_limit_events": {
                   Row: {
                     "action": string,"created_at": string,"id": number,"user_id": string
@@ -304,6 +488,108 @@ isOneToOne: false
                   }
                   Relationships: [
                     
+                  ]
+                },"task_comments": {
+                  Row: {
+                    "author_id": string | null,"body": string,"created_at": string,"deleted_at": string | null,"edited_at": string | null,"id": string,"task_id": string,"workspace_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "author_id"?: string | null,"body": string,"created_at"?: string,"deleted_at"?: string | null,"edited_at"?: string | null,"id"?: string,"task_id": string,"workspace_id": string
+                  }
+                  Update: {
+                    "author_id"?: string | null,"body"?: string,"created_at"?: string,"deleted_at"?: string | null,"edited_at"?: string | null,"id"?: string,"task_id"?: string,"workspace_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "task_comments_author_id_fkey"
+      columns: ["author_id"]
+isOneToOne: false
+      referencedRelation: "profiles"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "task_comments_task_id_workspace_id_fkey"
+      columns: ["task_id","workspace_id"]
+isOneToOne: false
+      referencedRelation: "tasks"
+      referencedColumns: ["id","workspace_id"]
+    }
+                  ]
+                },"tasks": {
+                  Row: {
+                    "assignee_id": string | null,"client_id": string | null,"completed_at": string | null,"created_at": string,"deleted_at": string | null,"deleted_by": string | null,"description": string | null,"due_at": string | null,"due_date": string | null,"due_timezone": string | null,"id": string,"owner_id": string | null,"parent_task_id": string | null,"position": number,"priority": Database["public"]['Enums']["task_priority"],"project_id": string | null,"search": unknown,"status": Database["public"]['Enums']["task_status"],"tags": (string)[],"title": string,"updated_at": string,"visibility": Database["public"]['Enums']["visibility"],"workspace_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "assignee_id"?: string | null,"client_id"?: string | null,"completed_at"?: string | null,"created_at"?: string,"deleted_at"?: string | null,"deleted_by"?: string | null,"description"?: string | null,"due_at"?: string | null,"due_date"?: string | null,"due_timezone"?: string | null,"id"?: string,"owner_id"?: string | null,"parent_task_id"?: string | null,"position"?: number,"priority"?: Database["public"]['Enums']["task_priority"],"project_id"?: string | null,"search"?: never,"status"?: Database["public"]['Enums']["task_status"],"tags"?: (string)[],"title": string,"updated_at"?: string,"visibility"?: Database["public"]['Enums']["visibility"],"workspace_id": string
+                  }
+                  Update: {
+                    "assignee_id"?: string | null,"client_id"?: string | null,"completed_at"?: string | null,"created_at"?: string,"deleted_at"?: string | null,"deleted_by"?: string | null,"description"?: string | null,"due_at"?: string | null,"due_date"?: string | null,"due_timezone"?: string | null,"id"?: string,"owner_id"?: string | null,"parent_task_id"?: string | null,"position"?: number,"priority"?: Database["public"]['Enums']["task_priority"],"project_id"?: string | null,"search"?: never,"status"?: Database["public"]['Enums']["task_status"],"tags"?: (string)[],"title"?: string,"updated_at"?: string,"visibility"?: Database["public"]['Enums']["visibility"],"workspace_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "tasks_assignee_id_fkey"
+      columns: ["assignee_id"]
+isOneToOne: false
+      referencedRelation: "profiles"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "tasks_deleted_by_fkey"
+      columns: ["deleted_by"]
+isOneToOne: false
+      referencedRelation: "profiles"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "tasks_owner_id_fkey"
+      columns: ["owner_id"]
+isOneToOne: false
+      referencedRelation: "profiles"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "tasks_parent_task_id_workspace_id_fkey"
+      columns: ["parent_task_id","workspace_id"]
+isOneToOne: false
+      referencedRelation: "tasks"
+      referencedColumns: ["id","workspace_id"]
+    },{
+      foreignKeyName: "tasks_project_id_workspace_id_fkey"
+      columns: ["project_id","workspace_id"]
+isOneToOne: false
+      referencedRelation: "projects"
+      referencedColumns: ["id","workspace_id"]
+    },{
+      foreignKeyName: "tasks_workspace_id_fkey"
+      columns: ["workspace_id"]
+isOneToOne: false
+      referencedRelation: "workspaces"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"templates": {
+                  Row: {
+                    "body": NonNullable<Json>,"created_at": string,"created_by": string | null,"id": string,"is_builtin": boolean,"kind": string,"title": string,"workspace_id": string | null
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "body": NonNullable<Json>,"created_at"?: string,"created_by"?: string | null,"id"?: string,"is_builtin"?: boolean,"kind": string,"title": string,"workspace_id"?: string | null
+                  }
+                  Update: {
+                    "body"?: NonNullable<Json>,"created_at"?: string,"created_by"?: string | null,"id"?: string,"is_builtin"?: boolean,"kind"?: string,"title"?: string,"workspace_id"?: string | null
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "templates_created_by_fkey"
+      columns: ["created_by"]
+isOneToOne: false
+      referencedRelation: "profiles"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "templates_workspace_id_fkey"
+      columns: ["workspace_id"]
+isOneToOne: false
+      referencedRelation: "workspaces"
+      referencedColumns: ["id"]
+    }
                   ]
                 },"workspace_invitations": {
                   Row: {
@@ -418,6 +704,15 @@ isOneToOne: false
 "complete_extraction_run":
 { Args: { "p_content_hash_hex": string,"p_content_type": string,"p_error_code": string,"p_fields": Json,"p_final_url": string,"p_http_status": number,"p_run": string,"p_status": string,"p_thin": boolean }; Returns: undefined
                            },
+"confirm_upload":
+{ Args: { "p_file": string }; Returns: undefined
+                           },
+"convert_opportunity_to_project":
+{ Args: { "p_opportunity": string }; Returns: string
+                           },
+"create_checklist_from_template":
+{ Args: { "p_project": string,"p_template": string }; Returns: string
+                           },
 "create_workspace":
 { Args: { "p_name": string }; Returns: string
                            },
@@ -429,6 +724,9 @@ isOneToOne: false
                            },
 "revoke_workspace_invitation":
 { Args: Record<PropertyKey, never>; Returns: Json
+                           },
+"save_checklist_as_template":
+{ Args: { "p_checklist": string,"p_title": string }; Returns: string
                            },
 "save_opportunity":
 { Args: { "p_dates"?: Json,"p_fields": Json,"p_id": string,"p_source_url"?: string }; Returns: string

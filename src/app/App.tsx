@@ -42,6 +42,10 @@ const AddOpportunityPage = lazy(() =>
 const ReviewExtractionPage = lazy(() =>
   opportunities().then((m) => ({ default: m.ReviewExtractionPage })),
 )
+const projects = () => import('@/features/projects')
+const ProjectListPage = lazy(() => projects().then((m) => ({ default: m.ProjectListPage })))
+const ProjectRoomPage = lazy(() => projects().then((m) => ({ default: m.ProjectRoomPage })))
+const MyTasksPage = lazy(() => projects().then((m) => ({ default: m.MyTasksPage })))
 
 const page = (node: ReactNode) => <Suspense fallback={<PageSpinner />}>{node}</Suspense>
 
@@ -69,8 +73,10 @@ export function App() {
             <Route path="opportunities/review/:runId" element={page(<ReviewExtractionPage />)} />
             <Route path="opportunities/:id" element={page(<OpportunityDetailPage />)} />
             <Route path="opportunities/:id/edit" element={page(<OpportunityFormPage />)} />
-            <Route path="projects/*" element={<ComingSoonPage />} />
-            <Route path="tasks" element={<ComingSoonPage />} />
+            <Route path="projects" element={page(<ProjectListPage />)} />
+            <Route path="projects/:id" element={page(<ProjectRoomPage />)} />
+            <Route path="projects/:id/:tab" element={page(<ProjectRoomPage />)} />
+            <Route path="tasks" element={page(<MyTasksPage />)} />
             <Route path="calendar" element={<ComingSoonPage />} />
             <Route path="chat" element={<ComingSoonPage />} />
             <Route path="vault/*" element={<ComingSoonPage />} />

@@ -1,7 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useAuth } from '@/features/auth'
-import { useMyProfile } from '@/features/profile'
-import { deviceTimeZone } from '@/lib/timezones'
 import {
   getOpportunity,
   listHistory,
@@ -24,11 +22,7 @@ export const oppKeys = {
   history: (id: string) => ['opp', 'history', id] as const,
 }
 
-/** The viewer's time zone from their profile (falls back to the device). */
-export function useViewerTimeZone(): string {
-  const profile = useMyProfile()
-  return profile.data?.timezone ?? deviceTimeZone()
-}
+export { useViewerTimeZone } from '@/features/profile'
 
 export function useOpportunities() {
   return useQuery({ queryKey: oppKeys.list(), queryFn: listOpportunities })
