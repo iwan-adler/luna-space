@@ -21,8 +21,8 @@ export interface NavItem {
 export const primaryNav: NavItem[] = [
   { to: '/', label: 'Home', icon: House },
   { to: '/opportunities', label: 'Opportunities', icon: Trophy },
-  { to: '/projects', label: 'Projects', icon: FolderKanban, phase: 'Phase 4' },
-  { to: '/tasks', label: 'My tasks', icon: ListChecks, phase: 'Phase 4' },
+  { to: '/projects', label: 'Projects', icon: FolderKanban },
+  { to: '/tasks', label: 'My tasks', icon: ListChecks },
   { to: '/calendar', label: 'Calendar', icon: CalendarDays, phase: 'Phase 5' },
   { to: '/chat', label: 'Chat', icon: MessageCircle, phase: 'Phase 6' },
   { to: '/vault', label: 'Vault', icon: Library, phase: 'Phase 7' },

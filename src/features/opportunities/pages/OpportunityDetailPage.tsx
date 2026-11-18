@@ -8,6 +8,7 @@ import { Alert, Card } from '@/components/ui/Card'
 import { Dialog } from '@/components/ui/Dialog'
 import { PageSpinner, Spinner } from '@/components/ui/Spinner'
 import { useToast } from '@/components/ui/Toast'
+import { ConvertToProjectCard } from '@/features/projects'
 import { useCurrentWorkspace, useMembers } from '@/features/workspace'
 import { formatDateOnly, formatDated, formatInstant } from '@/lib/dates'
 import { formatDateTime } from '@/lib/format'
@@ -322,12 +323,7 @@ function Overview({ o, tz }: { o: Opportunity; tz: string }) {
             ) : null}
           </ul>
         </Card>
-        <Card>
-          <h2 className="mb-2 text-h3 font-semibold">Project</h2>
-          <p className="text-body-sm text-muted">
-            Converting an opportunity into a project room arrives with project rooms (Phase 4).
-          </p>
-        </Card>
+        <ConvertToProjectCard opportunityId={o.id} />
       </aside>
     </div>
   )
