@@ -1000,7 +1000,7 @@ isOneToOne: false
           Views: {
             "calendar_feed": {
                   Row: {
-                    "all_day": boolean | null,"end_date": string | null,"ends_at": string | null,"kind": string | null,"owner_id": string | null,"parent_id": string | null,"source_id": string | null,"source_type": string | null,"start_date": string | null,"starts_at": string | null,"timezone": string | null,"title": string | null,"visibility": Database["public"]['Enums']["visibility"] | null,"workspace_id": string | null
+                    "all_day": boolean | null,"end_date": string | null,"ends_at": string | null,"exdates": (string)[] | null,"kind": string | null,"owner_id": string | null,"parent_id": string | null,"rrule": string | null,"source_id": string | null,"source_type": string | null,"start_date": string | null,"starts_at": string | null,"timezone": string | null,"title": string | null,"visibility": Database["public"]['Enums']["visibility"] | null,"workspace_id": string | null
                   }
                   ComputedFields: never
                   Relationships: [
