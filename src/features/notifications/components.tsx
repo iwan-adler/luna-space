@@ -1,4 +1,5 @@
-import { AlarmClock, Bell, CheckCheck, MessageSquare, UserPlus } from 'lucide-react'
+import { AlarmClock, Bell, BellRing, CheckCheck, MessageSquare, UserPlus } from 'lucide-react'
+import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router'
 import { EmptyState } from '@/components/patterns/EmptyState'
 import { Button } from '@/components/ui/Button'
@@ -6,7 +7,10 @@ import { Alert, Card } from '@/components/ui/Card'
 import { PageSpinner } from '@/components/ui/Spinner'
 import { useToast } from '@/components/ui/Toast'
 import { useViewerTimeZone } from '@/features/profile'
+import { controlClass } from '@/components/ui/styles'
+import { messageForCode, toAppError } from '@/lib/errors'
 import { formatDateTime } from '@/lib/format'
+import { pushState, type PushState } from '@/lib/push'
 import {
   DEFAULT_PREFS,
   useMarkAllRead,
@@ -15,6 +19,7 @@ import {
   useNotificationsRealtime,
   usePreferences,
   useSavePreferences,
+  useDevicePush,
   useUnreadCount,
   type Notification,
 } from './hooks'
@@ -138,6 +143,7 @@ export function NotificationsPage() {
         </ul>
       )}
 
+      <DevicePushCard />
       <ReminderSettings />
     </section>
   )
@@ -221,6 +227,157 @@ function ReminderSettings() {
           ))}
         </div>
       </fieldset>
+    </Card>
+  )
+}
+
+const HOURS = Array.from({ length: 24 }, (_, h) => `${String(h).padStart(2, '0')}:00`)
+
+const PUSH_TEXT: Record<PushState, string> = {
+  unsupported:
+    "This browser can't show notifications. On iPhone, add Luna Space to your Home Screen first.",
+  denied:
+    "Notifications are blocked for this site. Allow them in your browser's site settings, then come back.",
+  on: 'On. Reminders and updates appear here even when Luna Space is closed.',
+  off: 'Off. Turn on to get reminders here even when Luna Space is closed.',
+}
+
+/** Notifications on this phone or computer, quiet hours and lock-screen privacy (FR-PLAT-08). */
+function DevicePushCard() {
+  const [state, setState] = useState<PushState | null>(null)
+  const { enable, disable, test } = useDevicePush()
+  const prefs = usePreferences()
+  const save = useSavePreferences()
+  const toast = useToast()
+  useEffect(() => {
+    void pushState().then(setState)
+  }, [])
+  const fail = (e: unknown, fallback: string) => {
+    const code = toAppError(e).code
+    toast.show(
+      code ? messageForCode(code, fallback) : e instanceof Error ? e.message : fallback,
+      'error',
+    )
+  }
+  const quietStart = (prefs.data?.quiet_start ?? '23:00:00').slice(0, 5)
+  const quietEnd = (prefs.data?.quiet_end ?? '07:00:00').slice(0, 5)
+  const details = prefs.data?.lockscreen_details ?? true
+
+  return (
+    <Card className="space-y-4" data-testid="device-push">
+      <div className="flex flex-wrap items-start gap-3">
+        <span className="grid size-10 place-items-center rounded-full bg-primary-subtle text-primary">
+          <BellRing className="size-5" aria-hidden />
+        </span>
+        <div className="min-w-0 flex-1">
+          <h2 className="font-display text-[28px] leading-8">Notifications on this device</h2>
+          <p className="text-body-sm text-muted" data-testid="push-state">
+            {state === null ? 'Checking this device.' : PUSH_TEXT[state]}
+          </p>
+        </div>
+        {state === 'off' ? (
+          <Button
+            loading={enable.isPending}
+            onClick={() =>
+              enable.mutate(undefined, {
+                onSuccess: () => {
+                  setState('on')
+                  toast.show('Notifications turned on for this device', 'success')
+                },
+                onError: (e) => {
+                  void pushState().then(setState)
+                  fail(e, "Couldn't turn on notifications.")
+                },
+              })
+            }
+          >
+            Turn on
+          </Button>
+        ) : state === 'on' ? (
+          <div className="flex gap-2">
+            <Button
+              variant="secondary"
+              size="sm"
+              loading={test.isPending}
+              onClick={() =>
+                test.mutate(undefined, {
+                  onSuccess: () =>
+                    toast.show('Test sent. It should arrive within a minute.', 'success'),
+                  onError: (e) => fail(e, "Couldn't send a test."),
+                })
+              }
+            >
+              Send test
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              loading={disable.isPending}
+              onClick={() =>
+                disable.mutate(undefined, {
+                  onSuccess: () => {
+                    setState('off')
+                    toast.show('Notifications turned off for this device', 'success')
+                  },
+                  onError: (e) => fail(e, "Couldn't turn off notifications."),
+                })
+              }
+            >
+              Turn off
+            </Button>
+          </div>
+        ) : null}
+      </div>
+      {prefs.isPending ? null : (
+        <div className="flex flex-wrap items-center gap-x-6 gap-y-3 text-body-sm">
+          <span className="flex flex-wrap items-center gap-2">
+            Quiet hours
+            <label className="sr-only" htmlFor="quiet-start">
+              Quiet hours start
+            </label>
+            <select
+              id="quiet-start"
+              className={`${controlClass} py-1.5`}
+              value={quietStart}
+              onChange={(e) => save.mutate({ quiet_start: e.target.value })}
+            >
+              {HOURS.map((h) => (
+                <option key={h} value={h}>
+                  {h}
+                </option>
+              ))}
+            </select>
+            to
+            <label className="sr-only" htmlFor="quiet-end">
+              Quiet hours end
+            </label>
+            <select
+              id="quiet-end"
+              className={`${controlClass} py-1.5`}
+              value={quietEnd}
+              onChange={(e) => save.mutate({ quiet_end: e.target.value })}
+            >
+              {HOURS.map((h) => (
+                <option key={h} value={h}>
+                  {h}
+                </option>
+              ))}
+            </select>
+          </span>
+          <label className="flex items-center gap-2">
+            <input
+              type="checkbox"
+              className="size-4 accent-[var(--color-primary)]"
+              checked={details}
+              onChange={(e) => save.mutate({ lockscreen_details: e.target.checked })}
+            />
+            Show details on the lock screen
+          </label>
+        </div>
+      )}
+      <p className="text-caption text-muted">
+        Pushes wait until quiet hours end. Turn this on separately on each phone and computer.
+      </p>
     </Card>
   )
 }

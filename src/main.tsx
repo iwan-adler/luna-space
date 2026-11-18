@@ -6,10 +6,12 @@ import { App } from '@/app/App'
 import { ToastProvider } from '@/components/ui/Toast'
 import { AuthProvider } from '@/features/auth'
 import { queryClient } from '@/lib/queryClient'
+import { registerServiceWorker } from '@/lib/push'
 import { applyTheme, readThemePreference } from '@/lib/theme'
 import '@/styles/index.css'
 
 applyTheme(readThemePreference())
+registerServiceWorker()
 
 const root = document.getElementById('root')
 if (!root) throw new Error('Root element #root not found')

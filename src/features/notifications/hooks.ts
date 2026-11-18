@@ -106,6 +106,9 @@ export function useSavePreferences() {
     mutationFn: async (patch: {
       deadline_reminder_days?: number[]
       timed_reminder_minutes?: number[]
+      quiet_start?: string
+      quiet_end?: string
+      lockscreen_details?: boolean
     }) => {
       const { error } = await requireSupabase()
         .from('notification_preferences')
@@ -140,4 +143,47 @@ export function useNotificationsRealtime() {
       void client.removeChannel(channel)
     }
   }, [user, qc])
+}
+
+/** Registers or removes this browser for Web Push (FR-PLAT-08). */
+export function useDevicePush() {
+  const qc = useQueryClient()
+  const { user } = useAuth()
+  const enable = useMutation({
+    mutationFn: async () => {
+      const { subscribeThisDevice } = await import('@/lib/push')
+      const sub = await subscribeThisDevice()
+      const { error } = await requireSupabase().rpc('save_push_subscription', {
+        p_endpoint: sub.endpoint,
+        p_p256dh: sub.p256dh,
+        p_auth: sub.auth,
+        p_user_agent: navigator.userAgent,
+      })
+      if (error) throw toAppError(error)
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: notificationKeys.prefs(user?.id) }),
+  })
+  const disable = useMutation({
+    mutationFn: async () => {
+      const { currentSubscription } = await import('@/lib/push')
+      const sub = await currentSubscription()
+      if (!sub) return
+      const { error } = await requireSupabase()
+        .from('push_subscriptions')
+        .delete()
+        .eq('endpoint', sub.endpoint)
+      if (error) throw toAppError(error)
+      await sub.unsubscribe()
+    },
+  })
+  const test = useMutation({
+    mutationFn: async () => {
+      const { data, error } = await requireSupabase().rpc('send_test_notification')
+      if (error) throw toAppError(error)
+      const result = data as { ok?: boolean; code?: string } | null
+      if (!result?.ok) throw toAppError({ code: result?.code })
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: notificationKeys.all(user?.id) }),
+  })
+  return { enable, disable, test }
 }

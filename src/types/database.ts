@@ -667,6 +667,26 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
+                },"push_subscriptions": {
+                  Row: {
+                    "auth": string,"created_at": string,"endpoint": string,"failure_count": number,"id": string,"last_success_at": string | null,"p256dh": string,"user_agent": string | null,"user_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "auth": string,"created_at"?: string,"endpoint": string,"failure_count"?: number,"id"?: string,"last_success_at"?: string | null,"p256dh": string,"user_agent"?: string | null,"user_id": string
+                  }
+                  Update: {
+                    "auth"?: string,"created_at"?: string,"endpoint"?: string,"failure_count"?: number,"id"?: string,"last_success_at"?: string | null,"p256dh"?: string,"user_agent"?: string | null,"user_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "push_subscriptions_user_id_fkey"
+      columns: ["user_id"]
+isOneToOne: false
+      referencedRelation: "profiles"
+      referencedColumns: ["id"]
+    }
+                  ]
                 },"rate_limit_events": {
                   Row: {
                     "action": string,"created_at": string,"id": number,"user_id": string
@@ -954,6 +974,11 @@ isOneToOne: false
 "accept_workspace_invitation":
 { Args: { "p_token": string }; Returns: Json
                            },
+"claim_push_batch":
+{ Args: { "p_limit"?: number }; Returns: {
+              "body": string,"link_path": string,"notification_id": string,"recipient_id": string,"show_details": boolean,"subscriptions": Json,"title": string
+            }[]
+                           },
 "complete_extraction_run":
 { Args: { "p_content_hash_hex": string,"p_content_type": string,"p_error_code": string,"p_fields": Json,"p_final_url": string,"p_http_status": number,"p_run": string,"p_status": string,"p_thin": boolean }; Returns: undefined
                            },
@@ -1003,6 +1028,12 @@ isOneToOne: false
                            },
 "save_opportunity":
 { Args: { "p_dates"?: Json,"p_fields": Json,"p_id": string,"p_source_url"?: string }; Returns: string
+                           },
+"save_push_subscription":
+{ Args: { "p_auth": string,"p_endpoint": string,"p_p256dh": string,"p_user_agent": string }; Returns: undefined
+                           },
+"send_test_notification":
+{ Args: Record<PropertyKey, never>; Returns: Json
                            },
 "set_guest_role":
 { Args: { "p_membership": string,"p_role": Database["public"]['Enums']["guest_role"] }; Returns: Json
