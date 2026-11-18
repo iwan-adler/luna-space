@@ -6,7 +6,6 @@ import { Spinner } from '@/components/ui/Spinner'
 import { controlClass, inputClass } from '@/components/ui/styles'
 import { useToast } from '@/components/ui/Toast'
 import { useAuth } from '@/features/auth'
-import type { Member } from '@/features/workspace'
 import { messageForCode, toAppError } from '@/lib/errors'
 import { formatDateTime } from '@/lib/format'
 import {
@@ -18,19 +17,29 @@ import {
 } from '../constants'
 import { useAddComment, useComments, useCreateTask, useFiles, useUpdateTask } from '../hooks'
 import { positionAt, type Task } from '../model'
+import type { RoomPermissions, RoomPerson } from '../room'
 import { FileList, UploadButton } from './Files'
 
 interface DrawerProps {
   projectId: string
   task: Task | undefined
   tasks: Task[]
-  members: Member[]
+  people: RoomPerson[]
   viewerTz: string
+  perms: RoomPermissions
   onClose: () => void
 }
 
 /** Task details in a side sheet, addressed by ?task=<id> so it can be linked (UI spec §15). */
-export function TaskDrawer({ projectId, task, tasks, members, viewerTz, onClose }: DrawerProps) {
+export function TaskDrawer({
+  projectId,
+  task,
+  tasks,
+  people,
+  viewerTz,
+  perms,
+  onClose,
+}: DrawerProps) {
   return (
     <RadixDialog.Root open={Boolean(task)} onOpenChange={(open) => !open && onClose()}>
       <RadixDialog.Portal>
@@ -45,8 +54,9 @@ export function TaskDrawer({ projectId, task, tasks, members, viewerTz, onClose 
               projectId={projectId}
               task={task}
               tasks={tasks}
-              members={members}
+              people={people}
               viewerTz={viewerTz}
+              perms={perms}
               onClose={onClose}
             />
           ) : null}
@@ -60,10 +70,12 @@ function TaskDetails({
   projectId,
   task,
   tasks,
-  members,
+  people,
   viewerTz,
+  perms,
   onClose,
 }: DrawerProps & { task: Task }) {
+  const readOnly = !perms.editTasks
   const update = useUpdateTask(projectId)
   const toast = useToast()
   const { user } = useAuth()
@@ -93,6 +105,7 @@ function TaskDetails({
           value={title}
           rows={1}
           maxLength={300}
+          readOnly={readOnly}
           onChange={(e) => setTitle(e.target.value)}
           onBlur={() => {
             const v = title.trim()
@@ -117,6 +130,7 @@ function TaskDetails({
           <dd>
             <select
               id="task-status"
+              disabled={readOnly}
               className={controlClass}
               value={task.status}
               onChange={(e) => {
@@ -147,6 +161,7 @@ function TaskDetails({
           <dd>
             <select
               id="task-priority"
+              disabled={readOnly}
               className={controlClass}
               value={task.priority}
               onChange={(e) => save({ priority: e.target.value as TaskPriority })}
@@ -164,17 +179,20 @@ function TaskDetails({
           <dd>
             <select
               id="task-assignee"
+              disabled={readOnly}
               className={controlClass}
               value={task.assignee_id ?? ''}
               onChange={(e) => save({ assignee_id: e.target.value || null })}
             >
               <option value="">Unassigned</option>
-              {members.map((m) => (
-                <option key={m.userId} value={m.userId}>
-                  {m.displayName}
-                  {m.userId === user?.id ? ' (you)' : ''}
-                </option>
-              ))}
+              {people
+                .filter((m) => m.kind === 'member' || task.guest_visible)
+                .map((m) => (
+                  <option key={m.userId} value={m.userId}>
+                    {m.displayName}
+                    {m.userId === user?.id ? ' (you)' : m.kind === 'guest' ? ' (guest)' : ''}
+                  </option>
+                ))}
             </select>
           </dd>
           <dt className="text-muted">
@@ -183,6 +201,7 @@ function TaskDetails({
           <dd className="flex items-center gap-2">
             <input
               id="task-due"
+              disabled={readOnly}
               type="date"
               className={controlClass}
               value={task.due_date ?? ''}
@@ -190,7 +209,7 @@ function TaskDetails({
                 save({ due_date: e.target.value || null, due_at: null, due_timezone: null })
               }
             />
-            {task.due_date ? (
+            {task.due_date && !readOnly ? (
               <button
                 type="button"
                 className="text-caption text-muted underline"
@@ -200,6 +219,22 @@ function TaskDetails({
               </button>
             ) : null}
           </dd>
+          {perms.member && !task.parent_task_id ? (
+            <>
+              <dt className="text-muted">Guests</dt>
+              <dd>
+                <label className="flex items-center gap-2">
+                  <input
+                    type="checkbox"
+                    className="size-4 accent-[var(--color-primary)]"
+                    checked={task.guest_visible}
+                    onChange={(e) => save({ guest_visible: e.target.checked })}
+                  />
+                  Visible to guests
+                </label>
+              </dd>
+            </>
+          ) : null}
         </dl>
 
         <div className="space-y-1.5">
@@ -211,6 +246,7 @@ function TaskDetails({
             value={description}
             rows={4}
             maxLength={20000}
+            readOnly={readOnly}
             placeholder="Add details, acceptance criteria, links…"
             onChange={(e) => setDescription(e.target.value)}
             onBlur={() => {
@@ -222,23 +258,27 @@ function TaskDetails({
         </div>
 
         {task.parent_task_id ? null : (
-          <Subtasks projectId={projectId} parent={task} subtasks={subtasks} />
+          <Subtasks projectId={projectId} parent={task} subtasks={subtasks} perms={perms} />
         )}
-        <Attachments projectId={projectId} taskId={task.id} viewerTz={viewerTz} />
-        <Comments taskId={task.id} members={members} viewerTz={viewerTz} />
+        <Attachments projectId={projectId} taskId={task.id} viewerTz={viewerTz} perms={perms} />
+        <Comments taskId={task.id} people={people} viewerTz={viewerTz} canComment={perms.comment} />
       </div>
 
       <footer className="flex justify-between border-t border-hairline p-4">
-        <Button
-          variant="ghost"
-          icon={<Trash2 className="size-4" aria-hidden />}
-          onClick={() => {
-            save({ deleted_at: new Date().toISOString(), deleted_by: user!.id }, 'Task deleted')
-            onClose()
-          }}
-        >
-          Delete
-        </Button>
+        {readOnly ? (
+          <span />
+        ) : (
+          <Button
+            variant="ghost"
+            icon={<Trash2 className="size-4" aria-hidden />}
+            onClick={() => {
+              save({ deleted_at: new Date().toISOString(), deleted_by: user!.id }, 'Task deleted')
+              onClose()
+            }}
+          >
+            Delete
+          </Button>
+        )}
         <Button variant="secondary" onClick={onClose}>
           Done
         </Button>
@@ -251,10 +291,12 @@ function Subtasks({
   projectId,
   parent,
   subtasks,
+  perms,
 }: {
   projectId: string
   parent: Task
   subtasks: Task[]
+  perms: RoomPermissions
 }) {
   const create = useCreateTask(projectId)
   const update = useUpdateTask(projectId)
@@ -274,6 +316,7 @@ function Subtasks({
               type="checkbox"
               className="size-4 accent-[var(--color-primary)]"
               checked={s.status === 'done'}
+              disabled={!perms.editTasks}
               aria-label={`Done: ${s.title}`}
               onChange={(e) =>
                 update.mutate({ id: s.id, patch: { status: e.target.checked ? 'done' : 'todo' } })
@@ -283,37 +326,43 @@ function Subtasks({
           </li>
         ))}
       </ul>
-      <form
-        className="flex gap-1.5"
-        onSubmit={(e) => {
-          e.preventDefault()
-          const v = title.trim()
-          if (!v) return
-          create.mutate(
-            { title: v, parentTaskId: parent.id, position: positionAt(subtasks, subtasks.length) },
-            { onSuccess: () => setTitle('') },
-          )
-        }}
-      >
-        <input
-          aria-label="New subtask"
-          placeholder="Add a subtask"
-          value={title}
-          maxLength={300}
-          onChange={(e) => setTitle(e.target.value)}
-          className={`${inputClass} py-2`}
-        />
-        <Button
-          type="submit"
-          variant="secondary"
-          size="sm"
-          className="h-auto"
-          loading={create.isPending}
-          aria-label="Add subtask"
+      {perms.createTasks ? (
+        <form
+          className="flex gap-1.5"
+          onSubmit={(e) => {
+            e.preventDefault()
+            const v = title.trim()
+            if (!v) return
+            create.mutate(
+              {
+                title: v,
+                parentTaskId: parent.id,
+                position: positionAt(subtasks, subtasks.length),
+              },
+              { onSuccess: () => setTitle('') },
+            )
+          }}
         >
-          <Plus className="size-4" aria-hidden />
-        </Button>
-      </form>
+          <input
+            aria-label="New subtask"
+            placeholder="Add a subtask"
+            value={title}
+            maxLength={300}
+            onChange={(e) => setTitle(e.target.value)}
+            className={`${inputClass} py-2`}
+          />
+          <Button
+            type="submit"
+            variant="secondary"
+            size="sm"
+            className="h-auto"
+            loading={create.isPending}
+            aria-label="Add subtask"
+          >
+            <Plus className="size-4" aria-hidden />
+          </Button>
+        </form>
+      ) : null}
     </section>
   )
 }
@@ -322,10 +371,12 @@ function Attachments({
   projectId,
   taskId,
   viewerTz,
+  perms,
 }: {
   projectId: string
   taskId: string
   viewerTz: string
+  perms: RoomPermissions
 }) {
   const files = useFiles(projectId)
   const mine = files.data?.filter((f) => f.task_id === taskId) ?? []
@@ -336,12 +387,12 @@ function Attachments({
           <Paperclip className="mr-1 inline size-3" aria-hidden />
           Attachments
         </h3>
-        <UploadButton projectId={projectId} taskId={taskId} size="sm" />
+        {perms.upload ? <UploadButton projectId={projectId} taskId={taskId} size="sm" /> : null}
       </div>
       {files.isPending ? (
         <Spinner className="size-4" />
       ) : (
-        <FileList projectId={projectId} files={mine} viewerTz={viewerTz} compact />
+        <FileList projectId={projectId} files={mine} viewerTz={viewerTz} perms={perms} compact />
       )}
     </section>
   )
@@ -349,19 +400,24 @@ function Attachments({
 
 function Comments({
   taskId,
-  members,
+  people,
   viewerTz,
+  canComment,
 }: {
   taskId: string
-  members: Member[]
+  people: RoomPerson[]
   viewerTz: string
+  canComment: boolean
 }) {
   const comments = useComments(taskId)
   const add = useAddComment(taskId)
   const toast = useToast()
   const [body, setBody] = useState('')
-  const name = (id: string | null) =>
-    members.find((m) => m.userId === id)?.displayName ?? 'Former member'
+  const name = (id: string | null) => {
+    const person = people.find((m) => m.userId === id)
+    if (!person) return 'Former member or guest'
+    return person.kind === 'guest' ? `${person.displayName} (guest)` : person.displayName
+  }
   return (
     <section aria-labelledby="comments-title" className="space-y-3">
       <h3 id="comments-title" className="eyebrow">
@@ -386,33 +442,35 @@ function Comments({
           ))}
         </ul>
       )}
-      <form
-        className="space-y-2"
-        onSubmit={(e) => {
-          e.preventDefault()
-          const v = body.trim()
-          if (!v) return
-          add.mutate(v, {
-            onSuccess: () => setBody(''),
-            onError: () => toast.show("Couldn't post the comment.", 'error'),
-          })
-        }}
-      >
-        <textarea
-          aria-label="Write a comment"
-          placeholder="Write a comment"
-          rows={2}
-          maxLength={5000}
-          value={body}
-          onChange={(e) => setBody(e.target.value)}
-          className={inputClass}
-        />
-        <div className="flex justify-end">
-          <Button type="submit" size="sm" loading={add.isPending} disabled={!body.trim()}>
-            Comment
-          </Button>
-        </div>
-      </form>
+      {canComment ? (
+        <form
+          className="space-y-2"
+          onSubmit={(e) => {
+            e.preventDefault()
+            const v = body.trim()
+            if (!v) return
+            add.mutate(v, {
+              onSuccess: () => setBody(''),
+              onError: () => toast.show("Couldn't post the comment.", 'error'),
+            })
+          }}
+        >
+          <textarea
+            aria-label="Write a comment"
+            placeholder="Write a comment"
+            rows={2}
+            maxLength={5000}
+            value={body}
+            onChange={(e) => setBody(e.target.value)}
+            className={inputClass}
+          />
+          <div className="flex justify-end">
+            <Button type="submit" size="sm" loading={add.isPending} disabled={!body.trim()}>
+              Comment
+            </Button>
+          </div>
+        </form>
+      ) : null}
     </section>
   )
 }

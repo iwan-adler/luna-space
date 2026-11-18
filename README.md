@@ -4,7 +4,7 @@ A private, installable web workspace for two collaborators: hackathon and opport
 (with URL extraction), project rooms, shared calendar, chat, knowledge vault, productivity and
 portfolio. Target running cost: ₹0 on free tiers.
 
-**Status:** Phases 0–4 done: auth and the shared workspace, opportunities with link extraction, and project rooms (board, checklists, files, My tasks). Next: guest access (Phase 4b) and the calendar (Phase 5).
+**Status:** Phases 0–4b done: auth and the shared workspace, opportunities with link extraction, project rooms (board, checklists, files, My tasks) and project-scoped guests. Next: calendar, reminders and notifications (Phase 5).
 
 ## Specifications
 

@@ -22,6 +22,7 @@ import {
   listTemplates,
   projectForOpportunity,
   saveChecklistAsTemplate,
+  setFileGuestVisible,
   setItemDone,
   updateProject,
   updateTask,
@@ -32,6 +33,7 @@ import {
   type TaskPatch,
 } from './api'
 import type { Task } from './model'
+import { useRoom } from './room'
 
 export const projectKeys = {
   all: ['projects'] as const,
@@ -112,7 +114,7 @@ export function useMyTasks() {
 export function useCreateTask(projectId: string) {
   const qc = useQueryClient()
   const { user } = useAuth()
-  const { workspaceId } = useCurrentWorkspace()
+  const { workspaceId } = useRoom()
   return useMutation({
     mutationFn: (args: {
       title: string
@@ -171,7 +173,7 @@ export function useComments(taskId: string) {
 export function useAddComment(taskId: string) {
   const qc = useQueryClient()
   const { user } = useAuth()
-  const { workspaceId } = useCurrentWorkspace()
+  const { workspaceId } = useRoom()
   return useMutation({
     mutationFn: (body: string) => addComment(workspaceId, taskId, user!.id, body),
     onSuccess: () => qc.invalidateQueries({ queryKey: projectKeys.comments(taskId) }),
@@ -187,7 +189,7 @@ export function useFiles(projectId: string) {
 export function useUploadFile(projectId: string) {
   const qc = useQueryClient()
   const { user } = useAuth()
-  const { workspaceId } = useCurrentWorkspace()
+  const { workspaceId } = useRoom()
   return useMutation({
     mutationFn: (args: { file: File; taskId?: string | null }) =>
       uploadFile({
@@ -198,6 +200,15 @@ export function useUploadFile(projectId: string) {
         file: args.file,
       }),
     onSettled: () => qc.invalidateQueries({ queryKey: projectKeys.files(projectId) }),
+  })
+}
+
+export function useSetFileGuestVisible(projectId: string) {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (args: { id: string; visible: boolean }) =>
+      setFileGuestVisible(args.id, args.visible),
+    onSuccess: () => qc.invalidateQueries({ queryKey: projectKeys.files(projectId) }),
   })
 }
 
@@ -265,7 +276,7 @@ export function useToggleItem(projectId: string) {
 
 export function useAddChecklistItem(projectId: string) {
   const qc = useQueryClient()
-  const { workspaceId } = useCurrentWorkspace()
+  const { workspaceId } = useRoom()
   return useMutation({
     mutationFn: (args: { checklistId: string; label: string; position: number }) =>
       addChecklistItem(workspaceId, args.checklistId, args.label, args.position),
@@ -315,6 +326,20 @@ export function useProjectRealtime(projectId: string) {
         'postgres_changes',
         { event: '*', schema: 'public', table: 'checklist_items' },
         invalidate(projectKeys.checklists(projectId)),
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'project_guest_memberships',
+          filter: `project_id=eq.${projectId}`,
+        },
+        () => {
+          void qc.invalidateQueries({ queryKey: ['projects', 'people', projectId] })
+          void qc.invalidateQueries({ queryKey: ['projects', 'guest-memberships', projectId] })
+          void qc.invalidateQueries({ queryKey: ['projects', 'my-guest-rooms'] })
+        },
       )
       .on(
         'postgres_changes',
