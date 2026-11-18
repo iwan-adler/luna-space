@@ -43,6 +43,8 @@ const AddOpportunityPage = lazy(() =>
 const ReviewExtractionPage = lazy(() =>
   opportunities().then((m) => ({ default: m.ReviewExtractionPage })),
 )
+const notes = () => import('@/features/notes')
+const NotesPage = lazy(() => notes().then((m) => ({ default: m.NotesPage })))
 const calendar = () => import('@/features/calendar')
 const CalendarPage = lazy(() => calendar().then((m) => ({ default: m.CalendarPage })))
 const projects = () => import('@/features/projects')
@@ -94,6 +96,8 @@ export function App() {
             <Route path="tasks" element={page(<MyTasksPage />)} />
             <Route path="calendar" element={page(<CalendarPage />)} />
             <Route path="notifications" element={<NotificationsPage />} />
+            <Route path="notes" element={page(<NotesPage />)} />
+            <Route path="notes/:id" element={page(<NotesPage />)} />
             <Route path="chat" element={<ComingSoonPage />} />
             <Route path="vault/*" element={<ComingSoonPage />} />
             <Route path="more" element={<MorePage />} />
