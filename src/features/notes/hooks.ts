@@ -77,7 +77,9 @@ export function useCreateNote() {
   const { user } = useAuth()
   const { workspaceId } = useCurrentWorkspace()
   return useMutation({
-    mutationFn: async (input: { title?: string; isPrivate?: boolean } = {}) => {
+    mutationFn: async (
+      input: { title?: string; isPrivate?: boolean; folderId?: string | null } = {},
+    ) => {
       const { data, error } = await db()
         .from('notes')
         .insert({
@@ -85,6 +87,7 @@ export function useCreateNote() {
           owner_id: user!.id,
           title: input.title?.trim() || 'Untitled note',
           visibility: input.isPrivate ? 'private' : 'shared',
+          folder_id: input.folderId ?? null,
           client_id: crypto.randomUUID(),
         })
         .select('id')
@@ -92,7 +95,10 @@ export function useCreateNote() {
       if (error) throw toAppError(error)
       return data.id
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: noteKeys.all }),
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: noteKeys.all })
+      void qc.invalidateQueries({ queryKey: ['vault'] })
+    },
   })
 }
 

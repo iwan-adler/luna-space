@@ -63,6 +63,50 @@ isOneToOne: false
                   Relationships: [
                     
                   ]
+                },"bookmarks": {
+                  Row: {
+                    "created_at": string,"deleted_at": string | null,"deleted_by": string | null,"description": string | null,"folder_id": string | null,"id": string,"kind": string,"owner_id": string | null,"project_id": string | null,"search": unknown,"site_name": string | null,"tags": (string)[],"title": string,"updated_at": string,"url": string,"visibility": Database["public"]['Enums']["visibility"],"workspace_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "created_at"?: string,"deleted_at"?: string | null,"deleted_by"?: string | null,"description"?: string | null,"folder_id"?: string | null,"id"?: string,"kind"?: string,"owner_id"?: string | null,"project_id"?: string | null,"search"?: never,"site_name"?: string | null,"tags"?: (string)[],"title": string,"updated_at"?: string,"url": string,"visibility"?: Database["public"]['Enums']["visibility"],"workspace_id": string
+                  }
+                  Update: {
+                    "created_at"?: string,"deleted_at"?: string | null,"deleted_by"?: string | null,"description"?: string | null,"folder_id"?: string | null,"id"?: string,"kind"?: string,"owner_id"?: string | null,"project_id"?: string | null,"search"?: never,"site_name"?: string | null,"tags"?: (string)[],"title"?: string,"updated_at"?: string,"url"?: string,"visibility"?: Database["public"]['Enums']["visibility"],"workspace_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "bookmarks_deleted_by_fkey"
+      columns: ["deleted_by"]
+isOneToOne: false
+      referencedRelation: "profiles"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "bookmarks_folder_id_workspace_id_fkey"
+      columns: ["folder_id","workspace_id"]
+isOneToOne: false
+      referencedRelation: "vault_folders"
+      referencedColumns: ["id","workspace_id"]
+    },{
+      foreignKeyName: "bookmarks_owner_id_fkey"
+      columns: ["owner_id"]
+isOneToOne: false
+      referencedRelation: "profiles"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "bookmarks_project_id_workspace_id_fkey"
+      columns: ["project_id","workspace_id"]
+isOneToOne: false
+      referencedRelation: "projects"
+      referencedColumns: ["id","workspace_id"]
+    },{
+      foreignKeyName: "bookmarks_workspace_id_fkey"
+      columns: ["workspace_id"]
+isOneToOne: false
+      referencedRelation: "workspaces"
+      referencedColumns: ["id"]
+    }
+                  ]
                 },"calendar_events": {
                   Row: {
                     "all_day": boolean,"created_at": string,"deleted_at": string | null,"deleted_by": string | null,"description": string | null,"end_date": string | null,"ends_at": string | null,"exdates": (string)[],"id": string,"kind": Database["public"]['Enums']["event_kind"],"location": string | null,"opportunity_id": string | null,"owner_id": string | null,"project_id": string | null,"reminder_offsets": (number)[],"rrule": string | null,"start_date": string | null,"starts_at": string | null,"timezone": string | null,"title": string,"updated_at": string,"visibility": Database["public"]['Enums']["visibility"],"workspace_id": string
@@ -309,14 +353,14 @@ isOneToOne: false
                   ]
                 },"files": {
                   Row: {
-                    "bucket": string,"created_at": string,"deleted_at": string | null,"deleted_by": string | null,"file_name": string,"guest_visible": boolean,"id": string,"message_id": string | null,"mime_type": string,"owner_id": string | null,"project_id": string | null,"sha256": string | null,"size_bytes": number,"storage_path": string,"task_id": string | null,"upload_state": string,"visibility": Database["public"]['Enums']["visibility"],"workspace_id": string
+                    "bucket": string,"created_at": string,"deleted_at": string | null,"deleted_by": string | null,"file_name": string,"folder_id": string | null,"guest_visible": boolean,"id": string,"message_id": string | null,"mime_type": string,"owner_id": string | null,"project_id": string | null,"search": unknown,"sha256": string | null,"size_bytes": number,"storage_path": string,"tags": (string)[],"task_id": string | null,"upload_state": string,"visibility": Database["public"]['Enums']["visibility"],"workspace_id": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "bucket"?: string,"created_at"?: string,"deleted_at"?: string | null,"deleted_by"?: string | null,"file_name": string,"guest_visible"?: boolean,"id"?: string,"message_id"?: string | null,"mime_type": string,"owner_id"?: string | null,"project_id"?: string | null,"sha256"?: string | null,"size_bytes": number,"storage_path": string,"task_id"?: string | null,"upload_state"?: string,"visibility"?: Database["public"]['Enums']["visibility"],"workspace_id": string
+                    "bucket"?: string,"created_at"?: string,"deleted_at"?: string | null,"deleted_by"?: string | null,"file_name": string,"folder_id"?: string | null,"guest_visible"?: boolean,"id"?: string,"message_id"?: string | null,"mime_type": string,"owner_id"?: string | null,"project_id"?: string | null,"search"?: never,"sha256"?: string | null,"size_bytes": number,"storage_path": string,"tags"?: (string)[],"task_id"?: string | null,"upload_state"?: string,"visibility"?: Database["public"]['Enums']["visibility"],"workspace_id": string
                   }
                   Update: {
-                    "bucket"?: string,"created_at"?: string,"deleted_at"?: string | null,"deleted_by"?: string | null,"file_name"?: string,"guest_visible"?: boolean,"id"?: string,"message_id"?: string | null,"mime_type"?: string,"owner_id"?: string | null,"project_id"?: string | null,"sha256"?: string | null,"size_bytes"?: number,"storage_path"?: string,"task_id"?: string | null,"upload_state"?: string,"visibility"?: Database["public"]['Enums']["visibility"],"workspace_id"?: string
+                    "bucket"?: string,"created_at"?: string,"deleted_at"?: string | null,"deleted_by"?: string | null,"file_name"?: string,"folder_id"?: string | null,"guest_visible"?: boolean,"id"?: string,"message_id"?: string | null,"mime_type"?: string,"owner_id"?: string | null,"project_id"?: string | null,"search"?: never,"sha256"?: string | null,"size_bytes"?: number,"storage_path"?: string,"tags"?: (string)[],"task_id"?: string | null,"upload_state"?: string,"visibility"?: Database["public"]['Enums']["visibility"],"workspace_id"?: string
                   }
                   Relationships: [
                     {
@@ -325,6 +369,12 @@ isOneToOne: false
 isOneToOne: false
       referencedRelation: "profiles"
       referencedColumns: ["id"]
+    },{
+      foreignKeyName: "files_folder_id_workspace_id_fkey"
+      columns: ["folder_id","workspace_id"]
+isOneToOne: false
+      referencedRelation: "vault_folders"
+      referencedColumns: ["id","workspace_id"]
     },{
       foreignKeyName: "files_message_id_workspace_id_fkey"
       columns: ["message_id","workspace_id"]
@@ -439,6 +489,12 @@ isOneToOne: false
 isOneToOne: false
       referencedRelation: "profiles"
       referencedColumns: ["id"]
+    },{
+      foreignKeyName: "notes_folder_id_workspace_id_fkey"
+      columns: ["folder_id","workspace_id"]
+isOneToOne: false
+      referencedRelation: "vault_folders"
+      referencedColumns: ["id","workspace_id"]
     },{
       foreignKeyName: "notes_owner_id_fkey"
       columns: ["owner_id"]
@@ -1019,6 +1075,44 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
+                },"vault_folders": {
+                  Row: {
+                    "created_at": string,"deleted_at": string | null,"deleted_by": string | null,"depth": number,"id": string,"name": string,"owner_id": string | null,"parent_id": string | null,"updated_at": string,"visibility": Database["public"]['Enums']["visibility"],"workspace_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "created_at"?: string,"deleted_at"?: string | null,"deleted_by"?: string | null,"depth"?: number,"id"?: string,"name": string,"owner_id"?: string | null,"parent_id"?: string | null,"updated_at"?: string,"visibility"?: Database["public"]['Enums']["visibility"],"workspace_id": string
+                  }
+                  Update: {
+                    "created_at"?: string,"deleted_at"?: string | null,"deleted_by"?: string | null,"depth"?: number,"id"?: string,"name"?: string,"owner_id"?: string | null,"parent_id"?: string | null,"updated_at"?: string,"visibility"?: Database["public"]['Enums']["visibility"],"workspace_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "vault_folders_deleted_by_fkey"
+      columns: ["deleted_by"]
+isOneToOne: false
+      referencedRelation: "profiles"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "vault_folders_owner_id_fkey"
+      columns: ["owner_id"]
+isOneToOne: false
+      referencedRelation: "profiles"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "vault_folders_parent_id_workspace_id_fkey"
+      columns: ["parent_id","workspace_id"]
+isOneToOne: false
+      referencedRelation: "vault_folders"
+      referencedColumns: ["id","workspace_id"]
+    },{
+      foreignKeyName: "vault_folders_workspace_id_fkey"
+      columns: ["workspace_id"]
+isOneToOne: false
+      referencedRelation: "workspaces"
+      referencedColumns: ["id"]
+    }
+                  ]
                 },"workspace_invitations": {
                   Row: {
                     "accepted_at": string | null,"accepted_by": string | null,"created_at": string,"created_by": string | null,"expires_at": string,"id": string,"revoked_at": string | null,"token_hash": string,"workspace_id": string
@@ -1214,6 +1308,11 @@ isOneToOne: false
                            },
 "save_push_subscription":
 { Args: { "p_auth": string,"p_endpoint": string,"p_p256dh": string,"p_user_agent": string }; Returns: undefined
+                           },
+"search_workspace":
+{ Args: { "p_kinds"?: (string)[],"p_limit"?: number,"p_q": string }; Returns: {
+              "folder_id": string,"id": string,"kind": string,"project_id": string,"rank": number,"snippet": string,"title": string,"updated_at": string
+            }[]
                            },
 "send_test_notification":
 { Args: Record<PropertyKey, never>; Returns: Json

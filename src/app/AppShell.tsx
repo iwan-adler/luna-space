@@ -6,6 +6,7 @@ import { useAuth } from '@/features/auth'
 import { useMyProfile } from '@/features/profile'
 import { useChatRealtime, useChatUnread } from '@/features/chat'
 import { NotificationBell } from '@/features/notifications'
+import { CommandPalette } from '@/features/search'
 import { useCurrentWorkspace } from '@/features/workspace'
 import { mobileNav, primaryNav } from './navigation'
 
@@ -84,10 +85,12 @@ export function AppShell() {
               Luna Space
             </Link>
             <div className="flex-1" />
+            <CommandPalette />
             <NotificationBell />
             <AccountMenu />
           </header>
           <header className="hidden items-center justify-end gap-2.5 px-4 pt-3 lg:flex">
+            <CommandPalette shortcut />
             <NotificationBell />
             <Link to="/settings/profile" aria-label="Settings" className="icon-btn">
               <Settings className="size-[18px]" strokeWidth={1.75} aria-hidden />
