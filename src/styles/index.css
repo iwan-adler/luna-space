@@ -1,8 +1,6 @@
 @import 'tailwindcss';
 @import '@fontsource-variable/inter';
 @import '@fontsource-variable/jetbrains-mono';
-@import '@fontsource/instrument-serif/latin-400.css';
-@import '@fontsource/instrument-serif/latin-400-italic.css';
 @import './tokens.css';
 
 /* Expose tokens as Tailwind utilities: bg-surface, text-muted, border-border, … */
@@ -24,13 +22,14 @@
   --color-warning: var(--color-warning);
   --color-danger: var(--color-danger);
   --color-neutral: var(--color-neutral);
-  --color-moon: var(--color-moon);
+  --color-highlight: var(--color-highlight);
+  --color-sidebar: var(--color-sidebar);
   --color-rose: var(--color-rose);
 
   --font-sans: 'Inter Variable', 'Segoe UI', Roboto, sans-serif;
   --font-mono: 'JetBrains Mono Variable', Consolas, monospace;
-  /* Editorial display face for headlines (the "Lunar editorial" half of the look). */
-  --font-display: 'Instrument Serif', 'Iowan Old Style', Georgia, serif;
+  /* Headlines use the same sans face, set tighter and heavier. */
+  --font-display: 'Inter Variable', 'Segoe UI', Roboto, sans-serif;
 
   /* Type scale (UI spec §5): size / line height */
   --text-caption: 12px;
@@ -43,15 +42,15 @@
   --text-h3--line-height: 22px;
   --text-h2: 19px;
   --text-h2--line-height: 26px;
-  --text-h1: 36px;
-  --text-h1--line-height: 40px;
-  --text-display: 52px;
-  --text-display--line-height: 56px;
+  --text-h1: 30px;
+  --text-h1--line-height: 36px;
+  --text-display: 40px;
+  --text-display--line-height: 46px;
 
   --radius-sm: 8px;
   --radius-md: 12px;
-  --radius-lg: 18px;
-  --radius-xl: 22px;
+  --radius-lg: 20px;
+  --radius-xl: 26px;
 
   --shadow-1: var(--shadow-1);
   --shadow-2: var(--shadow-2);
@@ -66,47 +65,14 @@
     @apply bg-bg font-sans text-body text-text antialiased;
     font-feature-settings: 'cv11', 'ss01';
     min-height: 100dvh;
-  }
-  /* The aurora: three soft colour fields drifting slowly behind everything. */
-  body::before {
-    content: '';
-    position: fixed;
-    inset: -25%;
-    z-index: -2;
-    pointer-events: none;
-    opacity: var(--aurora-opacity);
-    background:
-      radial-gradient(42% 34% at 30% 22%, var(--aurora-1), transparent 70%),
-      radial-gradient(36% 30% at 78% 26%, var(--aurora-2), transparent 70%),
-      radial-gradient(44% 36% at 62% 78%, var(--aurora-3), transparent 72%),
-      radial-gradient(30% 26% at 14% 74%, var(--aurora-2), transparent 70%),
-      radial-gradient(26% 22% at 50% 50%, var(--aurora-1), transparent 75%);
-    filter: blur(60px);
-    animation: aurora-drift 38s ease-in-out infinite alternate;
-  }
-  /* A faint starfield (dark theme only). */
-  body::after {
-    content: '';
-    position: fixed;
-    inset: 0;
-    z-index: -1;
-    pointer-events: none;
-    opacity: var(--stars-opacity);
-    background-image:
-      radial-gradient(1px 1px at 12% 22%, #fff 50%, transparent 51%),
-      radial-gradient(1px 1px at 68% 14%, #fff 50%, transparent 51%),
-      radial-gradient(1.5px 1.5px at 84% 62%, #fff 50%, transparent 51%),
-      radial-gradient(1px 1px at 32% 76%, #fff 50%, transparent 51%),
-      radial-gradient(1px 1px at 52% 44%, #fff 50%, transparent 51%),
-      radial-gradient(1.5px 1.5px at 22% 58%, #fff 50%, transparent 51%),
-      radial-gradient(1px 1px at 92% 32%, #fff 50%, transparent 51%);
-    background-size: 420px 420px;
-    animation: twinkle 7s ease-in-out infinite alternate;
+    background-image: var(--page-glow);
+    background-attachment: fixed;
   }
   h1,
   h2,
   h3 {
-    letter-spacing: -0.02em;
+    font-weight: 600;
+    letter-spacing: -0.025em;
   }
   ::selection {
     background: color-mix(in srgb, var(--color-primary) 35%, transparent);
@@ -116,75 +82,79 @@
     outline-offset: 2px;
     border-radius: 6px;
   }
-  @media (prefers-reduced-motion: reduce) {
-    body::before,
-    body::after {
-      animation: none;
-    }
-  }
-}
-
-@keyframes aurora-drift {
-  0% {
-    transform: translate3d(0, 0, 0) rotate(0deg) scale(1);
-  }
-  50% {
-    transform: translate3d(4%, -3%, 0) rotate(8deg) scale(1.08);
-  }
-  100% {
-    transform: translate3d(-4%, 3%, 0) rotate(-6deg) scale(1.02);
-  }
-}
-
-@keyframes twinkle {
-  from {
-    opacity: calc(var(--stars-opacity) * 0.6);
-  }
-  to {
-    opacity: var(--stars-opacity);
-  }
 }
 
 @layer components {
-  /* Frosted glass panel: translucent fill, blur, a bright top edge and a soft shadow. */
+  /* Card: near-black (white in light mode) with a hairline border and soft depth. */
   .panel {
     border-radius: var(--radius-lg);
     border: 1px solid var(--color-hairline);
-    background: var(--glass-fill);
-    backdrop-filter: var(--glass-blur);
-    -webkit-backdrop-filter: var(--glass-blur);
+    background: var(--color-surface);
     box-shadow: var(--shadow-1);
   }
-  /* Frosted layer for floating UI (dialogs, drawers, menus, bars). */
+  /* A card lit from below by a soft mauve glow (hero and feature cards). */
+  .panel-glow {
+    background: var(--glow-card), var(--color-surface);
+  }
+  /* A card with a faint glow in its top corner. */
+  .panel-corner {
+    background: var(--glow-corner), var(--color-surface);
+  }
+  /* Floating UI (dialogs, drawers, menus, bars). */
   .glass {
     background: var(--color-surface-raised);
-    backdrop-filter: blur(24px) saturate(160%);
-    -webkit-backdrop-filter: blur(24px) saturate(160%);
   }
-  /* Editorial kicker: small caps in moonlight gold. */
   .eyebrow {
-    @apply text-caption font-medium tracking-[0.18em] text-moon uppercase;
+    @apply text-caption font-medium text-muted;
   }
-  /* Fine moonlight hairline used to open editorial sections. */
-  .hairline-moon {
-    height: 1px;
-    background: linear-gradient(90deg, var(--color-moon), transparent 70%);
-    opacity: 0.6;
+  /* The person's name and similar highlights in soft pink. */
+  .text-highlight {
+    color: var(--color-highlight);
   }
-  /* Aurora gradient text for hero moments. */
-  .text-aurora {
-    background: var(--gradient-text);
-    -webkit-background-clip: text;
-    background-clip: text;
-    color: transparent;
-  }
-  /* Primary call to action: aurora gradient with a soft glow. */
-  .btn-aurora {
+  /* Primary call to action: mauve gradient pill with a soft glow. */
+  .btn-primary {
     background: var(--gradient-primary);
     color: var(--color-on-primary);
-    box-shadow: var(--glow-primary);
+    box-shadow:
+      inset 0 1px 0 rgb(255 255 255 / 0.22),
+      var(--glow-primary);
   }
-  .btn-aurora:hover:not(:disabled) {
-    filter: brightness(1.1) saturate(1.1);
+  .btn-primary:hover:not(:disabled) {
+    filter: brightness(1.08);
+  }
+  /* Round bordered icon button (bell, settings). */
+  .icon-btn {
+    display: grid;
+    place-items: center;
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: 9999px;
+    border: 1px solid var(--color-border);
+    background: var(--control-fill);
+    color: var(--color-text);
+    transition: background-color var(--motion-fast);
+  }
+  .icon-btn:hover {
+    background: var(--color-primary-subtle);
+  }
+  /* Selected item in the sidebar: a glowing mauve pill. */
+  .nav-active {
+    background: var(--nav-active);
+    box-shadow: var(--nav-active-glow);
+    color: var(--color-text);
+  }
+  .sidebar-card {
+    background: var(--color-sidebar);
+    border: 1px solid var(--color-hairline);
+    border-radius: var(--radius-lg);
+  }
+  /* On large screens the whole app sits inside one rounded frame. */
+  @media (min-width: 1024px) {
+    .app-frame {
+      border-radius: 28px;
+      border: 1px solid var(--color-hairline);
+      background: var(--frame-fill);
+      box-shadow: var(--shadow-2);
+    }
   }
 }

@@ -112,7 +112,7 @@ function TaskDetails({
             if (v && v !== task.title) save({ title: v })
             else setTitle(task.title)
           }}
-          className="field-sizing-content min-h-9 flex-1 resize-none rounded-[10px] bg-transparent px-1 font-display text-[28px] leading-8 outline-none focus-visible:bg-hairline"
+          className="field-sizing-content min-h-9 flex-1 resize-none rounded-[10px] bg-transparent px-1 text-h2 outline-none focus-visible:bg-hairline"
         />
         <RadixDialog.Close
           className="grid size-9 place-items-center rounded-full text-muted hover:bg-hairline hover:text-text"

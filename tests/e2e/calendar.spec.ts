@@ -91,13 +91,15 @@ test.describe('calendar and notifications (Phase 5)', () => {
     await a.getByLabel('Add a task to To do').fill('Design the logo')
     await a.getByRole('button', { name: 'Add to To do' }).click()
     await b.goto('/')
-    await expect(b.getByTestId('notification-bell').first()).toHaveAccessibleName('Notifications')
+    await expect(b.getByTestId('notification-bell').filter({ visible: true })).toHaveAccessibleName(
+      'Notifications',
+    )
     await a.getByTestId('column-todo').getByText('Design the logo').click()
     await a.getByLabel('Assignee').selectOption({ label: 'Ben' })
-    await expect(b.getByTestId('notification-bell').first()).toHaveAccessibleName(
+    await expect(b.getByTestId('notification-bell').filter({ visible: true })).toHaveAccessibleName(
       'Notifications, 1 unread',
     )
-    await b.getByTestId('notification-bell').first().click()
+    await b.getByTestId('notification-bell').filter({ visible: true }).click()
     await expect(b.getByTestId('notification-list')).toContainText(
       'Ana assigned you "Design the logo"',
     )

@@ -29,14 +29,14 @@ const WEEKDAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
 const tone: Record<Layer, string> = {
   shared: 'bg-primary/18 text-text border-primary/40',
   personal: 'bg-rose/15 text-text border-rose/40',
-  deadlines: 'bg-moon/14 text-text border-moon/45',
+  deadlines: 'bg-highlight/14 text-text border-highlight/45',
   tasks: 'bg-info/14 text-text border-info/40',
   projects: 'bg-accent/14 text-text border-accent/40',
 }
 const dot: Record<Layer, string> = {
   shared: 'bg-primary',
   personal: 'bg-rose',
-  deadlines: 'bg-moon',
+  deadlines: 'bg-highlight',
   tasks: 'bg-info',
   projects: 'bg-accent',
 }
@@ -159,11 +159,7 @@ export function CalendarPage() {
             <ChevronRight className="size-4" aria-hidden />
           </button>
         </div>
-        <div
-          role="tablist"
-          aria-label="View"
-          className="flex rounded-full border border-hairline bg-surface p-1 backdrop-blur-md"
-        >
+        <div role="tablist" aria-label="View" className="flex gap-1.5">
           {(['month', 'week', 'agenda'] as const).map((v) => (
             <button
               key={v}
@@ -171,7 +167,7 @@ export function CalendarPage() {
               type="button"
               aria-selected={view === v}
               onClick={() => update({ view: v === 'month' ? null : v })}
-              className={`rounded-full px-3.5 py-1 text-body-sm capitalize ${view === v ? 'bg-primary-subtle text-text' : 'text-muted hover:text-text'}`}
+              className={`rounded-full px-4 py-1.5 text-body-sm capitalize ${view === v ? 'nav-active' : 'border border-border text-muted hover:text-text'}`}
             >
               {v}
             </button>
@@ -228,7 +224,7 @@ export function CalendarPage() {
                     type="button"
                     onClick={() => setEditing({ id: null, day: d })}
                     aria-label={`Add an event on ${formatDateOnly(d)}`}
-                    className={`mb-1 grid size-7 place-items-center rounded-full text-caption ${d === today ? 'btn-aurora font-semibold' : 'text-muted hover:bg-hairline hover:text-text'}`}
+                    className={`mb-1 grid size-7 place-items-center rounded-full text-caption ${d === today ? 'btn-primary font-semibold' : 'text-muted hover:bg-hairline hover:text-text'}`}
                   >
                     {Number(d.slice(8))}
                   </button>
