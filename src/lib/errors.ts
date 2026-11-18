@@ -1,6 +1,12 @@
 /** Maps backend error codes to plain-language messages (TRD §20). */
 const CODE_MESSAGES: Record<string, string> = {
-  INVITE_INVALID: 'This invitation is no longer valid. Ask your partner for a new link.',
+  INVITE_INVALID:
+    'This invitation is no longer valid. Ask the person who invited you for a new link.',
+  ROOM_FULL: 'This room is full. Ask a project admin to make space.',
+  EMAIL_UNCONFIRMED: 'Confirm your email address first, then open the link again.',
+  MEMBERS_ONLY_ADMIN: 'Only workspace members can invite project admins.',
+  ROOM_NOT_SHAREABLE: 'Private or archived projects cannot have guests.',
+  NOT_FOUND: 'That no longer exists.',
   WORKSPACE_FULL: 'This workspace already has two members.',
   ALREADY_IN_WORKSPACE:
     'You already belong to a workspace. One account can be in only one workspace.',

@@ -19,13 +19,12 @@ import {
   verticalListSortingStrategy,
 } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
-import { CalendarClock, Plus } from 'lucide-react'
+import { CalendarClock, Eye, Plus } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { useSearchParams } from 'react-router'
 import { Badge } from '@/components/ui/Badge'
 import { inputClass } from '@/components/ui/styles'
 import { useToast } from '@/components/ui/Toast'
-import type { Member } from '@/features/workspace'
 import { formatDateOnly } from '@/lib/dates'
 import {
   PRIORITY_LABELS,
@@ -36,19 +35,31 @@ import {
 } from '../constants'
 import { useCreateTask, useUpdateTask } from '../hooks'
 import { dueInDays, groupByStatus, positionAt, type Task } from '../model'
+import type { RoomPermissions, RoomPerson } from '../room'
 
 interface BoardProps {
   projectId: string
   tasks: Task[]
-  members: Member[]
+  people: RoomPerson[]
   viewerTz: string
+  perms: RoomPermissions
+  /** Members see an eye on items guests can see while the room has guests (FR-GUEST-14). */
+  showGuestMarks: boolean
 }
 
 /**
  * Five-column board (FR-PRJ-03). Drag with a pointer, touch (long press) or the keyboard
  * (Space to lift, arrows to move, Space to drop); the task drawer also has a status menu.
  */
-export function TaskBoard({ projectId, tasks, members, viewerTz }: BoardProps) {
+export function TaskBoard({
+  projectId,
+  tasks,
+  people,
+  viewerTz,
+  perms,
+  showGuestMarks,
+}: BoardProps) {
+  const marks = perms.member && showGuestMarks
   const update = useUpdateTask(projectId)
   const toast = useToast()
   const groups = useMemo(() => groupByStatus(tasks), [tasks])
@@ -122,15 +133,18 @@ export function TaskBoard({ projectId, tasks, members, viewerTz }: BoardProps) {
             status={status}
             tasks={groups[status]}
             projectId={projectId}
-            members={members}
+            people={people}
             viewerTz={viewerTz}
             subtaskCounts={subtaskCounts}
+            canEdit={perms.editTasks}
+            canCreate={perms.createTasks}
+            marks={marks}
           />
         ))}
       </div>
       <DragOverlay>
         {active ? (
-          <TaskCardView task={active} members={members} viewerTz={viewerTz} lifted />
+          <TaskCardView task={active} people={people} viewerTz={viewerTz} marks={marks} lifted />
         ) : null}
       </DragOverlay>
     </DndContext>
@@ -173,16 +187,22 @@ function Column({
   status,
   tasks,
   projectId,
-  members,
+  people,
   viewerTz,
   subtaskCounts,
+  canEdit,
+  canCreate,
+  marks,
 }: {
   status: TaskStatus
   tasks: Task[]
   projectId: string
-  members: Member[]
+  people: RoomPerson[]
   viewerTz: string
   subtaskCounts: Map<string, { done: number; total: number }>
+  canEdit: boolean
+  canCreate: boolean
+  marks: boolean
 }) {
   const { setNodeRef, isOver } = useDroppable({ id: `column:${status}` })
   const create = useCreateTask(projectId)
@@ -193,11 +213,14 @@ function Column({
     e.preventDefault()
     const value = title.trim()
     if (!value) return
+    setTitle('') // clear now so the next title can be typed while this one saves
     create.mutate(
       { title: value, status, position: positionAt(tasks, tasks.length) },
       {
-        onSuccess: () => setTitle(''),
-        onError: () => toast.show("Couldn't add the task.", 'error'),
+        onError: () => {
+          setTitle((current) => current || value)
+          toast.show("Couldn't add the task.", 'error')
+        },
       },
     )
   }
@@ -222,51 +245,59 @@ function Column({
             <SortableTask
               key={t.id}
               task={t}
-              members={members}
+              people={people}
               viewerTz={viewerTz}
               subtasks={subtaskCounts.get(t.id)}
+              canEdit={canEdit}
+              marks={marks}
             />
           ))}
         </ul>
       </SortableContext>
-      <form onSubmit={add} className="mt-2 flex items-center gap-1.5">
-        <label className="sr-only" htmlFor={`add-${status}`}>
-          Add a task to {STATUS_LABELS[status]}
-        </label>
-        <input
-          id={`add-${status}`}
-          value={title}
-          maxLength={300}
-          onChange={(e) => setTitle(e.target.value)}
-          placeholder="Add task"
-          className={`${inputClass} py-2`}
-        />
-        <button
-          type="submit"
-          aria-label={`Add to ${STATUS_LABELS[status]}`}
-          disabled={create.isPending}
-          className="grid size-9 shrink-0 place-items-center rounded-full text-muted hover:bg-hairline hover:text-text"
-        >
-          <Plus className="size-4" aria-hidden />
-        </button>
-      </form>
+      {canCreate ? (
+        <form onSubmit={add} className="mt-2 flex items-center gap-1.5">
+          <label className="sr-only" htmlFor={`add-${status}`}>
+            Add a task to {STATUS_LABELS[status]}
+          </label>
+          <input
+            id={`add-${status}`}
+            value={title}
+            maxLength={300}
+            onChange={(e) => setTitle(e.target.value)}
+            placeholder="Add task"
+            className={`${inputClass} py-2`}
+          />
+          <button
+            type="submit"
+            aria-label={`Add to ${STATUS_LABELS[status]}`}
+            className="grid size-9 shrink-0 place-items-center rounded-full text-muted hover:bg-hairline hover:text-text"
+          >
+            <Plus className="size-4" aria-hidden />
+          </button>
+        </form>
+      ) : null}
     </section>
   )
 }
 
 function SortableTask({
   task,
-  members,
+  people,
   viewerTz,
   subtasks,
+  canEdit,
+  marks,
 }: {
   task: Task
-  members: Member[]
+  people: RoomPerson[]
   viewerTz: string
   subtasks: { done: number; total: number } | undefined
+  canEdit: boolean
+  marks: boolean
 }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: task.id,
+    disabled: !canEdit,
   })
   const [params, setParams] = useSearchParams()
   const open = () => {
@@ -289,25 +320,33 @@ function SortableTask({
       onClick={open}
       data-testid="task-card"
     >
-      <TaskCardView task={task} members={members} viewerTz={viewerTz} subtasks={subtasks} />
+      <TaskCardView
+        task={task}
+        people={people}
+        viewerTz={viewerTz}
+        subtasks={subtasks}
+        marks={marks}
+      />
     </li>
   )
 }
 
 export function TaskCardView({
   task,
-  members,
+  people,
   viewerTz,
   subtasks,
+  marks = false,
   lifted = false,
 }: {
   task: Task
-  members: Member[]
+  people: RoomPerson[]
   viewerTz: string
   subtasks?: { done: number; total: number } | undefined
+  marks?: boolean
   lifted?: boolean
 }) {
-  const assignee = members.find((m) => m.userId === task.assignee_id)
+  const assignee = people.find((m) => m.userId === task.assignee_id)
   const days = task.due_date ? dueInDays(task.due_date, viewerTz) : null
   return (
     <div
@@ -335,6 +374,9 @@ export function TaskCardView({
             <CalendarClock className="size-3" aria-hidden />
             {formatDateOnly(task.due_date)}
           </Badge>
+        ) : null}
+        {marks && task.guest_visible ? (
+          <Eye className="size-3.5 text-info" aria-label="Visible to guests" />
         ) : null}
         {subtasks ? (
           <span className="text-caption text-muted">

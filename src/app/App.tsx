@@ -46,6 +46,10 @@ const projects = () => import('@/features/projects')
 const ProjectListPage = lazy(() => projects().then((m) => ({ default: m.ProjectListPage })))
 const ProjectRoomPage = lazy(() => projects().then((m) => ({ default: m.ProjectRoomPage })))
 const MyTasksPage = lazy(() => projects().then((m) => ({ default: m.MyTasksPage })))
+const JoinRoomPage = lazy(() => projects().then((m) => ({ default: m.JoinRoomPage })))
+const GuestShell = lazy(() => projects().then((m) => ({ default: m.GuestShell })))
+const GuestHomePage = lazy(() => projects().then((m) => ({ default: m.GuestHomePage })))
+const GuestRoomPage = lazy(() => projects().then((m) => ({ default: m.GuestRoomPage })))
 
 const page = (node: ReactNode) => <Suspense fallback={<PageSpinner />}>{node}</Suspense>
 
@@ -61,9 +65,16 @@ export function App() {
         <Route path="callback" element={<AuthCallbackPage />} />
       </Route>
       <Route path="invite/:token" element={<AcceptInvitePage />} />
+      <Route path="join" element={page(<JoinRoomPage />)} />
 
       <Route element={<RequireAuth />}>
         <Route path="onboarding" element={<OnboardingPage />} />
+        {/* Project guests: their rooms only, in a minimal shell (FR-GUEST-11). */}
+        <Route path="guest" element={page(<GuestShell />)}>
+          <Route index element={page(<GuestHomePage />)} />
+          <Route path="rooms/:id" element={page(<GuestRoomPage />)} />
+          <Route path="rooms/:id/:tab" element={page(<GuestRoomPage />)} />
+        </Route>
         <Route element={<RequireWorkspace />}>
           <Route element={<AppShell />}>
             <Route index element={<HomePage />} />

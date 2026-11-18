@@ -18,9 +18,10 @@ import {
   useToggleItem,
 } from '../hooks'
 import { checklistProgress, positionAt } from '../model'
+import type { RoomPermissions } from '../room'
 
 /** Submission checklists from templates (FR-PRJ-08/09, FR-AUTO-08). */
-export function ChecklistTab({ projectId }: { projectId: string }) {
+export function ChecklistTab({ projectId, perms }: { projectId: string; perms: RoomPermissions }) {
   const checklists = useChecklists(projectId)
   const [choosing, setChoosing] = useState(false)
 
@@ -39,24 +40,31 @@ export function ChecklistTab({ projectId }: { projectId: string }) {
       {checklists.data.length === 0 ? (
         <EmptyState
           title="No checklist yet"
-          action={<Button onClick={() => setChoosing(true)}>Start from a template</Button>}
+          action={
+            perms.manageChecklists ? (
+              <Button onClick={() => setChoosing(true)}>Start from a template</Button>
+            ) : undefined
+          }
         >
-          Never miss a submission requirement: start from a ready-made checklist and tick items off
-          together.
+          {perms.manageChecklists
+            ? 'Never miss a submission requirement: start from a ready-made checklist and tick items off together.'
+            : 'Checklists the team shares with guests appear here.'}
         </EmptyState>
       ) : (
         <>
-          <div className="flex justify-end">
-            <Button
-              variant="secondary"
-              icon={<Plus className="size-4" aria-hidden />}
-              onClick={() => setChoosing(true)}
-            >
-              Add checklist
-            </Button>
-          </div>
+          {perms.manageChecklists ? (
+            <div className="flex justify-end">
+              <Button
+                variant="secondary"
+                icon={<Plus className="size-4" aria-hidden />}
+                onClick={() => setChoosing(true)}
+              >
+                Add checklist
+              </Button>
+            </div>
+          ) : null}
           {checklists.data.map((c) => (
-            <ChecklistCard key={c.id} projectId={projectId} checklist={c} />
+            <ChecklistCard key={c.id} projectId={projectId} checklist={c} perms={perms} />
           ))}
         </>
       )}
@@ -68,9 +76,11 @@ export function ChecklistTab({ projectId }: { projectId: string }) {
 function ChecklistCard({
   projectId,
   checklist,
+  perms,
 }: {
   projectId: string
   checklist: ChecklistWithItems
+  perms: RoomPermissions
 }) {
   const toggle = useToggleItem(projectId)
   const addItem = useAddChecklistItem(projectId)
@@ -86,19 +96,21 @@ function ChecklistCard({
         <span className="text-caption text-muted" data-testid="checklist-progress">
           {progress.done} of {progress.total} done
         </span>
-        <Button
-          variant="ghost"
-          size="sm"
-          loading={saveTemplate.isPending}
-          onClick={() =>
-            saveTemplate.mutate(
-              { checklistId: checklist.id, title: `${checklist.title} (copy)` },
-              { onSuccess: () => toast.show('Saved as a template', 'success') },
-            )
-          }
-        >
-          Save as template
-        </Button>
+        {perms.manageChecklists ? (
+          <Button
+            variant="ghost"
+            size="sm"
+            loading={saveTemplate.isPending}
+            onClick={() =>
+              saveTemplate.mutate(
+                { checklistId: checklist.id, title: `${checklist.title} (copy)` },
+                { onSuccess: () => toast.show('Saved as a template', 'success') },
+              )
+            }
+          >
+            Save as template
+          </Button>
+        ) : null}
       </div>
       <div
         className="mt-3 h-1.5 overflow-hidden rounded-full bg-hairline"
@@ -121,6 +133,7 @@ function ChecklistCard({
                 type="checkbox"
                 className="mt-0.5 size-4 accent-[var(--color-primary)]"
                 checked={i.is_done}
+                disabled={!perms.editTasks}
                 onChange={(e) => toggle.mutate({ id: i.id, done: e.target.checked })}
               />
               <span className={i.is_done ? 'text-muted line-through' : ''}>{i.label}</span>
@@ -128,41 +141,43 @@ function ChecklistCard({
           </li>
         ))}
       </ul>
-      <form
-        className="mt-3 flex gap-1.5"
-        onSubmit={(e) => {
-          e.preventDefault()
-          const v = label.trim()
-          if (!v) return
-          addItem.mutate(
-            {
-              checklistId: checklist.id,
-              label: v,
-              position: positionAt(checklist.items, checklist.items.length),
-            },
-            { onSuccess: () => setLabel('') },
-          )
-        }}
-      >
-        <input
-          aria-label={`Add an item to ${checklist.title}`}
-          placeholder="Add an item"
-          maxLength={300}
-          value={label}
-          onChange={(e) => setLabel(e.target.value)}
-          className={`${inputClass} py-2`}
-        />
-        <Button
-          type="submit"
-          variant="secondary"
-          size="sm"
-          className="h-auto"
-          aria-label="Add item"
-          loading={addItem.isPending}
+      {perms.editTasks ? (
+        <form
+          className="mt-3 flex gap-1.5"
+          onSubmit={(e) => {
+            e.preventDefault()
+            const v = label.trim()
+            if (!v) return
+            addItem.mutate(
+              {
+                checklistId: checklist.id,
+                label: v,
+                position: positionAt(checklist.items, checklist.items.length),
+              },
+              { onSuccess: () => setLabel('') },
+            )
+          }}
         >
-          <Plus className="size-4" aria-hidden />
-        </Button>
-      </form>
+          <input
+            aria-label={`Add an item to ${checklist.title}`}
+            placeholder="Add an item"
+            maxLength={300}
+            value={label}
+            onChange={(e) => setLabel(e.target.value)}
+            className={`${inputClass} py-2`}
+          />
+          <Button
+            type="submit"
+            variant="secondary"
+            size="sm"
+            className="h-auto"
+            aria-label="Add item"
+            loading={addItem.isPending}
+          >
+            <Plus className="size-4" aria-hidden />
+          </Button>
+        </form>
+      ) : null}
     </Card>
   )
 }

@@ -103,14 +103,14 @@ isOneToOne: false
                   ]
                 },"checklists": {
                   Row: {
-                    "created_at": string,"created_by": string | null,"deleted_at": string | null,"id": string,"project_id": string | null,"template_id": string | null,"title": string,"trip_id": string | null,"workspace_id": string
+                    "created_at": string,"created_by": string | null,"deleted_at": string | null,"guest_visible": boolean,"id": string,"project_id": string | null,"template_id": string | null,"title": string,"trip_id": string | null,"workspace_id": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "created_at"?: string,"created_by"?: string | null,"deleted_at"?: string | null,"id"?: string,"project_id"?: string | null,"template_id"?: string | null,"title": string,"trip_id"?: string | null,"workspace_id": string
+                    "created_at"?: string,"created_by"?: string | null,"deleted_at"?: string | null,"guest_visible"?: boolean,"id"?: string,"project_id"?: string | null,"template_id"?: string | null,"title": string,"trip_id"?: string | null,"workspace_id": string
                   }
                   Update: {
-                    "created_at"?: string,"created_by"?: string | null,"deleted_at"?: string | null,"id"?: string,"project_id"?: string | null,"template_id"?: string | null,"title"?: string,"trip_id"?: string | null,"workspace_id"?: string
+                    "created_at"?: string,"created_by"?: string | null,"deleted_at"?: string | null,"guest_visible"?: boolean,"id"?: string,"project_id"?: string | null,"template_id"?: string | null,"title"?: string,"trip_id"?: string | null,"workspace_id"?: string
                   }
                   Relationships: [
                     {
@@ -213,14 +213,14 @@ isOneToOne: false
                   ]
                 },"files": {
                   Row: {
-                    "bucket": string,"created_at": string,"deleted_at": string | null,"deleted_by": string | null,"file_name": string,"id": string,"mime_type": string,"owner_id": string | null,"project_id": string | null,"sha256": string | null,"size_bytes": number,"storage_path": string,"task_id": string | null,"upload_state": string,"visibility": Database["public"]['Enums']["visibility"],"workspace_id": string
+                    "bucket": string,"created_at": string,"deleted_at": string | null,"deleted_by": string | null,"file_name": string,"guest_visible": boolean,"id": string,"mime_type": string,"owner_id": string | null,"project_id": string | null,"sha256": string | null,"size_bytes": number,"storage_path": string,"task_id": string | null,"upload_state": string,"visibility": Database["public"]['Enums']["visibility"],"workspace_id": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "bucket"?: string,"created_at"?: string,"deleted_at"?: string | null,"deleted_by"?: string | null,"file_name": string,"id"?: string,"mime_type": string,"owner_id"?: string | null,"project_id"?: string | null,"sha256"?: string | null,"size_bytes": number,"storage_path": string,"task_id"?: string | null,"upload_state"?: string,"visibility"?: Database["public"]['Enums']["visibility"],"workspace_id": string
+                    "bucket"?: string,"created_at"?: string,"deleted_at"?: string | null,"deleted_by"?: string | null,"file_name": string,"guest_visible"?: boolean,"id"?: string,"mime_type": string,"owner_id"?: string | null,"project_id"?: string | null,"sha256"?: string | null,"size_bytes": number,"storage_path": string,"task_id"?: string | null,"upload_state"?: string,"visibility"?: Database["public"]['Enums']["visibility"],"workspace_id": string
                   }
                   Update: {
-                    "bucket"?: string,"created_at"?: string,"deleted_at"?: string | null,"deleted_by"?: string | null,"file_name"?: string,"id"?: string,"mime_type"?: string,"owner_id"?: string | null,"project_id"?: string | null,"sha256"?: string | null,"size_bytes"?: number,"storage_path"?: string,"task_id"?: string | null,"upload_state"?: string,"visibility"?: Database["public"]['Enums']["visibility"],"workspace_id"?: string
+                    "bucket"?: string,"created_at"?: string,"deleted_at"?: string | null,"deleted_by"?: string | null,"file_name"?: string,"guest_visible"?: boolean,"id"?: string,"mime_type"?: string,"owner_id"?: string | null,"project_id"?: string | null,"sha256"?: string | null,"size_bytes"?: number,"storage_path"?: string,"task_id"?: string | null,"upload_state"?: string,"visibility"?: Database["public"]['Enums']["visibility"],"workspace_id"?: string
                   }
                   Relationships: [
                     {
@@ -411,6 +411,102 @@ isOneToOne: false
                   Relationships: [
                     
                   ]
+                },"project_guest_invitations": {
+                  Row: {
+                    "created_at": string,"created_by": string | null,"expires_at": string,"id": string,"label": string | null,"last_used_at": string | null,"max_uses": number | null,"project_id": string,"revoked_at": string | null,"revoked_by": string | null,"role": Database["public"]['Enums']["guest_role"],"token_hash": string,"use_count": number,"workspace_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "created_at"?: string,"created_by"?: string | null,"expires_at": string,"id"?: string,"label"?: string | null,"last_used_at"?: string | null,"max_uses"?: number | null,"project_id": string,"revoked_at"?: string | null,"revoked_by"?: string | null,"role"?: Database["public"]['Enums']["guest_role"],"token_hash": string,"use_count"?: number,"workspace_id": string
+                  }
+                  Update: {
+                    "created_at"?: string,"created_by"?: string | null,"expires_at"?: string,"id"?: string,"label"?: string | null,"last_used_at"?: string | null,"max_uses"?: number | null,"project_id"?: string,"revoked_at"?: string | null,"revoked_by"?: string | null,"role"?: Database["public"]['Enums']["guest_role"],"token_hash"?: string,"use_count"?: number,"workspace_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "project_guest_invitations_created_by_fkey"
+      columns: ["created_by"]
+isOneToOne: false
+      referencedRelation: "profiles"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "project_guest_invitations_project_id_workspace_id_fkey"
+      columns: ["project_id","workspace_id"]
+isOneToOne: false
+      referencedRelation: "projects"
+      referencedColumns: ["id","workspace_id"]
+    },{
+      foreignKeyName: "project_guest_invitations_revoked_by_fkey"
+      columns: ["revoked_by"]
+isOneToOne: false
+      referencedRelation: "profiles"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"project_guest_memberships": {
+                  Row: {
+                    "id": string,"invitation_id": string | null,"joined_at": string,"project_id": string,"removal_reason": string | null,"removed_at": string | null,"removed_by": string | null,"role": Database["public"]['Enums']["guest_role"],"role_changed_at": string | null,"role_changed_by": string | null,"user_id": string,"workspace_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "id"?: string,"invitation_id"?: string | null,"joined_at"?: string,"project_id": string,"removal_reason"?: string | null,"removed_at"?: string | null,"removed_by"?: string | null,"role": Database["public"]['Enums']["guest_role"],"role_changed_at"?: string | null,"role_changed_by"?: string | null,"user_id": string,"workspace_id": string
+                  }
+                  Update: {
+                    "id"?: string,"invitation_id"?: string | null,"joined_at"?: string,"project_id"?: string,"removal_reason"?: string | null,"removed_at"?: string | null,"removed_by"?: string | null,"role"?: Database["public"]['Enums']["guest_role"],"role_changed_at"?: string | null,"role_changed_by"?: string | null,"user_id"?: string,"workspace_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "project_guest_memberships_invitation_id_fkey"
+      columns: ["invitation_id"]
+isOneToOne: false
+      referencedRelation: "project_guest_invitations"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "project_guest_memberships_project_id_workspace_id_fkey"
+      columns: ["project_id","workspace_id"]
+isOneToOne: false
+      referencedRelation: "projects"
+      referencedColumns: ["id","workspace_id"]
+    },{
+      foreignKeyName: "project_guest_memberships_removed_by_fkey"
+      columns: ["removed_by"]
+isOneToOne: false
+      referencedRelation: "profiles"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "project_guest_memberships_role_changed_by_fkey"
+      columns: ["role_changed_by"]
+isOneToOne: false
+      referencedRelation: "profiles"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "project_guest_memberships_user_id_fkey"
+      columns: ["user_id"]
+isOneToOne: false
+      referencedRelation: "profiles"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"project_guest_settings": {
+                  Row: {
+                    "collaborators_can_create_tasks": boolean,"collaborators_can_schedule": boolean,"collaborators_can_upload_files": boolean,"guests_see_activity": boolean,"max_guests": number,"project_id": string,"updated_at": string,"viewers_can_comment": boolean,"workspace_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "collaborators_can_create_tasks"?: boolean,"collaborators_can_schedule"?: boolean,"collaborators_can_upload_files"?: boolean,"guests_see_activity"?: boolean,"max_guests"?: number,"project_id": string,"updated_at"?: string,"viewers_can_comment"?: boolean,"workspace_id": string
+                  }
+                  Update: {
+                    "collaborators_can_create_tasks"?: boolean,"collaborators_can_schedule"?: boolean,"collaborators_can_upload_files"?: boolean,"guests_see_activity"?: boolean,"max_guests"?: number,"project_id"?: string,"updated_at"?: string,"viewers_can_comment"?: boolean,"workspace_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "project_guest_settings_project_id_workspace_id_fkey"
+      columns: ["project_id","workspace_id"]
+isOneToOne: false
+      referencedRelation: "projects"
+      referencedColumns: ["id","workspace_id"]
+    }
+                  ]
                 },"project_members": {
                   Row: {
                     "project_id": string,"role_label": string | null,"user_id": string,"workspace_id": string
@@ -517,14 +613,14 @@ isOneToOne: false
                   ]
                 },"tasks": {
                   Row: {
-                    "assignee_id": string | null,"client_id": string | null,"completed_at": string | null,"created_at": string,"deleted_at": string | null,"deleted_by": string | null,"description": string | null,"due_at": string | null,"due_date": string | null,"due_timezone": string | null,"id": string,"owner_id": string | null,"parent_task_id": string | null,"position": number,"priority": Database["public"]['Enums']["task_priority"],"project_id": string | null,"search": unknown,"status": Database["public"]['Enums']["task_status"],"tags": (string)[],"title": string,"updated_at": string,"visibility": Database["public"]['Enums']["visibility"],"workspace_id": string
+                    "assignee_id": string | null,"client_id": string | null,"completed_at": string | null,"created_at": string,"deleted_at": string | null,"deleted_by": string | null,"description": string | null,"due_at": string | null,"due_date": string | null,"due_timezone": string | null,"guest_visible": boolean,"id": string,"owner_id": string | null,"parent_task_id": string | null,"position": number,"priority": Database["public"]['Enums']["task_priority"],"project_id": string | null,"search": unknown,"status": Database["public"]['Enums']["task_status"],"tags": (string)[],"title": string,"updated_at": string,"visibility": Database["public"]['Enums']["visibility"],"workspace_id": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "assignee_id"?: string | null,"client_id"?: string | null,"completed_at"?: string | null,"created_at"?: string,"deleted_at"?: string | null,"deleted_by"?: string | null,"description"?: string | null,"due_at"?: string | null,"due_date"?: string | null,"due_timezone"?: string | null,"id"?: string,"owner_id"?: string | null,"parent_task_id"?: string | null,"position"?: number,"priority"?: Database["public"]['Enums']["task_priority"],"project_id"?: string | null,"search"?: never,"status"?: Database["public"]['Enums']["task_status"],"tags"?: (string)[],"title": string,"updated_at"?: string,"visibility"?: Database["public"]['Enums']["visibility"],"workspace_id": string
+                    "assignee_id"?: string | null,"client_id"?: string | null,"completed_at"?: string | null,"created_at"?: string,"deleted_at"?: string | null,"deleted_by"?: string | null,"description"?: string | null,"due_at"?: string | null,"due_date"?: string | null,"due_timezone"?: string | null,"guest_visible"?: boolean,"id"?: string,"owner_id"?: string | null,"parent_task_id"?: string | null,"position"?: number,"priority"?: Database["public"]['Enums']["task_priority"],"project_id"?: string | null,"search"?: never,"status"?: Database["public"]['Enums']["task_status"],"tags"?: (string)[],"title": string,"updated_at"?: string,"visibility"?: Database["public"]['Enums']["visibility"],"workspace_id": string
                   }
                   Update: {
-                    "assignee_id"?: string | null,"client_id"?: string | null,"completed_at"?: string | null,"created_at"?: string,"deleted_at"?: string | null,"deleted_by"?: string | null,"description"?: string | null,"due_at"?: string | null,"due_date"?: string | null,"due_timezone"?: string | null,"id"?: string,"owner_id"?: string | null,"parent_task_id"?: string | null,"position"?: number,"priority"?: Database["public"]['Enums']["task_priority"],"project_id"?: string | null,"search"?: never,"status"?: Database["public"]['Enums']["task_status"],"tags"?: (string)[],"title"?: string,"updated_at"?: string,"visibility"?: Database["public"]['Enums']["visibility"],"workspace_id"?: string
+                    "assignee_id"?: string | null,"client_id"?: string | null,"completed_at"?: string | null,"created_at"?: string,"deleted_at"?: string | null,"deleted_by"?: string | null,"description"?: string | null,"due_at"?: string | null,"due_date"?: string | null,"due_timezone"?: string | null,"guest_visible"?: boolean,"id"?: string,"owner_id"?: string | null,"parent_task_id"?: string | null,"position"?: number,"priority"?: Database["public"]['Enums']["task_priority"],"project_id"?: string | null,"search"?: never,"status"?: Database["public"]['Enums']["task_status"],"tags"?: (string)[],"title"?: string,"updated_at"?: string,"visibility"?: Database["public"]['Enums']["visibility"],"workspace_id"?: string
                   }
                   Relationships: [
                     {
@@ -698,6 +794,9 @@ isOneToOne: false
             "accept_extraction":
 { Args: { "p_accepted": Json,"p_dates": Json,"p_fields": Json,"p_run": string }; Returns: string
                            },
+"accept_project_invitation":
+{ Args: { "p_token": string }; Returns: Json
+                           },
 "accept_workspace_invitation":
 { Args: { "p_token": string }; Returns: Json
                            },
@@ -713,14 +812,31 @@ isOneToOne: false
 "create_checklist_from_template":
 { Args: { "p_project": string,"p_template": string }; Returns: string
                            },
+"create_project_invitation":
+{ Args: { "p_expires_hours": number,"p_label": string,"p_max_uses": number,"p_project": string,"p_role": Database["public"]['Enums']["guest_role"] }; Returns: Json
+                           },
 "create_workspace":
 { Args: { "p_name": string }; Returns: string
                            },
 "create_workspace_invitation":
 { Args: Record<PropertyKey, never>; Returns: Json
                            },
+"leave_project":
+{ Args: { "p_project": string }; Returns: Json
+                           },
+"project_directory":
+{ Args: { "p_project": string }; Returns: {
+              "avatar_path": string,"display_name": string,"kind": string,"role": string,"user_id": string
+            }[]
+                           },
+"remove_project_guest":
+{ Args: { "p_membership": string }; Returns: Json
+                           },
 "report_client_error":
 { Args: { "p_app_version": string,"p_error_id": string,"p_message": string,"p_route": string }; Returns: undefined
+                           },
+"revoke_project_invitation":
+{ Args: { "p_invitation": string }; Returns: Json
                            },
 "revoke_workspace_invitation":
 { Args: Record<PropertyKey, never>; Returns: Json
@@ -730,6 +846,9 @@ isOneToOne: false
                            },
 "save_opportunity":
 { Args: { "p_dates"?: Json,"p_fields": Json,"p_id": string,"p_source_url"?: string }; Returns: string
+                           },
+"set_guest_role":
+{ Args: { "p_membership": string,"p_role": Database["public"]['Enums']["guest_role"] }; Returns: Json
                            },
 "start_extraction_run":
 { Args: { "p_url": string }; Returns: Json

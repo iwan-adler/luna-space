@@ -21,7 +21,7 @@ export type ProjectPatch = Tables['projects']['Update']
 const PROJECT_COLUMNS =
   'id, workspace_id, owner_id, visibility, opportunity_id, name, category, summary, stage, start_date, end_date, repo_urls, links, created_at, updated_at, deleted_at, deleted_by'
 const TASK_COLUMNS =
-  'id, workspace_id, owner_id, visibility, project_id, parent_task_id, title, description, status, priority, assignee_id, due_date, due_at, due_timezone, position, tags, client_id, completed_at, created_at, updated_at, deleted_at, deleted_by'
+  'id, workspace_id, owner_id, visibility, project_id, parent_task_id, title, description, status, priority, assignee_id, due_date, due_at, due_timezone, position, tags, client_id, completed_at, guest_visible, created_at, updated_at, deleted_at, deleted_by'
 
 const db = () => requireSupabase()
 
@@ -237,6 +237,12 @@ export async function signedFileUrl(path: string): Promise<string> {
   })
   if (error) throw new AppError('Could not open the file.')
   return data.signedUrl
+}
+
+/** Members decide which files guests can see (FR-GUEST-08). */
+export async function setFileGuestVisible(id: string, visible: boolean): Promise<void> {
+  const { error } = await db().from('files').update({ guest_visible: visible }).eq('id', id)
+  if (error) throw toAppError(error)
 }
 
 export async function deleteFile(id: string, userId: string): Promise<void> {

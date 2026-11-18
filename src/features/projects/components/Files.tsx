@@ -1,4 +1,4 @@
-import { Download, FileText, Trash2, Upload } from 'lucide-react'
+import { Download, Eye, EyeOff, FileText, Trash2, Upload } from 'lucide-react'
 import { useRef } from 'react'
 import { Button } from '@/components/ui/Button'
 import { useToast } from '@/components/ui/Toast'
@@ -6,8 +6,9 @@ import { messageForCode, toAppError } from '@/lib/errors'
 import { formatDate } from '@/lib/format'
 import { signedFileUrl } from '../api'
 import { ACCEPTED_MIME_TYPES, MAX_FILE_BYTES } from '../constants'
-import { useDeleteFile, useUploadFile } from '../hooks'
+import { useDeleteFile, useSetFileGuestVisible, useUploadFile } from '../hooks'
 import { formatBytes, type FileRow } from '../model'
+import type { RoomPermissions } from '../room'
 
 /** Picks a file, checks type and size on the client (the database checks again). */
 export function UploadButton({
@@ -64,14 +65,17 @@ export function FileList({
   projectId,
   files,
   viewerTz,
+  perms,
   compact = false,
 }: {
   projectId: string
   files: FileRow[]
   viewerTz: string
+  perms: RoomPermissions
   compact?: boolean
 }) {
   const remove = useDeleteFile(projectId)
+  const share = useSetFileGuestVisible(projectId)
   const toast = useToast()
   if (files.length === 0)
     return (
@@ -107,18 +111,47 @@ export function FileList({
           >
             <Download className="size-4" aria-hidden />
           </button>
-          <button
-            type="button"
-            onClick={() =>
-              remove.mutate(f.id, {
-                onSuccess: () => toast.show('File moved to the recycle bin', 'success'),
-              })
-            }
-            aria-label={`Delete ${f.file_name}`}
-            className="grid size-8 place-items-center rounded-full text-muted hover:bg-hairline hover:text-danger"
-          >
-            <Trash2 className="size-4" aria-hidden />
-          </button>
+          {perms.member && f.visibility === 'shared' ? (
+            <button
+              type="button"
+              aria-pressed={f.guest_visible}
+              onClick={() =>
+                share.mutate(
+                  { id: f.id, visible: !f.guest_visible },
+                  {
+                    onSuccess: () =>
+                      toast.show(
+                        f.guest_visible ? 'Hidden from guests' : 'Guests can now see this file',
+                        'success',
+                      ),
+                  },
+                )
+              }
+              aria-label={`Visible to guests: ${f.file_name}`}
+              title={f.guest_visible ? 'Visible to guests' : 'Hidden from guests'}
+              className={`grid size-8 place-items-center rounded-full hover:bg-hairline ${f.guest_visible ? 'text-info' : 'text-muted'}`}
+            >
+              {f.guest_visible ? (
+                <Eye className="size-4" aria-hidden />
+              ) : (
+                <EyeOff className="size-4" aria-hidden />
+              )}
+            </button>
+          ) : null}
+          {perms.editTasks ? (
+            <button
+              type="button"
+              onClick={() =>
+                remove.mutate(f.id, {
+                  onSuccess: () => toast.show('File moved to the recycle bin', 'success'),
+                })
+              }
+              aria-label={`Delete ${f.file_name}`}
+              className="grid size-8 place-items-center rounded-full text-muted hover:bg-hairline hover:text-danger"
+            >
+              <Trash2 className="size-4" aria-hidden />
+            </button>
+          ) : null}
         </li>
       ))}
     </ul>

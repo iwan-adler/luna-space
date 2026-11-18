@@ -48,6 +48,17 @@ export async function fetchMembership(userId: string): Promise<Membership | null
   return { workspaceId: data.workspace.id, workspaceName: data.workspace.name, seat: data.seat }
 }
 
+/** Whether the person is an active guest of any project room (routes guest-only accounts). */
+export async function fetchHasGuestRooms(userId: string): Promise<boolean> {
+  const { count, error } = await requireSupabase()
+    .from('project_guest_memberships')
+    .select('id', { count: 'exact', head: true })
+    .eq('user_id', userId)
+    .is('removed_at', null)
+  if (error) throw toAppError(error)
+  return (count ?? 0) > 0
+}
+
 export async function fetchMembers(workspaceId: string): Promise<Member[]> {
   const { data, error } = await requireSupabase()
     .from('workspace_members')
