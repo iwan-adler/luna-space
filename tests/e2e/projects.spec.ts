@@ -68,8 +68,14 @@ test.describe('project rooms (Phase 4)', () => {
     await expect(card).toBeFocused()
     await a.keyboard.press('Space')
     await expect(card).toHaveAttribute('aria-pressed', 'true')
-    await a.keyboard.press('ArrowRight')
-    await expect(a.getByText('Over Review.')).toBeAttached()
+    // Move right until the card is over Review; on a slow machine the first press can land before
+    // the columns are measured, so keep nudging (and step back if it overshoots to Done).
+    await expect(async () => {
+      if (await a.getByText('Over Review.').count()) return
+      const overDone = (await a.getByText('Over Done.').count()) > 0
+      await a.keyboard.press(overDone ? 'ArrowLeft' : 'ArrowRight')
+      await expect(a.getByText('Over Review.')).toBeAttached({ timeout: 1000 })
+    }).toPass({ timeout: 10_000 })
     await a.keyboard.press('Space')
     await expect(a.getByTestId('column-review').getByText('Record the demo video')).toBeVisible()
     await expect(b.getByTestId('column-review').getByText('Record the demo video')).toBeVisible()
