@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/Button'
 import { Alert, Card } from '@/components/ui/Card'
 import { SelectField } from '@/components/ui/Field'
 import { PageSpinner } from '@/components/ui/Spinner'
+import { inputClass } from '@/components/ui/styles'
 import { useToast } from '@/components/ui/Toast'
 import { formatDated, type DatedValue } from '@/lib/dates'
 import { formatDateTime } from '@/lib/format'
@@ -239,7 +240,7 @@ function Review({
   return (
     <section aria-labelledby="review-title" className="max-w-4xl space-y-4">
       <div className="flex flex-wrap items-center gap-2">
-        <h1 id="review-title" className="flex-1 text-h1 font-bold">
+        <h1 id="review-title" className="flex-1 text-h1 font-semibold">
           Review extracted details
         </h1>
         {(['confirmed', 'inferred', 'missing', 'conflicting'] as const).map((s) =>
@@ -300,7 +301,7 @@ function Review({
             <li
               key={k}
               data-field={k}
-              className={`rounded-md border bg-surface p-3 ${status === 'conflicting' && s.choice === null ? 'border-warning' : 'border-border'}`}
+              className={`panel p-5 ${status === 'conflicting' && s.choice === null ? 'border-warning/50' : ''}`}
             >
               <div className="mb-2 flex flex-wrap items-center gap-2">
                 <span className="font-medium">{LABELS[k]}</span>
@@ -371,7 +372,7 @@ function Review({
       </ol>
 
       {error ? <Alert tone="danger">{error}</Alert> : null}
-      <div className="sticky bottom-20 flex flex-wrap items-center gap-2 rounded-md border border-border bg-surface p-3 shadow-2 lg:bottom-4">
+      <div className="sticky bottom-24 flex flex-wrap items-center gap-2 rounded-full border border-hairline bg-surface-raised/90 py-2 pr-2 pl-5 shadow-3 backdrop-blur-xl lg:bottom-6">
         <span className="flex-1 text-body-sm text-muted" role="status">
           {blocked
             ? `${unresolved.length ? `${unresolved.length} conflict${unresolved.length > 1 ? 's' : ''} to resolve` : ''}${
@@ -390,7 +391,7 @@ function Review({
   )
 }
 
-const input = 'w-full rounded-sm border border-border bg-surface px-3 py-2 text-body-sm'
+const input = inputClass
 
 function FieldEditor({
   k,

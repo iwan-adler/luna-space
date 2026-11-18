@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/Button'
 import { Alert, Card } from '@/components/ui/Card'
 import { SelectField, TextField } from '@/components/ui/Field'
 import { PageSpinner } from '@/components/ui/Spinner'
+import { inputClass } from '@/components/ui/styles'
 import { useToast } from '@/components/ui/Toast'
 import { DATE_KINDS, MODE_LABELS, TYPE_LABELS } from '../constants'
 import {
@@ -18,8 +19,7 @@ import {
 } from '../form'
 import { useOpportunity, useSaveOpportunity, useViewerTimeZone } from '../hooks'
 
-const textarea =
-  'w-full rounded-sm border border-border bg-surface px-3 py-2 text-body text-text placeholder:text-muted'
+const textarea = inputClass
 
 /** /opportunities/new and /opportunities/:id/edit — manual entry (FR-OPP-02, FR-OPP-13 fallback). */
 export function OpportunityFormPage() {
@@ -90,7 +90,7 @@ function OpportunityForm({
       aria-labelledby="opp-form-title"
     >
       <div className="flex flex-wrap items-center gap-3">
-        <h1 id="opp-form-title" className="flex-1 text-h1 font-bold">
+        <h1 id="opp-form-title" className="flex-1 text-h1 font-semibold">
           {id ? 'Edit opportunity' : 'Add opportunity'}
         </h1>
         <Link
@@ -269,7 +269,7 @@ function TextArea({
 }) {
   return (
     <label className="block space-y-1">
-      <span className="block text-body-sm font-medium">{label}</span>
+      <span className="block text-body-sm font-medium text-muted">{label}</span>
       <textarea className={textarea} {...rest} />
     </label>
   )

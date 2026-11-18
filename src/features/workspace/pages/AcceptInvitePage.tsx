@@ -1,9 +1,8 @@
 import { Link, useNavigate, useParams } from 'react-router'
-import { MoonLogo } from '@/components/patterns/MoonLogo'
 import { Button } from '@/components/ui/Button'
 import { Alert } from '@/components/ui/Card'
 import { PageSpinner } from '@/components/ui/Spinner'
-import { useAuth } from '@/features/auth'
+import { AuthFrame, useAuth } from '@/features/auth'
 import { AppError } from '@/lib/errors'
 import { savePendingRoute } from '@/lib/pendingRoute'
 import { useAcceptInvitation } from '../hooks'
@@ -20,13 +19,9 @@ export function AcceptInvitePage() {
   const errorCode = accept.error instanceof AppError ? accept.error.code : undefined
 
   return (
-    <div className="mx-auto flex min-h-dvh max-w-sm flex-col justify-center px-4 py-10">
-      <div className="mb-6 flex items-center gap-2 text-h2 font-bold">
-        <MoonLogo className="size-8" />
-        Luna Space
-      </div>
-      <main id="main" className="space-y-4 rounded-lg border border-border bg-surface p-6 shadow-2">
-        <h1 className="text-h1 font-bold">You&apos;re invited</h1>
+    <AuthFrame>
+      <div className="space-y-4">
+        <h1 className="text-h1 font-semibold">You&apos;re invited</h1>
         <p className="text-body-sm text-muted">
           Your partner invited you to share a private Luna Space workspace — opportunities,
           projects, deadlines and chat for the two of you.
@@ -75,7 +70,7 @@ export function AcceptInvitePage() {
             <p className="text-caption text-muted">Signed in as {user.email}</p>
           </>
         )}
-      </main>
-    </div>
+      </div>
+    </AuthFrame>
   )
 }

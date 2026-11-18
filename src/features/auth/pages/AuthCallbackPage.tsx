@@ -15,7 +15,7 @@ export function AuthCallbackPage() {
   if (errorDescription) {
     return (
       <div className="space-y-3">
-        <h1 className="text-h1 font-bold">Link not valid</h1>
+        <h1 className="text-h1 font-semibold">Link not valid</h1>
         <p className="text-body-sm text-muted">This link has expired or was already used.</p>
         <Link to="/auth/sign-in" className="text-body-sm text-primary hover:underline">
           Back to sign in

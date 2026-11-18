@@ -31,7 +31,7 @@ export function StatusSelect({
             },
           )
         }}
-        className="rounded-sm border border-border bg-surface px-2 py-1 text-body-sm"
+        className="rounded-full border border-hairline bg-surface-raised px-3 py-1 text-caption text-muted hover:text-text"
       >
         {STATUS_GROUPS.map((g) => (
           <optgroup key={g.id} label={g.label}>

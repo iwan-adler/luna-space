@@ -34,7 +34,7 @@ export function InviteLinkPanel({ workspaceId }: { workspaceId: string }) {
             data-testid="invite-link"
             value={link.url}
             onFocus={(e) => e.currentTarget.select()}
-            className="min-w-0 flex-1 rounded-sm border border-border bg-bg px-3 py-2 font-mono text-body-sm"
+            className="min-w-0 flex-1 rounded-[12px] border border-hairline bg-surface-raised px-3.5 py-2.5 font-mono text-body-sm"
           />
           <Button onClick={() => copy(link.url)} icon={<Copy className="size-4" aria-hidden />}>
             Copy

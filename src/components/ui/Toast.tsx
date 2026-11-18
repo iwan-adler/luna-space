@@ -25,10 +25,10 @@ export function ToastProvider({ children }: { children: ReactNode }) {
 
   const api = useMemo(() => ({ show }), [show])
   const tones: Record<Tone, string> = {
-    success: 'border-success',
-    info: 'border-info',
-    warning: 'border-warning',
-    error: 'border-danger',
+    success: 'bg-success',
+    info: 'bg-info',
+    warning: 'bg-warning',
+    error: 'bg-danger',
   }
 
   return (
@@ -42,8 +42,9 @@ export function ToastProvider({ children }: { children: ReactNode }) {
           <div
             key={t.id}
             role={t.tone === 'error' ? 'alert' : 'status'}
-            className={`pointer-events-auto w-full max-w-sm rounded-md border-l-4 bg-surface-raised px-4 py-3 text-body-sm shadow-2 ${tones[t.tone]}`}
+            className="pointer-events-auto flex w-full max-w-sm items-center gap-3 rounded-full border border-hairline bg-surface-raised/95 px-5 py-3 text-body-sm shadow-2 backdrop-blur"
           >
+            <span aria-hidden className={`size-1.5 shrink-0 rounded-full ${tones[t.tone]}`} />
             {t.message}
           </div>
         ))}

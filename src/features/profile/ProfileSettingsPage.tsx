@@ -45,7 +45,7 @@ export function ProfileSettingsPage() {
 
   return (
     <section aria-labelledby="profile-title" className="max-w-2xl space-y-6">
-      <h1 id="profile-title" className="text-h1 font-bold">
+      <h1 id="profile-title" className="text-h1 font-semibold">
         Profile settings
       </h1>
       <Card>
@@ -87,7 +87,7 @@ export function ProfileSettingsPage() {
         <fieldset>
           <legend className="mb-2 text-h3 font-semibold">Appearance</legend>
           <div className="flex flex-wrap gap-4">
-            {(['system', 'light', 'dark'] as const).map((t) => (
+            {(['dark', 'light', 'system'] as const).map((t) => (
               <label key={t} className="flex items-center gap-2 text-body-sm">
                 <input
                   type="radio"
@@ -99,7 +99,11 @@ export function ProfileSettingsPage() {
                     saveThemePreference(t)
                   }}
                 />
-                {t === 'system' ? 'Match device' : t === 'light' ? 'Light' : 'Dark'}
+                {t === 'dark'
+                  ? 'Soft night (dark)'
+                  : t === 'light'
+                    ? 'Soft day (light)'
+                    : 'Match device'}
               </label>
             ))}
           </div>

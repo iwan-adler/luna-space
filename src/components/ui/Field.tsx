@@ -7,7 +7,7 @@ import {
 } from 'react'
 
 const control =
-  'w-full rounded-sm border bg-surface px-3 py-2 text-body text-text placeholder:text-muted focus-visible:border-primary aria-[invalid=true]:border-danger'
+  'w-full rounded-[12px] border bg-surface-raised px-3.5 py-2.5 text-body text-text placeholder:text-muted/70 transition-colors outline-none focus-visible:border-primary/60 focus-visible:ring-4 focus-visible:ring-primary/10 aria-[invalid=true]:border-danger/70'
 
 interface FieldShellProps {
   label: string
@@ -24,7 +24,7 @@ export function FieldShell({ label, error, hint, children }: FieldShellProps) {
   const describedBy = [hintId, errorId].filter(Boolean).join(' ') || undefined
   return (
     <div className="space-y-1">
-      <label htmlFor={id} className="block text-body-sm font-medium">
+      <label htmlFor={id} className="block text-body-sm font-medium text-muted">
         {label}
       </label>
       {children({ id, describedBy })}
@@ -58,7 +58,7 @@ export function TextField({ label, error, hint, className = '', ref, ...rest }: 
           ref={ref}
           aria-invalid={error ? true : undefined}
           aria-describedby={describedBy}
-          className={`${control} border-border ${className}`}
+          className={`${control} border-hairline ${className}`}
           {...rest}
         />
       )}
@@ -91,7 +91,7 @@ export function SelectField({
           ref={ref}
           aria-invalid={error ? true : undefined}
           aria-describedby={describedBy}
-          className={`${control} border-border ${className}`}
+          className={`${control} border-hairline ${className}`}
           {...rest}
         >
           {options.map((o) => (

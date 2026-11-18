@@ -22,7 +22,7 @@ test.describe('two-member onboarding', () => {
     const inviteUrl = await onboardWithInvite(a, asha, 'E2E Crew')
     expect(inviteUrl).toMatch(/\/invite\/[A-Za-z0-9_-]{40,}$/)
     await a.getByRole('button', { name: 'Go to my dashboard' }).click()
-    await expect(a.getByRole('heading', { name: 'Welcome, Asha' })).toBeVisible()
+    await expect(a.getByRole('heading', { level: 1, name: /, Asha/ })).toBeVisible()
     await expect(a.getByTestId('partner-card')).toContainText('Invite your partner')
 
     const b = await (await browser.newContext()).newPage()
@@ -33,7 +33,7 @@ test.describe('two-member onboarding', () => {
     ).toBeVisible()
     await b.goBack()
     await acceptInvite(b, inviteUrl, bala)
-    await expect(b.getByRole('heading', { name: 'Welcome, Bala' })).toBeVisible()
+    await expect(b.getByRole('heading', { level: 1, name: /, Bala/ })).toBeVisible()
     await expect(b.getByTestId('partner-card')).toContainText('Asha')
 
     await a.reload()
@@ -55,7 +55,7 @@ test.describe('two-member onboarding', () => {
 
     const py = await (await browser.newContext()).newPage()
     await acceptInvite(py, url, y)
-    await expect(py.getByRole('heading', { name: 'Welcome, Yusuf' })).toBeVisible()
+    await expect(py.getByRole('heading', { level: 1, name: /, Yusuf/ })).toBeVisible()
 
     await px.goto('/settings/workspace')
     await expect(px.getByTestId('member-list')).toContainText('Xia')

@@ -42,7 +42,7 @@ export function SignUpPage() {
   if (sentTo) {
     return (
       <div className="space-y-4">
-        <h1 className="text-h1 font-bold">Check your email</h1>
+        <h1 className="text-h1 font-semibold">Check your email</h1>
         <p className="text-body-sm text-muted">
           We sent a confirmation link to <strong className="text-text">{sentTo}</strong>. Open it on
           this device to finish creating your account.
@@ -56,7 +56,7 @@ export function SignUpPage() {
 
   return (
     <form onSubmit={onSubmit} className="space-y-4" noValidate>
-      <h1 className="text-h1 font-bold">Create your account</h1>
+      <h1 className="text-h1 font-semibold">Create your account</h1>
       {error ? <Alert tone="danger">{error}</Alert> : null}
       <TextField
         label="Your name"

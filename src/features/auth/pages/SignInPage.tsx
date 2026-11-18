@@ -57,7 +57,7 @@ export function SignInPage() {
   return (
     <div className="space-y-5">
       <div>
-        <h1 className="text-h1 font-bold">Sign in</h1>
+        <h1 className="text-h1 font-semibold">Sign in</h1>
         {inviting ? (
           <p className="mt-1 text-body-sm text-muted">
             Sign in or create an account to accept your invitation.
@@ -68,7 +68,7 @@ export function SignInPage() {
       <div
         role="tablist"
         aria-label="Sign-in method"
-        className="grid grid-cols-2 rounded-md bg-bg p-1"
+        className="grid grid-cols-2 rounded-full border border-hairline bg-surface-raised p-1"
       >
         {(['password', 'magic'] as const).map((m) => (
           <button
@@ -80,7 +80,7 @@ export function SignInPage() {
               setMethod(m)
               setError(null)
             }}
-            className={`rounded-sm px-3 py-1.5 text-body-sm font-medium ${method === m ? 'bg-surface shadow-1' : 'text-muted'}`}
+            className={`rounded-full px-3 py-1.5 text-body-sm ${method === m ? 'bg-hairline text-text' : 'text-muted hover:text-text'}`}
           >
             {m === 'password' ? 'Password' : 'Email link'}
           </button>

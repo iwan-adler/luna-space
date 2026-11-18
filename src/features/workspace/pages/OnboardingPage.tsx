@@ -3,7 +3,7 @@ import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { Navigate, useNavigate } from 'react-router'
 import { z } from 'zod'
-import { MoonLogo } from '@/components/patterns/MoonLogo'
+import { AuthFrame } from '@/features/auth'
 import { Button } from '@/components/ui/Button'
 import { Alert } from '@/components/ui/Card'
 import { SelectField, TextField } from '@/components/ui/Field'
@@ -31,15 +31,19 @@ export function OnboardingPage() {
   if (membership.data && step === 1) return <Navigate to="/" replace />
 
   return (
-    <div className="mx-auto flex min-h-dvh max-w-md flex-col justify-center px-4 py-10">
-      <div className="mb-6 flex items-center gap-2 text-h2 font-bold">
-        <MoonLogo className="size-8" />
-        Luna Space
+    <AuthFrame>
+      <div className="mb-6 flex items-center gap-3">
+        <p className="eyebrow">Step {step} of 3</p>
+        <div className="flex flex-1 gap-1.5" aria-hidden>
+          {[1, 2, 3].map((n) => (
+            <span
+              key={n}
+              className={`h-1 flex-1 rounded-full ${n <= step ? 'bg-primary' : 'bg-hairline'}`}
+            />
+          ))}
+        </div>
       </div>
-      <p className="mb-2 text-caption font-semibold tracking-widest text-primary uppercase">
-        Step {step} of 3
-      </p>
-      <main id="main" className="rounded-lg border border-border bg-surface p-6 shadow-2">
+      <div>
         {step === 1 && profile.data ? (
           <ProfileStep
             defaults={{
@@ -60,7 +64,7 @@ export function OnboardingPage() {
         ) : null}
         {step === 3 && workspaceId ? (
           <div className="space-y-4">
-            <h1 className="text-h1 font-bold">Invite your partner</h1>
+            <h1 className="text-h1 font-semibold">Invite your partner</h1>
             <p className="text-body-sm text-muted">
               Luna Space is built for two. Send your partner this link — it works once and expires
               in 7 days. You can also do this later in Settings.
@@ -75,8 +79,8 @@ export function OnboardingPage() {
             </Button>
           </div>
         ) : null}
-      </main>
-    </div>
+      </div>
+    </AuthFrame>
   )
 }
 
@@ -102,7 +106,7 @@ function ProfileStep({
         update.mutate({ display_name: v.displayName, timezone: v.timezone }, { onSuccess: onDone }),
       )}
     >
-      <h1 className="text-h1 font-bold">Welcome! Tell us about you</h1>
+      <h1 className="text-h1 font-semibold">Welcome! Tell us about you</h1>
       {update.error ? <Alert tone="danger">{update.error.message}</Alert> : null}
       <TextField
         label="Your name"
@@ -131,7 +135,7 @@ function WorkspaceStep({ onDone }: { onDone: (workspaceId: string) => void }) {
       className="space-y-4"
       onSubmit={form.handleSubmit((v) => create.mutate(v.name, { onSuccess: onDone }))}
     >
-      <h1 className="text-h1 font-bold">Name your workspace</h1>
+      <h1 className="text-h1 font-semibold">Name your workspace</h1>
       <p className="text-body-sm text-muted">
         A private space for you and one partner. You can rename it later.
       </p>
