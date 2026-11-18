@@ -30,8 +30,9 @@ test.describe('calendar sync link', () => {
     const link = await page.getByTestId('sync-link').inputValue()
     expect(link).toMatch(/\/functions\/v1\/calendar-ics\?token=[\w-]{40,}$/)
 
+    // A freshly started function can answer 503 while it boots; calendar apps simply retry.
+    await expect.poll(async () => (await request.get(link)).status(), { timeout: 60_000 }).toBe(200)
     const res = await request.get(link)
-    expect(res.status()).toBe(200)
     expect(res.headers()['content-type']).toContain('text/calendar')
     const ics = await res.text()
     expect(ics).toContain('BEGIN:VCALENDAR')
