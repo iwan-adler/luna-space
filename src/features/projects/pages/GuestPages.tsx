@@ -61,7 +61,7 @@ export function GuestHomePage() {
 
   return (
     <section aria-labelledby="guest-home-title" className="space-y-4">
-      <h1 id="guest-home-title" className="text-h1 font-semibold">
+      <h1 id="guest-home-title" className="font-display text-h1">
         Your rooms
       </h1>
       {rooms.isPending ? (

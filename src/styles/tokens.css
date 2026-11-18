@@ -1,45 +1,58 @@
 /*
- * Luna DS tokens — "Soft night" (ADR 0005, supersedes the palette in UI spec §4).
- * Dark is the default. Light applies with <html data-theme="light">, or with
+ * Luna DS tokens — "Aurora glass" with editorial type (ADR 0007, supersedes ADR 0005).
+ * Frosted, translucent surfaces over a drifting violet / teal / pink aurora.
+ * Dark is the default. Light ("aurora day") applies with <html data-theme="light">, or with
  * data-theme="system" when the OS prefers light.
  */
 :root {
   color-scheme: dark;
 
-  /* Surfaces: deep navy, layered by lightness instead of shadows */
-  --color-bg: #0b0d1a;
-  --color-surface: #13162b;
-  --color-surface-raised: #1a1e38;
-  --color-border: #262a4a;
-  --color-hairline: rgb(255 255 255 / 0.06);
+  /* Canvas and glass surfaces (translucent: the aurora shows through) */
+  --color-bg: #06071a;
+  --color-surface: rgb(255 255 255 / 0.05);
+  --color-surface-raised: rgb(26 28 66 / 0.78);
+  --color-border: rgb(255 255 255 / 0.16);
+  --color-hairline: rgb(255 255 255 / 0.09);
 
   /* Text */
-  --color-text: #e8e9f3;
-  --color-text-muted: #9095b5;
+  --color-text: #f1f2ff;
+  --color-text-muted: #a3a9d6;
 
-  /* One accent: moonlight gold */
-  --color-primary: #e9c46a;
-  --color-primary-hover: #f2d48a;
-  --color-primary-subtle: #2a2833;
-  --color-on-primary: #1a1508;
-  --color-accent: #e9c46a;
+  /* Accent: aurora violet, with teal as the secondary accent */
+  --color-primary: #a898ff;
+  --color-primary-hover: #bcafff;
+  --color-primary-subtle: rgb(168 152 255 / 0.14);
+  --color-on-primary: #ffffff;
+  --color-accent: #5eead4;
+  /* Moonlight gold, used sparingly for editorial details */
+  --color-moon: #f0d68a;
 
-  /* Semantic, softened for dark backgrounds */
-  --color-success: #7dd3a8;
-  --color-info: #8ab4ff;
-  --color-warning: #f5a65b;
-  --color-danger: #f28b8b;
-  --color-neutral: #7c81a3;
+  /* Semantic */
+  --color-success: #6ee7b7;
+  --color-info: #7dd3fc;
+  --color-warning: #fcc27a;
+  --color-danger: #fb8fa8;
+  --color-neutral: #8b90c0;
 
-  /* Atmosphere */
-  --glow-gold: rgb(233 196 106 / 0.1);
-  --glow-indigo: rgb(110 120 255 / 0.1);
-  --panel-sheen: linear-gradient(180deg, rgb(255 255 255 / 0.035), rgb(255 255 255 / 0));
+  /* Aurora */
+  --aurora-1: rgb(124 92 255 / 0.62);
+  --aurora-2: rgb(45 212 191 / 0.42);
+  --aurora-3: rgb(244 114 182 / 0.45);
+  --aurora-opacity: 0.95;
+  --stars-opacity: 0.55;
+  --gradient-primary: linear-gradient(120deg, #7c5cff 0%, #b86bff 45%, #f472b6 100%);
+  --gradient-text: linear-gradient(100deg, #c4b5ff 0%, #8ef0e0 50%, #ffa8d6 100%);
+  --glow-primary: 0 10px 30px -10px rgb(150 110 255 / 0.75);
 
-  /* Elevation (used sparingly) */
-  --shadow-1: 0 1px 0 rgb(255 255 255 / 0.03) inset, 0 8px 24px rgb(0 0 0 / 0.25);
-  --shadow-2: 0 12px 32px rgb(0 0 0 / 0.4);
-  --shadow-3: 0 24px 64px rgb(0 0 0 / 0.55);
+  /* Glass */
+  --glass-fill: linear-gradient(180deg, rgb(255 255 255 / 0.085), rgb(255 255 255 / 0.03));
+  --glass-blur: blur(18px) saturate(150%);
+  --glass-edge: inset 0 1px 0 rgb(255 255 255 / 0.1);
+
+  /* Elevation */
+  --shadow-1: var(--glass-edge), 0 10px 30px rgb(2 3 20 / 0.35);
+  --shadow-2: var(--glass-edge), 0 16px 40px rgb(2 3 20 / 0.5);
+  --shadow-3: var(--glass-edge), 0 28px 70px rgb(2 3 20 / 0.65);
 
   /* Motion */
   --motion-fast: 120ms;
@@ -48,60 +61,77 @@
   --ease-standard: cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 
-/* Light ("soft day"): same calm structure on warm paper, gold deepened for contrast */
+/* Light ("aurora day"): white frosted glass over a pastel aurora */
 :root[data-theme='light'] {
   color-scheme: light;
-  --color-bg: #f6f5f1;
-  --color-surface: #ffffff;
-  --color-surface-raised: #ffffff;
-  --color-border: #e6e3dc;
-  --color-hairline: rgb(20 23 42 / 0.07);
-  --color-text: #15172a;
-  --color-text-muted: #62657c;
-  --color-primary: #8a5f0c;
-  --color-primary-hover: #74500a;
-  --color-primary-subtle: #f6eedb;
+  --color-bg: #f3f2ff;
+  --color-surface: rgb(255 255 255 / 0.58);
+  --color-surface-raised: rgb(255 255 255 / 0.86);
+  --color-border: rgb(60 50 140 / 0.16);
+  --color-hairline: rgb(60 50 140 / 0.09);
+  --color-text: #17153a;
+  --color-text-muted: #5d5b85;
+  --color-primary: #6a4ce0;
+  --color-primary-hover: #5a3cd0;
+  --color-primary-subtle: rgb(106 76 224 / 0.1);
   --color-on-primary: #ffffff;
-  --color-accent: #d9a93a;
-  --color-success: #1d8a5c;
-  --color-info: #2f62c4;
-  --color-warning: #b9650f;
-  --color-danger: #c03b3b;
-  --color-neutral: #8a8da6;
-  --glow-gold: rgb(217 169 58 / 0.12);
-  --glow-indigo: rgb(110 120 255 / 0.08);
-  --panel-sheen: linear-gradient(180deg, rgb(255 255 255 / 0.6), rgb(255 255 255 / 0));
-  --shadow-1: 0 1px 2px rgb(20 23 46 / 0.04), 0 8px 24px rgb(20 23 46 / 0.05);
-  --shadow-2: 0 12px 32px rgb(20 23 46 / 0.1);
-  --shadow-3: 0 24px 64px rgb(20 23 46 / 0.16);
+  --color-accent: #0d9488;
+  --color-moon: #9a6a12;
+  --color-success: #0f8a5f;
+  --color-info: #1d6fc4;
+  --color-warning: #b45f0a;
+  --color-danger: #c2364f;
+  --color-neutral: #8a88aa;
+  --aurora-1: rgb(150 120 255 / 0.4);
+  --aurora-2: rgb(80 220 200 / 0.3);
+  --aurora-3: rgb(255 140 200 / 0.32);
+  --aurora-opacity: 0.9;
+  --stars-opacity: 0;
+  --gradient-primary: linear-gradient(120deg, #6a4ce0 0%, #9b4fe0 50%, #db4f9a 100%);
+  --gradient-text: linear-gradient(100deg, #5b3fd0 0%, #0d8f84 50%, #c43b86 100%);
+  --glow-primary: 0 10px 26px -12px rgb(106 76 224 / 0.6);
+  --glass-fill: linear-gradient(180deg, rgb(255 255 255 / 0.72), rgb(255 255 255 / 0.5));
+  --glass-edge: inset 0 1px 0 rgb(255 255 255 / 0.8);
+  --shadow-1: var(--glass-edge), 0 8px 28px rgb(40 30 110 / 0.08);
+  --shadow-2: var(--glass-edge), 0 14px 36px rgb(40 30 110 / 0.14);
+  --shadow-3: var(--glass-edge), 0 26px 64px rgb(40 30 110 / 0.2);
 }
 
 @media (prefers-color-scheme: light) {
   :root[data-theme='system'] {
     color-scheme: light;
-    --color-bg: #f6f5f1;
-    --color-surface: #ffffff;
-    --color-surface-raised: #ffffff;
-    --color-border: #e6e3dc;
-    --color-hairline: rgb(20 23 42 / 0.07);
-    --color-text: #15172a;
-    --color-text-muted: #62657c;
-    --color-primary: #8a5f0c;
-    --color-primary-hover: #74500a;
-    --color-primary-subtle: #f6eedb;
+    --color-bg: #f3f2ff;
+    --color-surface: rgb(255 255 255 / 0.58);
+    --color-surface-raised: rgb(255 255 255 / 0.86);
+    --color-border: rgb(60 50 140 / 0.16);
+    --color-hairline: rgb(60 50 140 / 0.09);
+    --color-text: #17153a;
+    --color-text-muted: #5d5b85;
+    --color-primary: #6a4ce0;
+    --color-primary-hover: #5a3cd0;
+    --color-primary-subtle: rgb(106 76 224 / 0.1);
     --color-on-primary: #ffffff;
-    --color-accent: #d9a93a;
-    --color-success: #1d8a5c;
-    --color-info: #2f62c4;
-    --color-warning: #b9650f;
-    --color-danger: #c03b3b;
-    --color-neutral: #8a8da6;
-    --glow-gold: rgb(217 169 58 / 0.12);
-    --glow-indigo: rgb(110 120 255 / 0.08);
-    --panel-sheen: linear-gradient(180deg, rgb(255 255 255 / 0.6), rgb(255 255 255 / 0));
-    --shadow-1: 0 1px 2px rgb(20 23 46 / 0.04), 0 8px 24px rgb(20 23 46 / 0.05);
-    --shadow-2: 0 12px 32px rgb(20 23 46 / 0.1);
-    --shadow-3: 0 24px 64px rgb(20 23 46 / 0.16);
+    --color-accent: #0d9488;
+    --color-moon: #9a6a12;
+    --color-moon: #9a6a12;
+    --color-success: #0f8a5f;
+    --color-info: #1d6fc4;
+    --color-warning: #b45f0a;
+    --color-danger: #c2364f;
+    --color-neutral: #8a88aa;
+    --aurora-1: rgb(150 120 255 / 0.4);
+    --aurora-2: rgb(80 220 200 / 0.3);
+    --aurora-3: rgb(255 140 200 / 0.32);
+    --aurora-opacity: 0.9;
+    --stars-opacity: 0;
+    --gradient-primary: linear-gradient(120deg, #6a4ce0 0%, #9b4fe0 50%, #db4f9a 100%);
+    --gradient-text: linear-gradient(100deg, #5b3fd0 0%, #0d8f84 50%, #c43b86 100%);
+    --glow-primary: 0 10px 26px -12px rgb(106 76 224 / 0.6);
+    --glass-fill: linear-gradient(180deg, rgb(255 255 255 / 0.72), rgb(255 255 255 / 0.5));
+    --glass-edge: inset 0 1px 0 rgb(255 255 255 / 0.8);
+    --shadow-1: var(--glass-edge), 0 8px 28px rgb(40 30 110 / 0.08);
+    --shadow-2: var(--glass-edge), 0 14px 36px rgb(40 30 110 / 0.14);
+    --shadow-3: var(--glass-edge), 0 26px 64px rgb(40 30 110 / 0.2);
   }
 }
 

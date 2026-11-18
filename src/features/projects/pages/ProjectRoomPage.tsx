@@ -111,7 +111,7 @@ export function ProjectRoomPage({ base = '/projects' }: { base?: string }) {
             </Link>
           </p>
           <div className="flex flex-wrap items-center gap-2.5">
-            <h1 className="text-h1 font-semibold">{p.name}</h1>
+            <h1 className="font-display text-h1">{p.name}</h1>
             {p.visibility === 'private' ? (
               <Lock className="size-4 text-muted" aria-label="Private" />
             ) : null}

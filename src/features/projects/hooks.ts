@@ -111,17 +111,25 @@ export function useMyTasks() {
   return useQuery({ queryKey: projectKeys.myTasks(), queryFn: () => listMyTasks(user!.id) })
 }
 
+interface CreateTaskArgs {
+  title: string
+  status?: Task['status']
+  parentTaskId?: string
+}
+
+/**
+ * Adds a task at the end of its column (or subtask list). The card appears at once with a
+ * temporary id, and its position is taken from what is already on screen, so several quick
+ * adds keep the order they were typed in.
+ */
 export function useCreateTask(projectId: string) {
   const qc = useQueryClient()
   const { user } = useAuth()
   const { workspaceId } = useRoom()
-  return useMutation({
-    mutationFn: (args: {
-      title: string
-      status?: Task['status']
-      position: number
-      parentTaskId?: string
-    }) =>
+  const key = projectKeys.tasks(projectId)
+  const tempId = (clientId: string) => `temp-${clientId}`
+  const mutation = useMutation({
+    mutationFn: (args: CreateTaskArgs & { position: number; clientId: string }) =>
       createTask({
         workspaceId,
         ownerId: user!.id,
@@ -130,15 +138,59 @@ export function useCreateTask(projectId: string) {
         status: args.status ?? 'todo',
         position: args.position,
         parentTaskId: args.parentTaskId ?? null,
-        clientId: crypto.randomUUID(),
+        clientId: args.clientId,
       }),
-    onSuccess: (task) => {
-      qc.setQueryData<Task[]>(projectKeys.tasks(projectId), (old) =>
-        old && !old.some((t) => t.id === task.id) ? [...old, task] : old,
-      )
+    onMutate: (args) => {
+      const now = new Date().toISOString()
+      const temp: Task = {
+        id: tempId(args.clientId),
+        workspace_id: workspaceId,
+        owner_id: user?.id ?? null,
+        visibility: 'shared',
+        project_id: projectId,
+        parent_task_id: args.parentTaskId ?? null,
+        title: args.title,
+        description: null,
+        status: args.status ?? 'todo',
+        priority: 'medium',
+        assignee_id: null,
+        due_date: null,
+        due_at: null,
+        due_timezone: null,
+        position: args.position,
+        tags: [],
+        client_id: args.clientId,
+        completed_at: null,
+        guest_visible: true,
+        created_at: now,
+        updated_at: now,
+        deleted_at: null,
+        deleted_by: null,
+      }
+      qc.setQueryData<Task[]>(key, (old) => [...(old ?? []), temp])
+    },
+    onSuccess: (task, args) => {
+      qc.setQueryData<Task[]>(key, (old) => [
+        ...(old ?? []).filter((t) => t.id !== tempId(args.clientId) && t.id !== task.id),
+        task,
+      ])
       void qc.invalidateQueries({ queryKey: projectKeys.activity(projectId) })
     },
+    onError: (_e, args) => {
+      qc.setQueryData<Task[]>(key, (old) => old?.filter((t) => t.id !== tempId(args.clientId)))
+    },
   })
+
+  const add = (args: CreateTaskArgs, options?: Parameters<typeof mutation.mutate>[1]) => {
+    const siblings = (qc.getQueryData<Task[]>(key) ?? []).filter((t) =>
+      args.parentTaskId
+        ? t.parent_task_id === args.parentTaskId
+        : !t.parent_task_id && t.status === (args.status ?? 'todo'),
+    )
+    const position = siblings.reduce((max, t) => Math.max(max, t.position), 0) + 1024
+    mutation.mutate({ ...args, position, clientId: crypto.randomUUID() }, options)
+  }
+  return { ...mutation, mutate: add }
 }
 
 /** Optimistic task update; rolls back and refetches when the server refuses it. */

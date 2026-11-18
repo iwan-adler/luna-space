@@ -45,7 +45,7 @@ export function ProfileSettingsPage() {
 
   return (
     <section aria-labelledby="profile-title" className="max-w-2xl space-y-6">
-      <h1 id="profile-title" className="text-h1 font-semibold">
+      <h1 id="profile-title" className="font-display text-h1">
         Profile settings
       </h1>
       <Card>

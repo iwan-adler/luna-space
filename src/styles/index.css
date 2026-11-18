@@ -1,6 +1,8 @@
 @import 'tailwindcss';
 @import '@fontsource-variable/inter';
 @import '@fontsource-variable/jetbrains-mono';
+@import '@fontsource/instrument-serif/latin-400.css';
+@import '@fontsource/instrument-serif/latin-400-italic.css';
 @import './tokens.css';
 
 /* Expose tokens as Tailwind utilities: bg-surface, text-muted, border-border, … */
@@ -22,9 +24,12 @@
   --color-warning: var(--color-warning);
   --color-danger: var(--color-danger);
   --color-neutral: var(--color-neutral);
+  --color-moon: var(--color-moon);
 
   --font-sans: 'Inter Variable', 'Segoe UI', Roboto, sans-serif;
   --font-mono: 'JetBrains Mono Variable', Consolas, monospace;
+  /* Editorial display face for headlines (the "Lunar editorial" half of the look). */
+  --font-display: 'Instrument Serif', 'Iowan Old Style', Georgia, serif;
 
   /* Type scale (UI spec §5): size / line height */
   --text-caption: 12px;
@@ -37,10 +42,10 @@
   --text-h3--line-height: 22px;
   --text-h2: 19px;
   --text-h2--line-height: 26px;
-  --text-h1: 26px;
-  --text-h1--line-height: 32px;
-  --text-display: 34px;
-  --text-display--line-height: 40px;
+  --text-h1: 36px;
+  --text-h1--line-height: 40px;
+  --text-display: 52px;
+  --text-display--line-height: 56px;
 
   --radius-sm: 8px;
   --radius-md: 12px;
@@ -59,36 +64,126 @@
   body {
     @apply bg-bg font-sans text-body text-text antialiased;
     font-feature-settings: 'cv11', 'ss01';
-    /* A faint night sky: gold moonlight top-right, indigo haze top-left. */
+    min-height: 100dvh;
+  }
+  /* The aurora: three soft colour fields drifting slowly behind everything. */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: -25%;
+    z-index: -2;
+    pointer-events: none;
+    opacity: var(--aurora-opacity);
+    background:
+      radial-gradient(42% 34% at 30% 22%, var(--aurora-1), transparent 70%),
+      radial-gradient(36% 30% at 78% 26%, var(--aurora-2), transparent 70%),
+      radial-gradient(44% 36% at 62% 78%, var(--aurora-3), transparent 72%),
+      radial-gradient(30% 26% at 14% 74%, var(--aurora-2), transparent 70%),
+      radial-gradient(26% 22% at 50% 50%, var(--aurora-1), transparent 75%);
+    filter: blur(60px);
+    animation: aurora-drift 38s ease-in-out infinite alternate;
+  }
+  /* A faint starfield (dark theme only). */
+  body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    opacity: var(--stars-opacity);
     background-image:
-      radial-gradient(900px 520px at 85% -10%, var(--glow-gold), transparent 70%),
-      radial-gradient(700px 480px at -10% 0%, var(--glow-indigo), transparent 70%);
-    background-attachment: fixed;
+      radial-gradient(1px 1px at 12% 22%, #fff 50%, transparent 51%),
+      radial-gradient(1px 1px at 68% 14%, #fff 50%, transparent 51%),
+      radial-gradient(1.5px 1.5px at 84% 62%, #fff 50%, transparent 51%),
+      radial-gradient(1px 1px at 32% 76%, #fff 50%, transparent 51%),
+      radial-gradient(1px 1px at 52% 44%, #fff 50%, transparent 51%),
+      radial-gradient(1.5px 1.5px at 22% 58%, #fff 50%, transparent 51%),
+      radial-gradient(1px 1px at 92% 32%, #fff 50%, transparent 51%);
+    background-size: 420px 420px;
+    animation: twinkle 7s ease-in-out infinite alternate;
   }
   h1,
   h2,
   h3 {
-    letter-spacing: -0.015em;
+    letter-spacing: -0.02em;
   }
   ::selection {
-    background: color-mix(in srgb, var(--color-primary) 30%, transparent);
+    background: color-mix(in srgb, var(--color-primary) 35%, transparent);
   }
   :focus-visible {
     outline: 2px solid var(--color-primary);
     outline-offset: 2px;
     border-radius: 6px;
   }
+  @media (prefers-reduced-motion: reduce) {
+    body::before,
+    body::after {
+      animation: none;
+    }
+  }
+}
+
+@keyframes aurora-drift {
+  0% {
+    transform: translate3d(0, 0, 0) rotate(0deg) scale(1);
+  }
+  50% {
+    transform: translate3d(4%, -3%, 0) rotate(8deg) scale(1.08);
+  }
+  100% {
+    transform: translate3d(-4%, 3%, 0) rotate(-6deg) scale(1.02);
+  }
+}
+
+@keyframes twinkle {
+  from {
+    opacity: calc(var(--stars-opacity) * 0.6);
+  }
+  to {
+    opacity: var(--stars-opacity);
+  }
 }
 
 @layer components {
-  /* Rounded panel with a soft sheen instead of heavy borders or shadows. */
+  /* Frosted glass panel: translucent fill, blur, a bright top edge and a soft shadow. */
   .panel {
     border-radius: var(--radius-lg);
     border: 1px solid var(--color-hairline);
-    background: var(--panel-sheen), var(--color-surface);
+    background: var(--glass-fill);
+    backdrop-filter: var(--glass-blur);
+    -webkit-backdrop-filter: var(--glass-blur);
     box-shadow: var(--shadow-1);
   }
+  /* Frosted layer for floating UI (dialogs, drawers, menus, bars). */
+  .glass {
+    background: var(--color-surface-raised);
+    backdrop-filter: blur(24px) saturate(160%);
+    -webkit-backdrop-filter: blur(24px) saturate(160%);
+  }
+  /* Editorial kicker: small caps in moonlight gold. */
   .eyebrow {
-    @apply text-caption font-medium tracking-[0.14em] text-muted uppercase;
+    @apply text-caption font-medium tracking-[0.18em] text-moon uppercase;
+  }
+  /* Fine moonlight hairline used to open editorial sections. */
+  .hairline-moon {
+    height: 1px;
+    background: linear-gradient(90deg, var(--color-moon), transparent 70%);
+    opacity: 0.6;
+  }
+  /* Aurora gradient text for hero moments. */
+  .text-aurora {
+    background: var(--gradient-text);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  /* Primary call to action: aurora gradient with a soft glow. */
+  .btn-aurora {
+    background: var(--gradient-primary);
+    color: var(--color-on-primary);
+    box-shadow: var(--glow-primary);
+  }
+  .btn-aurora:hover:not(:disabled) {
+    filter: brightness(1.1) saturate(1.1);
   }
 }
