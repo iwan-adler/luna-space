@@ -8,7 +8,7 @@ import {
   Settings,
   Users,
 } from 'lucide-react'
-import { Link, NavLink, Outlet, useNavigate } from 'react-router'
+import { Link, NavLink, Outlet, useLocation, useNavigate } from 'react-router'
 import { MoonLogo } from '@/components/patterns/MoonLogo'
 import { useAuth } from '@/features/auth'
 import { useMyProfile } from '@/features/profile'
@@ -29,6 +29,7 @@ const sideLink = ({ isActive }: { isActive: boolean }) =>
  */
 export function AppShell() {
   const ws = useCurrentWorkspace()
+  const location = useLocation()
   return (
     <div className="min-h-dvh lg:p-4">
       <a
@@ -43,7 +44,7 @@ export function AppShell() {
             to="/"
             className="flex items-center gap-2.5 px-2 pt-1 text-[17px] font-semibold tracking-[-0.02em]"
           >
-            <MoonLogo className="size-7" />
+            <MoonLogo className="logo-glow size-7" />
             Luna Space
           </Link>
           <p className="mt-8 mb-2 truncate px-3.5 text-caption text-muted" title={ws.workspaceName}>
@@ -113,7 +114,9 @@ export function AppShell() {
             id="main"
             className="mx-auto w-full max-w-6xl flex-1 px-5 pt-6 pb-32 lg:px-6 lg:pt-4 lg:pb-8"
           >
-            <Outlet />
+            <div key={location.pathname.split('/')[1] ?? ''} className="fade-in">
+              <Outlet />
+            </div>
           </main>
         </div>
       </div>

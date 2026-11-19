@@ -13,7 +13,7 @@ export function EmptyState({
 }) {
   return (
     <div className="mx-auto flex max-w-md flex-col items-center gap-3 py-12 text-center">
-      <MoonLogo className="size-12 opacity-80" />
+      <MoonLogo className="logo-glow float size-12 opacity-90" />
       <h2 className="text-h2">{title}</h2>
       {children ? <div className="text-body-sm text-muted">{children}</div> : null}
       {action}
