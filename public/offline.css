@@ -7,11 +7,13 @@ body {
   min-height: 100dvh;
   display: grid;
   place-items: center;
-  background:
-    radial-gradient(1200px 720px at 50% -12%, #3b2e37 0%, transparent 70%),
-    #120e12;
+  background: radial-gradient(1200px 720px at 50% -12%, #3b2e37 0%, transparent 70%), #120e12;
   color: #f5eff3;
-  font: 15px/1.55 system-ui, 'Segoe UI', Roboto, sans-serif;
+  font:
+    15px/1.55 system-ui,
+    'Segoe UI',
+    Roboto,
+    sans-serif;
 }
 main {
   max-width: 22rem;
