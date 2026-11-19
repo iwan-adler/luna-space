@@ -7,7 +7,7 @@ const PAGE = 1000
 /**
  * Everything the signed-in member can read, as one JSON document (FR-PLAT-13). It runs in the
  * browser with the member's own session, so Row Level Security decides the contents: their own
- * private items plus everything shared, never the partner's private items. Uploaded files are
+ * private items plus everything shared, never other members' private items. Uploaded files are
  * listed (name, type, size) but their contents are not included.
  */
 export async function buildExport(workspaceId: string): Promise<Record<string, unknown>> {

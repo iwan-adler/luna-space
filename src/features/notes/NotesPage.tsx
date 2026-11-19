@@ -146,7 +146,7 @@ function NoteEditor({ id }: { id: string }) {
   if (note.error || !note.data)
     return (
       <Alert tone="warning">
-        This note doesn&apos;t exist, was deleted, or is private to your partner.{' '}
+        This note doesn&apos;t exist, was deleted, or is private to someone else.{' '}
         <Link to="/notes" className="underline">
           Back to notes
         </Link>
@@ -182,7 +182,7 @@ function NoteForm({ id, note: n }: { id: string; note: Note }) {
     latest.current = { title, body, base }
   }, [title, body, base])
 
-  // Adopt a newer version saved by the partner while there are no local edits (render-time
+  // Adopt a newer version saved by someone else while there are no local edits (render-time
   // adjustment, so the editor never shows stale text after a live update).
   if (n.version !== seenVersion) {
     setSeenVersion(n.version)
@@ -230,7 +230,7 @@ function NoteForm({ id, note: n }: { id: string; note: Note }) {
   const nameOf = (uid: string | null) =>
     uid === user?.id
       ? 'you'
-      : (members.data?.find((m) => m.userId === uid)?.displayName ?? 'your partner')
+      : (members.data?.find((m) => m.userId === uid)?.displayName ?? 'someone else')
 
   return (
     <article className="panel space-y-4 p-5" aria-label="Note editor">
@@ -246,7 +246,7 @@ function NoteForm({ id, note: n }: { id: string; note: Note }) {
               : status === 'error'
                 ? 'Not saved: check your connection'
                 : status === 'conflict'
-                  ? 'Edited by your partner meanwhile'
+                  ? 'Edited by someone else meanwhile'
                   : `Saved · edited by ${nameOf(n.updated_by)} ${formatDateTime(n.updated_at, tz)}`}
         </span>
         <div className="ml-auto flex items-center gap-1.5">
@@ -280,15 +280,15 @@ function NoteForm({ id, note: n }: { id: string; note: Note }) {
             <button
               type="button"
               className="icon-btn size-9"
-              aria-label={n.visibility === 'private' ? 'Share with your partner' : 'Make private'}
-              title={n.visibility === 'private' ? 'Private: only you' : 'Shared with your partner'}
+              aria-label={n.visibility === 'private' ? 'Share with the workspace' : 'Make private'}
+              title={n.visibility === 'private' ? 'Private: only you' : 'Shared with the workspace'}
               onClick={() =>
                 meta.mutate(
                   { id, patch: { visibility: n.visibility === 'private' ? 'shared' : 'private' } },
                   {
                     onSuccess: () =>
                       toast.show(
-                        n.visibility === 'private' ? 'Shared with your partner' : 'Now private',
+                        n.visibility === 'private' ? 'Shared with the workspace' : 'Now private',
                         'success',
                       ),
                   },

@@ -345,7 +345,7 @@ export function useProjectActivity(projectId: string) {
 
 /**
  * Live updates for a project room (TRD §9). Realtime applies RLS to every change event,
- * so the partner sees only what they could read anyway. Events only trigger refetches.
+ * so others see only what they could read anyway. Events only trigger refetches.
  */
 export function useProjectRealtime(projectId: string) {
   const qc = useQueryClient()

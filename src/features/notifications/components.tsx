@@ -7,6 +7,7 @@ import { Alert, Card } from '@/components/ui/Card'
 import { PageSpinner } from '@/components/ui/Spinner'
 import { useToast } from '@/components/ui/Toast'
 import { useViewerTimeZone } from '@/features/profile'
+import { useMembership, useMyWorkspaces, useSwitchWorkspace } from '@/features/workspace'
 import { controlClass } from '@/components/ui/styles'
 import { messageForCode, toAppError } from '@/lib/errors'
 import { formatDateTime } from '@/lib/format'
@@ -61,9 +62,20 @@ export function NotificationsPage() {
   const tz = useViewerTimeZone()
   const unread = (list.data ?? []).filter((n) => !n.read_at).length
 
+  const current = useMembership().data
+  const workspaces = useMyWorkspaces()
+  const switchTo = useSwitchWorkspace()
+  const otherWorkspace = (n: Notification) =>
+    current && n.workspace_id !== current.workspaceId
+      ? workspaces.data?.find((w) => w.workspaceId === n.workspace_id)
+      : undefined
+
+  // A notification from another workspace opens that workspace first (ADR 0018).
   const open = (n: Notification) => {
     if (!n.read_at) markRead.mutate(n.id)
-    if (n.link_path) void navigate(n.link_path)
+    const other = otherWorkspace(n)
+    if (other) void switchTo(other.workspaceId, n.link_path ?? '/')
+    else if (n.link_path) void navigate(n.link_path)
   }
 
   return (
@@ -99,7 +111,7 @@ export function NotificationsPage() {
         </Alert>
       ) : list.data.length === 0 ? (
         <EmptyState title="You're all caught up">
-          Reminders for deadlines, tasks and events, and updates from your partner, appear here.
+          Reminders for deadlines, tasks and events, and updates from your workspace, appear here.
         </EmptyState>
       ) : (
         <ul className="panel divide-y divide-hairline p-0" data-testid="notification-list">
@@ -128,6 +140,11 @@ export function NotificationsPage() {
                     ) : null}
                     <span className="block text-caption text-muted">
                       {formatDateTime(n.created_at, tz)}
+                      {otherWorkspace(n) ? (
+                        <span className="ml-1.5 rounded-full bg-hairline px-2 py-0.5">
+                          {otherWorkspace(n)!.emoji ?? ''} {otherWorkspace(n)!.workspaceName}
+                        </span>
+                      ) : null}
                     </span>
                   </span>
                   {n.read_at ? null : (

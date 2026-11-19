@@ -285,7 +285,7 @@ function Review({
           value={visibility}
           onChange={(e) => setVisibility(e.target.value as 'shared' | 'private')}
           options={[
-            { value: 'shared', label: 'Shared with my partner' },
+            { value: 'shared', label: 'Shared with the workspace' },
             { value: 'private', label: 'Private (only me)' },
           ]}
         />

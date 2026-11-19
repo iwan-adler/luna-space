@@ -49,8 +49,8 @@ export function OpportunityDetailPage() {
   if (opp.error || !opp.data || opp.data.deleted_at) {
     return (
       <Alert tone="warning">
-        This opportunity doesn&apos;t exist, was moved to the recycle bin, or is private to your
-        partner.{' '}
+        This opportunity doesn&apos;t exist, was moved to the recycle bin, or is private to someone
+        else.{' '}
         <Link to="/opportunities" className="underline">
           Back to opportunities
         </Link>

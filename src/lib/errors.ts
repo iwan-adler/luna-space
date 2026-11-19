@@ -7,9 +7,9 @@ const CODE_MESSAGES: Record<string, string> = {
   MEMBERS_ONLY_ADMIN: 'Only workspace members can invite project admins.',
   ROOM_NOT_SHAREABLE: 'Private or archived projects cannot have guests.',
   NOT_FOUND: 'That no longer exists.',
-  WORKSPACE_FULL: 'This workspace already has two members.',
-  ALREADY_IN_WORKSPACE:
-    'You already belong to a workspace. One account can be in only one workspace.',
+  WORKSPACE_FULL: 'This workspace is full. Ask its owner to raise the member limit.',
+  TOO_MANY_WORKSPACES: 'You can be in at most 20 workspaces. Leave one to join another.',
+  ALREADY_IN_WORKSPACE: 'You already belong to that workspace.',
   ALREADY_MEMBER: 'You are already a member of this workspace.',
   RATE_LIMITED: 'Too many attempts. Please wait a while and try again.',
   NOT_MEMBER: 'You are not a member of a workspace yet.',

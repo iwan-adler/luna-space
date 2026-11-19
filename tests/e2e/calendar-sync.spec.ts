@@ -25,7 +25,7 @@ test.describe('calendar sync link', () => {
     await page.getByRole('button', { name: 'Add event' }).click()
     await expect(page.getByText('Event added')).toBeVisible()
 
-    await page.getByRole('button', { name: 'Sync' }).click()
+    await page.getByRole('button', { name: 'Sync', exact: true }).click()
     await page.getByRole('button', { name: 'Create sync link' }).click()
     const link = await page.getByTestId('sync-link').inputValue()
     expect(link).toMatch(/\/functions\/v1\/calendar-ics\?token=[\w-]{40,}$/)

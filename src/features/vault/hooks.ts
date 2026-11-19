@@ -297,7 +297,7 @@ export function useUploadFile() {
   })
 }
 
-/** Live updates when the partner files, adds or changes something. */
+/** Live updates when someone else files, adds or changes something. */
 export function useVaultRealtime() {
   const qc = useQueryClient()
   const { workspaceId } = useCurrentWorkspace()

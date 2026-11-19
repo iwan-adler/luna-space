@@ -71,7 +71,7 @@ export function useReadStates() {
   })
 }
 
-/** Messages from the partner after my last read position (nav badge). */
+/** Messages from others after my last read position (nav badge). */
 export function useChatUnread() {
   const { workspaceId } = useCurrentWorkspace()
   const { user } = useAuth()

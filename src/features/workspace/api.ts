@@ -5,12 +5,17 @@ import { requireSupabase } from '@/lib/supabase'
 export interface Membership {
   workspaceId: string
   workspaceName: string
-  seat: number
+  emoji: string | null
+  role: 'owner' | 'member'
+  memberCount: number
+  maxMembers: number
+  isActive: boolean
 }
 
 export interface Member {
   userId: string
   seat: number
+  role: 'owner' | 'member'
   joinedAt: string
   displayName: string
   avatarPath: string | null
@@ -37,15 +42,47 @@ function parseRpc(data: unknown) {
   return parsed.data
 }
 
-export async function fetchMembership(userId: string): Promise<Membership | null> {
-  const { data, error } = await requireSupabase()
-    .from('workspace_members')
-    .select('seat, workspace:workspaces!inner(id, name)')
-    .eq('user_id', userId)
-    .maybeSingle()
+/** Every workspace the signed-in person belongs to, oldest first (ADR 0018). */
+export async function fetchMyWorkspaces(): Promise<Membership[]> {
+  const { data, error } = await requireSupabase().rpc('my_workspaces')
   if (error) throw toAppError(error)
-  if (!data) return null
-  return { workspaceId: data.workspace.id, workspaceName: data.workspace.name, seat: data.seat }
+  return (data ?? []).map((w) => ({
+    workspaceId: w.id,
+    workspaceName: w.name,
+    emoji: w.emoji,
+    role: w.role === 'owner' ? 'owner' : 'member',
+    memberCount: w.member_count,
+    maxMembers: w.max_members,
+    isActive: w.is_active,
+  }))
+}
+
+export async function setActiveWorkspace(id: string): Promise<void> {
+  const { error } = await requireSupabase().rpc('set_active_workspace', { p_workspace: id })
+  if (error) throw toAppError(error)
+}
+
+export async function leaveWorkspace(id: string): Promise<void> {
+  const { error } = await requireSupabase().rpc('leave_workspace', { p_workspace: id })
+  if (error) throw toAppError(error)
+}
+
+export async function removeMember(userId: string): Promise<void> {
+  const { error } = await requireSupabase().rpc('remove_workspace_member', { p_user: userId })
+  if (error) throw toAppError(error)
+}
+
+export async function updateWorkspace(patch: {
+  name?: string
+  emoji?: string
+  maxMembers?: number
+}): Promise<void> {
+  const { error } = await requireSupabase().rpc('update_workspace', {
+    p_name: patch.name ?? null,
+    p_emoji: patch.emoji ?? null,
+    p_max_members: patch.maxMembers ?? null,
+  } as never)
+  if (error) throw toAppError(error)
 }
 
 /** Whether the person is an active guest of any project room (routes guest-only accounts). */
@@ -62,13 +99,14 @@ export async function fetchHasGuestRooms(userId: string): Promise<boolean> {
 export async function fetchMembers(workspaceId: string): Promise<Member[]> {
   const { data, error } = await requireSupabase()
     .from('workspace_members')
-    .select('seat, user_id, joined_at, profile:profiles!inner(display_name, avatar_path)')
+    .select('seat, role, user_id, joined_at, profile:profiles!inner(display_name, avatar_path)')
     .eq('workspace_id', workspaceId)
     .order('seat')
   if (error) throw toAppError(error)
   return data.map((m) => ({
     userId: m.user_id,
     seat: m.seat,
+    role: m.role === 'owner' ? 'owner' : 'member',
     joinedAt: m.joined_at,
     displayName: m.profile.display_name,
     avatarPath: m.profile.avatar_path,
@@ -94,12 +132,8 @@ export async function createWorkspace(name: string): Promise<string> {
   return data
 }
 
-export async function renameWorkspace(workspaceId: string, name: string): Promise<void> {
-  const { error } = await requireSupabase()
-    .from('workspaces')
-    .update({ name })
-    .eq('id', workspaceId)
-  if (error) throw toAppError(error)
+export async function renameWorkspace(_workspaceId: string, name: string): Promise<void> {
+  await updateWorkspace({ name })
 }
 
 /** Returns the full invitation link. The token is shown once and never stored in plain text. */
