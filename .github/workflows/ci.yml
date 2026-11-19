@@ -33,6 +33,8 @@ jobs:
       - run: npm run build
       - name: No server secrets in the bundle
         run: npm run check:bundle-secrets
+      - name: Performance budget (initial JavaScript)
+        run: npm run check:bundle-size
 
   e2e:
     name: End-to-end (Playwright)

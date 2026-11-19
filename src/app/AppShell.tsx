@@ -10,6 +10,7 @@ import {
 } from 'lucide-react'
 import { Link, NavLink, Outlet, useLocation, useNavigate } from 'react-router'
 import { MoonLogo } from '@/components/patterns/MoonLogo'
+import { UpdatePrompt } from '@/components/patterns/UpdatePrompt'
 import { useAuth } from '@/features/auth'
 import { useMyProfile } from '@/features/profile'
 import { useChatRealtime, useChatUnread } from '@/features/chat'
@@ -122,6 +123,7 @@ export function AppShell() {
         </div>
       </div>
 
+      <UpdatePrompt />
       <nav
         aria-label="Main"
         className="glass fixed inset-x-4 bottom-[calc(12px+env(safe-area-inset-bottom))] z-30 flex rounded-full border border-hairline p-1.5 shadow-2 lg:hidden"
@@ -163,8 +165,8 @@ function AccountMenu({ wide = false }: { wide?: boolean }) {
         className={`flex items-center gap-2.5 rounded-full text-body-sm transition-colors hover:bg-hairline ${
           wide ? 'py-1 pr-3 pl-1' : 'p-1'
         }`}
-        aria-label={`Account menu for ${name}`}
       >
+        <span className="sr-only">{wide ? 'Account menu: ' : `${name}, account menu`}</span>
         <span
           aria-hidden
           className="btn-primary flex size-9 items-center justify-center rounded-full text-body-sm font-semibold"

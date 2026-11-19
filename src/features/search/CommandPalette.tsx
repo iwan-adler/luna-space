@@ -56,11 +56,16 @@ export function CommandPalette({ shortcut = false }: { shortcut?: boolean }) {
         <button
           type="button"
           className="icon-btn lg:flex lg:w-56 lg:items-center lg:justify-start lg:gap-2 lg:px-4"
-          aria-label="Search (Ctrl K)"
+          aria-keyshortcuts="Control+K Meta+K"
         >
           <Search className="size-[18px]" strokeWidth={1.75} aria-hidden />
-          <span className="hidden flex-1 text-left text-body-sm text-muted lg:inline">Search…</span>
-          <kbd className="hidden rounded-md border border-hairline px-1.5 text-caption text-muted lg:inline">
+          <span className="sr-only flex-1 text-left text-body-sm text-muted lg:not-sr-only">
+            Search…
+          </span>
+          <kbd
+            aria-hidden
+            className="hidden rounded-md border border-hairline px-1.5 text-caption text-muted lg:inline"
+          >
             Ctrl K
           </kbd>
         </button>

@@ -1,8 +1,3 @@
-export { ProjectListPage } from './pages/ProjectListPage'
-export { ProjectRoomPage } from './pages/ProjectRoomPage'
-export { MyTasksPage } from './pages/MyTasksPage'
 export { ConvertToProjectCard } from './components/ConvertToProjectCard'
 export { useMyTasks, useProjectForOpportunity } from './hooks'
-export { JoinRoomPage } from './pages/JoinRoomPage'
-export { GuestShell, GuestHomePage, GuestRoomPage } from './pages/GuestPages'
 export { ActiveProjectsWidget } from './components/ActiveProjectsWidget'

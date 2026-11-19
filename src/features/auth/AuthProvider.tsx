@@ -28,7 +28,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const { data } = supabase.auth.onAuthStateChange((event, next) => {
       setSession(next)
       setLoading(false)
-      if (event === 'SIGNED_OUT') queryClient.clear() // TR-FE-03: drop cached private data
+      if (event === 'SIGNED_OUT') {
+        queryClient.clear() // TR-FE-03: drop cached private data
+        try {
+          sessionStorage.removeItem('luna.workspace')
+        } catch {
+          // storage unavailable
+        }
+      }
     })
     return () => {
       active = false

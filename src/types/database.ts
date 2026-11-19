@@ -1419,6 +1419,9 @@ isOneToOne: false
                            },
 "update_workspace":
 { Args: { "p_emoji": string,"p_max_members": number,"p_name": string }; Returns: undefined
+                           },
+"workspace_usage":
+{ Args: Record<PropertyKey, never>; Returns: Json
                            }
           }
           Enums: {

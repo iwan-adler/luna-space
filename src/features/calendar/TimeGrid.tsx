@@ -165,7 +165,13 @@ export function TimeGrid({
           </div>
         ))}
       </div>
-      <div ref={scroller} className="relative h-[62dvh] overflow-y-auto">
+      <div
+        ref={scroller}
+        className="relative h-[62dvh] overflow-y-auto focus-visible:outline-2"
+        tabIndex={0}
+        role="region"
+        aria-label="Hours of the day (scroll with the arrow keys)"
+      >
         <div className="grid" style={{ ...gridStyle, height: 1440 * PX }}>
           <div className="relative">
             {HOURS.map((h) => (

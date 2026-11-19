@@ -9,6 +9,7 @@ import { useCurrentWorkspace } from '@/features/workspace'
 import { todayIn } from '@/lib/dates'
 import { buildExport, downloadJson } from './export'
 import { exportFileName } from './model'
+import { UsageCard } from './UsageCard'
 
 /** /settings/data — download everything, and the recycle bin (FR-PLAT-13, FR-PLAT-10). */
 export function DataSettingsPage() {
@@ -37,11 +38,12 @@ export function DataSettingsPage() {
       <h1 id="data-title" className="text-h1">
         Your data
       </h1>
+      <UsageCard />
       <Card className="space-y-3 p-5">
         <h2 className="text-h2">Download everything</h2>
         <p className="text-body-sm text-muted">
           One JSON file with your own items and everything shared in {ws.workspaceName}:
-          opportunities, projects, tasks, calendar, notes, the Vault, chat and activity. Your Other
+          opportunities, projects, tasks, calendar, notes, the Vault, chat and activity. Other
           members&apos; private items are never included. Uploaded files are listed by name; their
           contents are not part of the file.
         </p>

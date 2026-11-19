@@ -1,4 +1,3 @@
-export { SearchPage } from './SearchPage'
 export { CommandPalette } from './CommandPalette'
 export { Highlight } from './Highlight'
 export { useDebounced, useSearch } from './hooks'
