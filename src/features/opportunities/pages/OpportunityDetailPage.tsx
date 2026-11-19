@@ -9,6 +9,7 @@ import { Dialog } from '@/components/ui/Dialog'
 import { PageSpinner, Spinner } from '@/components/ui/Spinner'
 import { useToast } from '@/components/ui/Toast'
 import { ConvertToProjectCard } from '@/features/projects'
+import { TeamFinder } from '../teams/TeamFinder'
 import { useCurrentWorkspace, useMembers } from '@/features/workspace'
 import { formatDateOnly, formatDated, formatInstant } from '@/lib/dates'
 import { formatDateTime } from '@/lib/format'
@@ -324,6 +325,9 @@ function Overview({ o, tz }: { o: Opportunity; tz: string }) {
           </ul>
         </Card>
         <ConvertToProjectCard opportunityId={o.id} />
+        {['hackathon', 'coding_competition', 'innovation_challenge'].includes(o.type) ? (
+          <TeamFinder opportunityId={o.id} />
+        ) : null}
       </aside>
     </div>
   )

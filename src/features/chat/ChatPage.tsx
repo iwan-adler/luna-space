@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 import {
+  BarChart3,
   Check,
   CornerUpLeft,
   FileText,
@@ -19,8 +20,12 @@ import { useToast } from '@/components/ui/Toast'
 import { useAuth } from '@/features/auth'
 import { Markdown } from '@/features/notes'
 import { LinkCard } from './LinkCard'
+import { Sticker, StickerPicker } from './Sticker'
+import { PollCard, PollDialog } from './Poll'
+import { pollOf } from './polls'
+import { stickerById, stickerOf } from './stickers'
 import { firstLink } from './links'
-import { useMyProfile, useUpdateProfile, useViewerTimeZone } from '@/features/profile'
+import { ProfileCard, useMyProfile, useUpdateProfile, useViewerTimeZone } from '@/features/profile'
 import { formatBytes, signedFileUrl } from '@/lib/files'
 import { useCurrentWorkspace, useMembers } from '@/features/workspace'
 import { formatDateOnly, utcIsoToZonedLocal } from '@/lib/dates'
@@ -35,6 +40,7 @@ import {
   useTyping,
   useReadStates,
   useSendMessage,
+  useSendSticker,
   useToggleReaction,
   type Attachment,
   type Message,
@@ -187,7 +193,15 @@ export function ChatPage() {
         )}
         <div className="min-w-0 flex-1">
           <h1 id="chat-title" className="truncate text-h2">
-            {group ? workspaceName : partner ? partner.displayName : 'Chat'}
+            {group ? (
+              workspaceName
+            ) : partner ? (
+              <ProfileCard userId={partner.userId} label={partner.displayName}>
+                {partner.displayName}
+              </ProfileCard>
+            ) : (
+              'Chat'
+            )}
           </h1>
           <p className="text-caption text-muted" data-testid="partner-status">
             {group
@@ -363,20 +377,34 @@ function Bubble({
         ) : null}
         <div className="relative">
           <div
-            className={`rounded-[18px] px-3.5 py-2 text-body-sm ${mine ? 'btn-primary rounded-br-[6px]' : 'rounded-bl-[6px] border border-hairline bg-surface-raised'} ${deleted ? 'opacity-60' : ''}`}
+            className={
+              m.kind === 'poll' && !deleted
+                ? 'rounded-[18px] border border-hairline bg-surface-raised px-3.5 py-3 text-body-sm shadow-[0_0_24px_-12px_var(--color-primary)]'
+                : m.kind === 'sticker' && !deleted
+                  ? `pop ${reply ? 'rounded-[18px] border border-hairline bg-surface-raised px-3 py-2' : ''}`
+                  : `rounded-[18px] px-3.5 py-2 text-body-sm ${mine ? 'btn-primary rounded-br-[6px]' : 'rounded-bl-[6px] border border-hairline bg-surface-raised'} ${deleted ? 'opacity-60' : ''}`
+            }
           >
             {reply ? (
               <p
                 className={`mb-1.5 border-l-2 pl-2 text-caption ${mine ? 'border-white/50 text-white/85' : 'border-primary/60 text-muted'}`}
               >
                 <span className="font-medium">{replyName(reply.sender_id)}</span>:{' '}
-                {reply.deleted_at ? 'Message deleted' : plain(reply.body ?? 'File').slice(0, 90)}
+                {reply.deleted_at
+                  ? 'Message deleted'
+                  : reply.kind === 'poll'
+                    ? `Poll: ${pollOf(reply.metadata)?.question ?? ''}`
+                    : reply.kind === 'sticker'
+                      ? `Sticker: ${stickerById(stickerOf(reply.metadata))?.caption ?? 'sticker'}`
+                      : plain(reply.body ?? 'File').slice(0, 90)}
               </p>
             ) : null}
             {deleted ? (
               <p className="italic">Message deleted</p>
             ) : (
               <>
+                {m.kind === 'sticker' ? <Sticker id={stickerOf(m.metadata) ?? ''} /> : null}
+                {m.kind === 'poll' ? <PollCard message={m} myId={myId} nameOf={replyName} /> : null}
                 {m.body ? <Markdown body={m.body} /> : null}
                 {m.body && firstLink(m.body) ? (
                   <LinkCard url={firstLink(m.body)!} mine={mine} />
@@ -548,6 +576,8 @@ function Composer({
   typingLabel: string | null
 }) {
   const send = useSendMessage()
+  const sendSticker = useSendSticker()
+  const [polling, setPolling] = useState(0)
   const edit = useEditMessage()
   const toast = useToast()
   const [text, setText] = useState('')
@@ -661,6 +691,31 @@ function Composer({
             e.target.value = ''
           }}
         />
+        {editing ? null : (
+          <button
+            type="button"
+            aria-label="Start a poll"
+            className="icon-btn size-10 shrink-0"
+            onClick={() => setPolling((n) => n + 1)}
+          >
+            <BarChart3 className="size-4" aria-hidden />
+          </button>
+        )}
+        {polling ? <PollDialog key={polling} onClose={() => setPolling(0)} /> : null}
+        {editing ? null : (
+          <StickerPicker
+            disabled={sendSticker.isPending}
+            onPick={(id) =>
+              sendSticker.mutate(
+                { id, replyTo: replyTo?.id ?? null },
+                {
+                  onSuccess: () => onDone(),
+                  onError: (e) => toast.show(e.message, 'error'),
+                },
+              )
+            }
+          />
+        )}
         {editing ? null : (
           <button
             type="button"

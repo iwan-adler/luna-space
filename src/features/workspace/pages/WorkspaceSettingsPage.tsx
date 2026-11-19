@@ -10,6 +10,7 @@ import { SelectField, TextField } from '@/components/ui/Field'
 import { Spinner } from '@/components/ui/Spinner'
 import { useToast } from '@/components/ui/Toast'
 import { useAuth } from '@/features/auth'
+import { ProfileCard } from '@/features/profile'
 import { formatDate, formatDateTime } from '@/lib/format'
 import { InviteLinkPanel } from '../components/InviteLinkPanel'
 import type { Member } from '../api'
@@ -137,7 +138,9 @@ export function WorkspaceSettingsPage() {
                 </span>
                 <span className="min-w-0 flex-1">
                   <span className="flex items-center gap-1.5 font-medium">
-                    {m.displayName}
+                    <ProfileCard userId={m.userId} label={m.displayName}>
+                      {m.displayName}
+                    </ProfileCard>
                     {m.userId === user?.id ? <span className="text-muted">(you)</span> : null}
                     {m.role === 'owner' ? (
                       <Crown className="size-3.5 text-highlight" aria-label="Owner" />

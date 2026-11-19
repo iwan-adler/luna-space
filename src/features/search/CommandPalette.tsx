@@ -13,6 +13,7 @@ import {
   Search,
   Settings,
   Trophy,
+  Users,
   type LucideIcon,
 } from 'lucide-react'
 import { useEffect, useState, type KeyboardEvent } from 'react'
@@ -105,6 +106,7 @@ function Palette({ close }: { close: () => void }) {
     { label: 'Chat', icon: MessageCircle, run: go('/chat') },
     { label: 'Vault', icon: Library, run: go('/vault') },
     { label: 'Trophy wall', icon: Award, run: go('/trophies') },
+    { label: 'Team finder', icon: Users, run: go('/teams') },
     { label: 'Settings', icon: Settings, run: go('/settings/profile') },
     { label: 'Add an opportunity', icon: Plus, run: go('/opportunities/new') },
     {

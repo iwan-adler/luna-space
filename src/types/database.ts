@@ -715,16 +715,42 @@ isOneToOne: false
       referencedColumns: ["id","workspace_id"]
     }
                   ]
-                },"profiles": {
+                },"poll_votes": {
                   Row: {
-                    "active_workspace_id": string | null,"availability": Database["public"]['Enums']["availability_status"],"avatar_path": string | null,"created_at": string,"display_name": string,"id": string,"timezone": string,"updated_at": string
+                    "created_at": string,"message_id": string,"option_index": number,"user_id": string,"workspace_id": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "active_workspace_id"?: string | null,"availability"?: Database["public"]['Enums']["availability_status"],"avatar_path"?: string | null,"created_at"?: string,"display_name": string,"id": string,"timezone"?: string,"updated_at"?: string
+                    "created_at"?: string,"message_id": string,"option_index": number,"user_id": string,"workspace_id": string
                   }
                   Update: {
-                    "active_workspace_id"?: string | null,"availability"?: Database["public"]['Enums']["availability_status"],"avatar_path"?: string | null,"created_at"?: string,"display_name"?: string,"id"?: string,"timezone"?: string,"updated_at"?: string
+                    "created_at"?: string,"message_id"?: string,"option_index"?: number,"user_id"?: string,"workspace_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "poll_votes_message_id_workspace_id_fkey"
+      columns: ["message_id","workspace_id"]
+isOneToOne: false
+      referencedRelation: "messages"
+      referencedColumns: ["id","workspace_id"]
+    },{
+      foreignKeyName: "poll_votes_user_id_fkey"
+      columns: ["user_id"]
+isOneToOne: false
+      referencedRelation: "profiles"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"profiles": {
+                  Row: {
+                    "active_workspace_id": string | null,"availability": Database["public"]['Enums']["availability_status"],"avatar_path": string | null,"bio": string | null,"created_at": string,"devpost_username": string | null,"display_name": string,"github_username": string | null,"id": string,"linkedin_url": string | null,"skills": (string)[],"timezone": string,"updated_at": string,"website_url": string | null
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "active_workspace_id"?: string | null,"availability"?: Database["public"]['Enums']["availability_status"],"avatar_path"?: string | null,"bio"?: string | null,"created_at"?: string,"devpost_username"?: string | null,"display_name": string,"github_username"?: string | null,"id": string,"linkedin_url"?: string | null,"skills"?: (string)[],"timezone"?: string,"updated_at"?: string,"website_url"?: string | null
+                  }
+                  Update: {
+                    "active_workspace_id"?: string | null,"availability"?: Database["public"]['Enums']["availability_status"],"avatar_path"?: string | null,"bio"?: string | null,"created_at"?: string,"devpost_username"?: string | null,"display_name"?: string,"github_username"?: string | null,"id"?: string,"linkedin_url"?: string | null,"skills"?: (string)[],"timezone"?: string,"updated_at"?: string,"website_url"?: string | null
                   }
                   Relationships: [
                     {
@@ -1049,6 +1075,38 @@ isOneToOne: false
       referencedColumns: ["id","workspace_id"]
     },{
       foreignKeyName: "tasks_workspace_id_fkey"
+      columns: ["workspace_id"]
+isOneToOne: false
+      referencedRelation: "workspaces"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"team_posts": {
+                  Row: {
+                    "created_at": string,"id": string,"kind": string,"note": string | null,"opportunity_id": string,"skills": (string)[],"spots": number | null,"status": string,"updated_at": string,"user_id": string,"workspace_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "created_at"?: string,"id"?: string,"kind": string,"note"?: string | null,"opportunity_id": string,"skills"?: (string)[],"spots"?: number | null,"status"?: string,"updated_at"?: string,"user_id": string,"workspace_id": string
+                  }
+                  Update: {
+                    "created_at"?: string,"id"?: string,"kind"?: string,"note"?: string | null,"opportunity_id"?: string,"skills"?: (string)[],"spots"?: number | null,"status"?: string,"updated_at"?: string,"user_id"?: string,"workspace_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "team_posts_opportunity_id_workspace_id_fkey"
+      columns: ["opportunity_id","workspace_id"]
+isOneToOne: false
+      referencedRelation: "opportunities"
+      referencedColumns: ["id","workspace_id"]
+    },{
+      foreignKeyName: "team_posts_user_id_fkey"
+      columns: ["user_id"]
+isOneToOne: false
+      referencedRelation: "profiles"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "team_posts_workspace_id_fkey"
       columns: ["workspace_id"]
 isOneToOne: false
       referencedRelation: "workspaces"

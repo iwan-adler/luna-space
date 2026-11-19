@@ -16,6 +16,7 @@ import {
   type ThemePreference,
 } from '@/lib/theme'
 import { timeZoneOptions } from '@/lib/timezones'
+import { AboutYouCard } from './AboutYouCard'
 import { useMyProfile, useUpdateProfile } from './hooks'
 
 const PALETTES: { id: Palette; name: string; note: string; swatch: string }[] = [
@@ -111,6 +112,8 @@ export function ProfileSettingsPage() {
           </Button>
         </form>
       </Card>
+
+      {profile.data ? <AboutYouCard key={profile.data.id} profile={profile.data} /> : null}
 
       <Card>
         <fieldset>

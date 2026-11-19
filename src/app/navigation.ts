@@ -8,6 +8,7 @@ import {
   NotebookPen,
   MessageCircle,
   Trophy,
+  UsersRound,
   type LucideIcon,
 } from 'lucide-react'
 
@@ -29,6 +30,7 @@ export const primaryNav: NavItem[] = [
   { to: '/notes', label: 'Notes', icon: NotebookPen },
   { to: '/chat', label: 'Chat', icon: MessageCircle },
   { to: '/vault', label: 'Vault', icon: Library },
+  { to: '/teams', label: 'Team finder', icon: UsersRound },
   { to: '/trophies', label: 'Trophies', icon: Award },
 ]
 

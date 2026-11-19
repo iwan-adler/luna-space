@@ -21,12 +21,13 @@ export interface Attachment {
 export type Message = MessageRow & {
   reactions: { user_id: string; emoji: string }[]
   files: Attachment[]
+  votes: { user_id: string; option_index: number }[]
 }
 export type ReadState = Tables['chat_read_state']['Row']
 
 const PAGE = 50
 const COLUMNS =
-  'id, workspace_id, sender_id, project_id, reply_to_id, kind, body, metadata, client_id, edited_at, deleted_at, created_at, reactions:message_reactions(user_id, emoji), files(id, file_name, mime_type, size_bytes, storage_path, upload_state, deleted_at)'
+  'id, workspace_id, sender_id, project_id, reply_to_id, kind, body, metadata, client_id, edited_at, deleted_at, created_at, reactions:message_reactions(user_id, emoji), files(id, file_name, mime_type, size_bytes, storage_path, upload_state, deleted_at), votes:poll_votes(user_id, option_index)'
 
 export const chatKeys = {
   all: ['chat'] as const,
@@ -122,6 +123,83 @@ export function useSendMessage() {
     onSettled: () => {
       void qc.invalidateQueries({ queryKey: chatKeys.messages(workspaceId) })
     },
+  })
+}
+
+/** Sends a sticker from the built-in pack (ADR 0021). */
+export function useSendSticker() {
+  const qc = useQueryClient()
+  const { user } = useAuth()
+  const { workspaceId } = useCurrentWorkspace()
+  return useMutation({
+    mutationFn: async (args: { id: string; replyTo: string | null }) => {
+      const { error } = await db()
+        .from('messages')
+        .insert({
+          workspace_id: workspaceId,
+          sender_id: user!.id,
+          kind: 'sticker',
+          body: null,
+          metadata: { sticker: args.id },
+          reply_to_id: args.replyTo,
+          client_id: crypto.randomUUID(),
+        })
+      if (error) throw toAppError(error)
+    },
+    onSettled: () => {
+      void qc.invalidateQueries({ queryKey: chatKeys.messages(workspaceId) })
+    },
+  })
+}
+
+/** Starts a poll: a question with 2–8 options (ADR 0021). */
+export function useSendPoll() {
+  const qc = useQueryClient()
+  const { user } = useAuth()
+  const { workspaceId } = useCurrentWorkspace()
+  return useMutation({
+    mutationFn: async (args: { question: string; options: string[]; multi: boolean }) => {
+      const { error } = await db()
+        .from('messages')
+        .insert({
+          workspace_id: workspaceId,
+          sender_id: user!.id,
+          kind: 'poll',
+          body: null,
+          metadata: { question: args.question, options: args.options, multi: args.multi },
+          client_id: crypto.randomUUID(),
+        })
+      if (error) throw toAppError(error)
+    },
+    onSettled: () => {
+      void qc.invalidateQueries({ queryKey: chatKeys.messages(workspaceId) })
+    },
+  })
+}
+
+/** Votes for an option, or takes the vote back. Single-choice polls move your vote. */
+export function useVote() {
+  const qc = useQueryClient()
+  const { user } = useAuth()
+  const { workspaceId } = useCurrentWorkspace()
+  return useMutation({
+    mutationFn: async (args: { messageId: string; option: number; on: boolean }) => {
+      const table = db().from('poll_votes')
+      const { error } = args.on
+        ? await table.insert({
+            workspace_id: workspaceId,
+            message_id: args.messageId,
+            user_id: user!.id,
+            option_index: args.option,
+          })
+        : await table
+            .delete()
+            .eq('message_id', args.messageId)
+            .eq('user_id', user!.id)
+            .eq('option_index', args.option)
+      if (error) throw toAppError(error)
+    },
+    onSettled: () => qc.invalidateQueries({ queryKey: chatKeys.messages(workspaceId) }),
   })
 }
 
@@ -221,6 +299,7 @@ export function useChatRealtime() {
         refresh,
       )
       .on('postgres_changes', { event: '*', schema: 'public', table: 'message_reactions' }, refresh)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'poll_votes' }, refresh)
       // Attachments finish uploading after their message arrives.
       .on(
         'postgres_changes',
