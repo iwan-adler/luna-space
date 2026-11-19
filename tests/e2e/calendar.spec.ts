@@ -13,7 +13,7 @@ async function pair(browser: Browser): Promise<{ a: Page; b: Page }> {
   await expect(b.getByRole('heading', { level: 1, name: /, Ben/ })).toBeVisible()
   await b.goto('/settings/profile')
   await b.getByLabel('Time zone').selectOption('America/Los_Angeles')
-  await b.getByRole('button', { name: /save/i }).click()
+  await b.getByRole('button', { name: 'Save profile' }).click()
   return { a, b }
 }
 

@@ -3,7 +3,7 @@ import { CalendarCheck, CheckCheck, Flame, Send, UserPlus } from 'lucide-react'
 import { Link } from 'react-router'
 import { Skeleton } from '@/components/ui/Skeleton'
 import { useAuth } from '@/features/auth'
-import { useViewerTimeZone } from '@/features/profile'
+import { ProfileCard, useViewerTimeZone } from '@/features/profile'
 import { useCurrentWorkspace, useMembers } from '@/features/workspace'
 import { toAppError } from '@/lib/errors'
 import { requireSupabase } from '@/lib/supabase'
@@ -66,7 +66,9 @@ export function TeamCard() {
                   </span>
                   <span className="min-w-0 flex-1">
                     <span className="block text-body-sm font-medium">
-                      {m.userId === user?.id ? `${m.displayName} (you)` : m.displayName}
+                      <ProfileCard userId={m.userId} label={m.displayName}>
+                        {m.userId === user?.id ? `${m.displayName} (you)` : m.displayName}
+                      </ProfileCard>
                     </span>
                     <span className="block truncate text-caption text-muted">
                       {task ? (
