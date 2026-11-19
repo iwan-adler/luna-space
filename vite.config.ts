@@ -1,5 +1,5 @@
 /// <reference types="vitest/config" />
-import { readFileSync } from 'node:fs'
+import { readFileSync, writeFileSync } from 'node:fs'
 import { fileURLToPath, URL } from 'node:url'
 import tailwindcss from '@tailwindcss/vite'
 import react from '@vitejs/plugin-react'
@@ -37,12 +37,29 @@ function previewHeaders(mode: string): Record<string, string> {
     headers['Content-Security-Policy'] = csp
       .replace("connect-src 'self'", `connect-src 'self' ${apiUrl} ${ws}`)
       .replace("img-src 'self'", `img-src 'self' ${apiUrl}`)
+      .replace("frame-src 'self'", `frame-src 'self' ${apiUrl}`)
   }
   return headers
 }
 
+/**
+ * Stamps dist/sw.js with a build id, so every deployment ships a changed service worker and the
+ * app can offer "Update available" (ADR 0022).
+ */
+function stampServiceWorker() {
+  return {
+    name: 'luna-stamp-sw',
+    apply: 'build' as const,
+    closeBundle() {
+      const file = 'dist/sw.js'
+      const id = `${Date.now().toString(36)}`
+      writeFileSync(file, readFileSync(file, 'utf8').replace('__BUILD_ID__', id))
+    },
+  }
+}
+
 export default defineConfig(({ mode }) => ({
-  plugins: [react(), tailwindcss()],
+  plugins: [react(), tailwindcss(), stampServiceWorker()],
   resolve: {
     alias: { '@': fileURLToPath(new URL('./src', import.meta.url)) },
   },

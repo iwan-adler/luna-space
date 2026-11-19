@@ -1,0 +1,68 @@
+# Nightly backup of the production database (Implementation Plan §14, ADR 0022).
+#
+# Dumps roles, schema and data with the Supabase CLI, encrypts the dumps with a passphrase
+# (AES-256, gpg symmetric) and keeps them as a workflow artifact for 30 days. Nothing is
+# readable without the passphrase, which lives only in the repository's secrets and the owner's
+# password manager.
+#
+# Setup (once): add two repository secrets —
+#   SUPABASE_DB_URL      the project's session-pooler connection string (Supabase dashboard →
+#                        Connect → Session pooler), including the database password
+#   BACKUP_PASSPHRASE    a long random passphrase; keep a copy somewhere safe
+# Until both exist the job skips itself.
+name: Backup
+
+on:
+  schedule:
+    - cron: '41 21 * * *' # 03:11 IST
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  backup:
+    name: Nightly database backup
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+      BACKUP_PASSPHRASE: ${{ secrets.BACKUP_PASSPHRASE }}
+    steps:
+      - name: Check secrets
+        id: ready
+        run: |
+          if [ -z "$SUPABASE_DB_URL" ] || [ -z "$BACKUP_PASSPHRASE" ]; then
+            echo "Backup secrets are not set yet; skipping."
+            echo "ok=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "ok=true" >> "$GITHUB_OUTPUT"
+          fi
+      - uses: supabase/setup-cli@v1
+        if: steps.ready.outputs.ok == 'true'
+        with:
+          version: 3.2.0
+      - name: Dump roles, schema and data
+        if: steps.ready.outputs.ok == 'true'
+        run: |
+          mkdir -p backup
+          supabase db dump --db-url "$SUPABASE_DB_URL" --role-only -f backup/roles.sql
+          supabase db dump --db-url "$SUPABASE_DB_URL" -f backup/schema.sql
+          supabase db dump --db-url "$SUPABASE_DB_URL" --data-only --use-copy -f backup/data.sql
+          ls -la backup
+      - name: Encrypt
+        if: steps.ready.outputs.ok == 'true'
+        run: |
+          stamp=$(date -u +%Y-%m-%dT%H%MZ)
+          tar -czf "luna-space-$stamp.tar.gz" -C backup .
+          gpg --batch --yes --pinentry-mode loopback --passphrase "$BACKUP_PASSPHRASE" \
+            --symmetric --cipher-algo AES256 -o "luna-space-$stamp.tar.gz.gpg" "luna-space-$stamp.tar.gz"
+          rm -rf backup "luna-space-$stamp.tar.gz"
+          echo "STAMP=$stamp" >> "$GITHUB_ENV"
+      - uses: actions/upload-artifact@v4
+        if: steps.ready.outputs.ok == 'true'
+        with:
+          name: luna-space-db-${{ env.STAMP }}
+          path: luna-space-*.tar.gz.gpg
+          retention-days: 30
+          if-no-files-found: error

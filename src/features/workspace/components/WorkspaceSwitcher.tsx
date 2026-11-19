@@ -31,9 +31,9 @@ export function WorkspaceSwitcher() {
     <Menu.Root>
       <Menu.Trigger
         className="lift flex w-full items-center gap-2.5 rounded-[14px] border border-hairline bg-[var(--control-fill)] p-2 text-left"
-        aria-label={`Workspace: ${current.workspaceName}. Switch workspace`}
         data-testid="workspace-switcher"
       >
+        <span className="sr-only">Switch workspace, current: </span>
         <WorkspaceBadge ws={current} />
         <span className="min-w-0 flex-1">
           <span className="block truncate text-body-sm font-medium">{current.workspaceName}</span>

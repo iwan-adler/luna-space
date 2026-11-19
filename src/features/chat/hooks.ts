@@ -339,8 +339,9 @@ export function usePresence(): Set<string> {
   useEffect(() => {
     if (!user) return
     const client = db()
+    // Private channel: Realtime admits only members of this workspace (migration 0025).
     const channel = client.channel(`presence:${workspaceId}`, {
-      config: { presence: { key: user.id } },
+      config: { private: true, presence: { key: user.id } },
     })
     channel
       .on('presence', { event: 'sync' }, () =>
@@ -370,7 +371,9 @@ export function useTyping(): { typing: string[]; notify: () => void } {
   useEffect(() => {
     if (!user) return
     const client = db()
-    const ch = client.channel(`typing:${workspaceId}`, { config: { broadcast: { self: false } } })
+    const ch = client.channel(`typing:${workspaceId}`, {
+      config: { private: true, broadcast: { self: false } },
+    })
     ch.on('broadcast', { event: 'typing' }, ({ payload }) => {
       const id = (payload as { user_id?: string }).user_id
       if (id && id !== user.id) setUntil((u) => ({ ...u, [id]: Date.now() + 4000 }))

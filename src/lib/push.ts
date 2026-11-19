@@ -16,14 +16,48 @@ export function pushSupported(): boolean {
   )
 }
 
-/** Registers the service worker once, early, so push works even when no tab is open. */
+export const UPDATE_EVENT = 'luna:update-available'
+let updating = false
+
+/**
+ * Registers the service worker once, early, so push works even when no tab is open and the app
+ * shell is cached. When a newer version has installed, fires UPDATE_EVENT with the waiting worker
+ * (ADR 0022); applyUpdate() then switches to it and reloads.
+ */
 export function registerServiceWorker(): void {
   if (!('serviceWorker' in navigator)) return
   const local = ['localhost', '127.0.0.1'].includes(location.hostname)
   if (location.protocol !== 'https:' && !local) return
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/sw.js', { scope: '/' }).catch(() => undefined)
+  navigator.serviceWorker.addEventListener('controllerchange', () => {
+    if (updating) location.reload()
   })
+  window.addEventListener('load', () => {
+    navigator.serviceWorker
+      .register('/sw.js', { scope: '/' })
+      .then((reg) => {
+        const announce = (w: ServiceWorker) =>
+          window.dispatchEvent(new CustomEvent(UPDATE_EVENT, { detail: w }))
+        if (reg.waiting && navigator.serviceWorker.controller) announce(reg.waiting)
+        reg.addEventListener('updatefound', () => {
+          const w = reg.installing
+          w?.addEventListener('statechange', () => {
+            if (w.state === 'installed' && navigator.serviceWorker.controller) announce(w)
+          })
+        })
+        // Look for a new version when the app comes back to the foreground, and hourly.
+        document.addEventListener('visibilitychange', () => {
+          if (document.visibilityState === 'visible') void reg.update().catch(() => undefined)
+        })
+        window.setInterval(() => void reg.update().catch(() => undefined), 3_600_000)
+      })
+      .catch(() => undefined)
+  })
+}
+
+/** Lets the waiting version take over; the page reloads once it has. */
+export function applyUpdate(worker: ServiceWorker) {
+  updating = true
+  worker.postMessage('SKIP_WAITING')
 }
 
 function keyToBytes(base64url: string): Uint8Array<ArrayBuffer> {

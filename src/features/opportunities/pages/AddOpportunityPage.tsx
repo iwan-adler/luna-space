@@ -1,6 +1,6 @@
 import { ClipboardPaste, Link2, PencilLine } from 'lucide-react'
 import { useState } from 'react'
-import { Link, useNavigate } from 'react-router'
+import { Link, useNavigate, useSearchParams } from 'react-router'
 import { Button } from '@/components/ui/Button'
 import { Alert, Card } from '@/components/ui/Card'
 import { TextField } from '@/components/ui/Field'
@@ -16,7 +16,9 @@ const MAX_PASTE = 300_000
  */
 export function AddOpportunityPage() {
   const navigate = useNavigate()
-  const [url, setUrl] = useState('')
+  const [params] = useSearchParams()
+  // A link shared from the phone's share sheet arrives as ?url= (ADR 0022).
+  const [url, setUrl] = useState(() => params.get('url') ?? '')
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [duplicate, setDuplicate] = useState<{ id: string; title: string } | null>(null)

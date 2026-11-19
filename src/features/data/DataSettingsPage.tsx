@@ -9,6 +9,7 @@ import { useCurrentWorkspace } from '@/features/workspace'
 import { todayIn } from '@/lib/dates'
 import { buildExport, downloadJson } from './export'
 import { exportFileName } from './model'
+import { UsageCard } from './UsageCard'
 
 /** /settings/data — download everything, and the recycle bin (FR-PLAT-13, FR-PLAT-10). */
 export function DataSettingsPage() {
@@ -37,6 +38,7 @@ export function DataSettingsPage() {
       <h1 id="data-title" className="text-h1">
         Your data
       </h1>
+      <UsageCard />
       <Card className="space-y-3 p-5">
         <h2 className="text-h2">Download everything</h2>
         <p className="text-body-sm text-muted">
