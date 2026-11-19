@@ -7,7 +7,8 @@ import { Button } from '@/components/ui/Button'
 import { Alert } from '@/components/ui/Card'
 import { Dialog } from '@/components/ui/Dialog'
 import { SelectField, TextField } from '@/components/ui/Field'
-import { PageSpinner } from '@/components/ui/Spinner'
+import { SkeletonList } from '@/components/ui/Skeleton'
+import { ProgressRing, ProjectCover, StageTrack } from '../components/ProjectVisuals'
 import { useToast } from '@/components/ui/Toast'
 import { formatDateOnly } from '@/lib/dates'
 import { messageForCode, toAppError } from '@/lib/errors'
@@ -17,11 +18,12 @@ import {
   type ProjectCategory,
   type ProjectStage,
 } from '../constants'
-import { useCreateProject, useProjects } from '../hooks'
+import { useCreateProject, useProjects, useTaskProgress } from '../hooks'
 
 /** /projects — project rooms (FR-PRJ-01). Active first; completed and archived at the end. */
 export function ProjectListPage() {
   const { data, isPending, error, refetch } = useProjects()
+  const progress = useTaskProgress()
   const [creating, setCreating] = useState(false)
   const done = (s: ProjectStage) => s === 'completed' || s === 'archived'
   const sorted = data ? [...data].sort((a, b) => Number(done(a.stage)) - Number(done(b.stage))) : []
@@ -38,7 +40,10 @@ export function ProjectListPage() {
       </div>
 
       {isPending ? (
-        <PageSpinner label="Loading projects" />
+        <div className="grid gap-3 md:grid-cols-2">
+          <SkeletonList label="Loading projects" rows={2} />
+          <SkeletonList label="" rows={2} />
+        </div>
       ) : error ? (
         <Alert tone="danger">
           Couldn&apos;t load projects.{' '}
@@ -57,27 +62,37 @@ export function ProjectListPage() {
         <ul className="grid gap-3 md:grid-cols-2" data-testid="project-list">
           {sorted.map((p) => (
             <li key={p.id}>
-              <Link
-                to={`/projects/${p.id}`}
-                className="panel block p-5 transition-colors hover:border-border"
-              >
-                <div className="flex items-start gap-2">
-                  <h2 className="flex-1 text-h3 font-semibold">{p.name}</h2>
-                  {p.visibility === 'private' ? (
-                    <Lock className="mt-1 size-3.5 text-muted" aria-label="Private" />
+              <Link to={`/projects/${p.id}`} className="panel block overflow-hidden p-0">
+                <ProjectCover name={p.name} className="h-20" />
+                <div className="relative px-5 pb-5">
+                  <div className="-mt-7 mb-2 flex items-end justify-between gap-2">
+                    <span className="rounded-full bg-[var(--color-surface)] p-1">
+                      <ProgressRing
+                        done={progress.data?.get(p.id)?.done ?? 0}
+                        total={progress.data?.get(p.id)?.total ?? 0}
+                        size={50}
+                      />
+                    </span>
+                    <StageTrack stage={p.stage} compact />
+                  </div>
+                  <div className="flex items-start gap-2">
+                    <h2 className="flex-1 text-h3 font-semibold">{p.name}</h2>
+                    {p.visibility === 'private' ? (
+                      <Lock className="mt-1 size-3.5 text-muted" aria-label="Private" />
+                    ) : null}
+                  </div>
+                  <div className="mt-2 flex flex-wrap gap-1.5">
+                    <Badge tone={done(p.stage) ? 'neutral' : 'primary'}>
+                      {STAGE_LABELS[p.stage]}
+                    </Badge>
+                    <Badge>{CATEGORY_LABELS[p.category]}</Badge>
+                  </div>
+                  {p.end_date ? (
+                    <p className="mt-3 text-caption text-muted">
+                      Ends {formatDateOnly(p.end_date, { weekday: true })}
+                    </p>
                   ) : null}
                 </div>
-                <div className="mt-2 flex flex-wrap gap-1.5">
-                  <Badge tone={done(p.stage) ? 'neutral' : 'primary'}>
-                    {STAGE_LABELS[p.stage]}
-                  </Badge>
-                  <Badge>{CATEGORY_LABELS[p.category]}</Badge>
-                </div>
-                {p.end_date ? (
-                  <p className="mt-3 text-caption text-muted">
-                    Ends {formatDateOnly(p.end_date, { weekday: true })}
-                  </p>
-                ) : null}
               </Link>
             </li>
           ))}

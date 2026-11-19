@@ -1,3 +1,4 @@
+import { celebrate } from '@/lib/visuals'
 import * as RadixDialog from '@radix-ui/react-dialog'
 import { Paperclip, Plus, Trash2, X } from 'lucide-react'
 import { useState } from 'react'
@@ -135,6 +136,7 @@ function TaskDetails({
               value={task.status}
               onChange={(e) => {
                 const status = e.target.value as TaskStatus
+                if (status === 'done' && task.status !== 'done') celebrate(e.target)
                 const column = tasks.filter((t) => t.status === status && !t.parent_task_id)
                 save(
                   {
@@ -318,9 +320,10 @@ function Subtasks({
               checked={s.status === 'done'}
               disabled={!perms.editTasks}
               aria-label={`Done: ${s.title}`}
-              onChange={(e) =>
+              onChange={(e) => {
+                if (e.target.checked) celebrate(e.target)
                 update.mutate({ id: s.id, patch: { status: e.target.checked ? 'done' : 'todo' } })
-              }
+              }}
             />
             <span className={s.status === 'done' ? 'text-muted line-through' : ''}>{s.title}</span>
           </li>

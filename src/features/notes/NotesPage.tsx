@@ -1,3 +1,4 @@
+import { SkeletonList } from '@/components/ui/Skeleton'
 import { ArrowLeft, Lock, Pin, PinOff, Plus, Search, Trash2, Users } from 'lucide-react'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router'
@@ -5,7 +6,7 @@ import { EmptyState } from '@/components/patterns/EmptyState'
 import { Button } from '@/components/ui/Button'
 import { Alert } from '@/components/ui/Card'
 import { Dialog } from '@/components/ui/Dialog'
-import { PageSpinner, Spinner } from '@/components/ui/Spinner'
+import { PageSpinner } from '@/components/ui/Spinner'
 import { useToast } from '@/components/ui/Toast'
 import { useQueryClient } from '@tanstack/react-query'
 import { useAuth } from '@/features/auth'
@@ -76,7 +77,7 @@ export function NotesPage() {
             />
           </label>
           {notes.isPending ? (
-            <Spinner label="Loading notes" />
+            <SkeletonList label="Loading notes" variant="card" rows={3} />
           ) : notes.error ? (
             <Alert tone="danger">Couldn&apos;t load notes.</Alert>
           ) : notes.data.length === 0 ? (

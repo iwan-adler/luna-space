@@ -1,7 +1,7 @@
+import { SkeletonList } from '@/components/ui/Skeleton'
 import { AlertTriangle, ArrowRight, Lock, Repeat } from 'lucide-react'
 import { useMemo } from 'react'
 import { Link, useNavigate } from 'react-router'
-import { Spinner } from '@/components/ui/Spinner'
 import { useViewerTimeZone } from '@/features/profile'
 import { formatDateOnly, todayIn } from '@/lib/dates'
 import { useCalendarFeed } from './hooks'
@@ -53,7 +53,7 @@ export function UpcomingAgenda() {
         </Link>
       </div>
       {feed.isPending ? (
-        <Spinner label="Loading your week" />
+        <SkeletonList label="Loading your week" variant="line" rows={3} />
       ) : feed.error ? (
         <p className="panel p-5 text-body-sm text-danger">Couldn&apos;t load your week.</p>
       ) : withItems.length === 0 ? (

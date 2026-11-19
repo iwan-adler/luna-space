@@ -4,7 +4,7 @@ import { Link } from 'react-router'
 import { useChatUnread } from '@/features/chat'
 import { useUnreadCount } from '@/features/notifications'
 import { useMyTasks } from '@/features/projects'
-import { illumination, litPath, moonPhase, moonPhaseName } from './moon'
+import { illumination, litPath, moonPhase, moonPhaseName } from '@/lib/moon'
 
 const reducedMotion = () =>
   typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches

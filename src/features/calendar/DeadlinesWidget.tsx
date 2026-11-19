@@ -1,7 +1,7 @@
+import { SkeletonList } from '@/components/ui/Skeleton'
 import { ArrowRight } from 'lucide-react'
 import { useMemo } from 'react'
 import { Link } from 'react-router'
-import { Spinner } from '@/components/ui/Spinner'
 import { useViewerTimeZone } from '@/features/profile'
 import { formatDateOnly, todayIn } from '@/lib/dates'
 import { useCalendarFeed } from './hooks'
@@ -42,7 +42,7 @@ export function DeadlinesWidget({ mine, userId }: { mine: boolean; userId: strin
         </Link>
       </div>
       {feed.isPending ? (
-        <Spinner label="Loading deadlines" />
+        <SkeletonList label="Loading deadlines" variant="line" rows={3} />
       ) : feed.error ? (
         <p className="text-body-sm text-danger">Couldn&apos;t load deadlines.</p>
       ) : rows.length === 0 ? (

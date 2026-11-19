@@ -1,6 +1,6 @@
+import { SkeletonList } from '@/components/ui/Skeleton'
 import { ArrowRight } from 'lucide-react'
 import { Link } from 'react-router'
-import { Spinner } from '@/components/ui/Spinner'
 import { useViewerTimeZone } from '@/features/profile'
 import { formatDateTime } from '@/lib/format'
 import { useNotifications, useUnreadCount } from './hooks'
@@ -27,7 +27,7 @@ export function NotificationsWidget() {
         </Link>
       </div>
       {list.isPending ? (
-        <Spinner label="Loading notifications" />
+        <SkeletonList label="Loading notifications" variant="line" rows={3} />
       ) : list.error ? (
         <p className="text-body-sm text-danger">Couldn&apos;t load notifications.</p>
       ) : latest.length === 0 ? (

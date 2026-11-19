@@ -17,6 +17,7 @@ import { PeopleTab } from '../components/PeopleTab'
 import { TaskBoard } from '../components/TaskBoard'
 import { TaskDrawer } from '../components/TaskDrawer'
 import { CATEGORY_LABELS, STAGE_LABELS, type ProjectStage } from '../constants'
+import { ProgressRing, ProjectCover, StageTrack } from '../components/ProjectVisuals'
 import { useGuestSettings, useMyGuestRooms, useRoomPeople } from '../guests'
 import {
   useFiles,
@@ -89,6 +90,9 @@ export function ProjectRoomPage({ base = '/projects' }: { base?: string }) {
     )
   }
   const p = project.data
+  const topTasks = (tasks.data ?? []).filter((t) => !t.parent_task_id)
+  const progressTotal = topTasks.length
+  const progressDone = topTasks.filter((t) => t.status === 'done').length
   const perms = roomPermissions(access, settings.data ?? null)
   const personList = people.data ?? []
   const guests = personList.filter((x) => x.kind === 'guest')
@@ -104,12 +108,23 @@ export function ProjectRoomPage({ base = '/projects' }: { base?: string }) {
   return (
     <RoomContext.Provider value={room}>
       <div className="space-y-5">
-        <header className="space-y-2">
+        <header className="space-y-3">
           <p className="eyebrow">
             <Link to={perms.member ? '/projects' : '/guest'} className="hover:text-text">
               {perms.member ? 'Projects' : 'Your rooms'}
             </Link>
           </p>
+          <div className="panel relative overflow-hidden p-0">
+            <ProjectCover name={p.name} className="h-28 sm:h-32" />
+            <div className="flex flex-wrap items-end gap-4 px-5 pb-4">
+              <span className="-mt-9 rounded-full bg-[var(--color-surface)] p-1.5">
+                <ProgressRing done={progressDone} total={progressTotal} size={64} />
+              </span>
+              <div className="min-w-0 flex-1 pt-3">
+                <StageTrack stage={p.stage} />
+              </div>
+            </div>
+          </div>
           <div className="flex flex-wrap items-center gap-2.5">
             <h1 className="font-display text-h1">{p.name}</h1>
             {p.visibility === 'private' ? (

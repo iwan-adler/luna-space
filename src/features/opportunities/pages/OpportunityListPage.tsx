@@ -1,10 +1,11 @@
+import { SkeletonList } from '@/components/ui/Skeleton'
+import { OpportunityTimeline } from '../components/OpportunityTimeline'
 import { Plus } from 'lucide-react'
 import { useMemo } from 'react'
 import { Link, useSearchParams } from 'react-router'
 import { EmptyState } from '@/components/patterns/EmptyState'
 import { Button } from '@/components/ui/Button'
 import { Alert } from '@/components/ui/Card'
-import { PageSpinner } from '@/components/ui/Spinner'
 import { OpportunityCard } from '../components/OpportunityCard'
 import {
   MODE_LABELS,
@@ -29,7 +30,8 @@ export function OpportunityListPage() {
   const tz = useViewerTimeZone()
   const { data, isPending, error, refetch } = useOpportunities()
   const [params, setParams] = useSearchParams()
-  const view = params.get('view') === 'pipeline' ? 'pipeline' : 'list'
+  const rawView = params.get('view')
+  const view = rawView === 'pipeline' || rawView === 'timeline' ? rawView : 'list'
   const q = params.get('q') ?? ''
   const type = (params.get('type') ?? '') as OpportunityType | ''
   const status = (params.get('status') ?? 'open') as OpportunityStatus | 'open' | 'all'
@@ -87,7 +89,7 @@ export function OpportunityListPage() {
           Opportunities
         </h1>
         <div role="tablist" aria-label="View" className="flex gap-1.5">
-          {(['list', 'pipeline'] as const).map((v) => (
+          {(['list', 'timeline', 'pipeline'] as const).map((v) => (
             <button
               key={v}
               role="tab"
@@ -96,7 +98,7 @@ export function OpportunityListPage() {
               onClick={() => set('view', v, 'list')}
               className={`rounded-full px-4 py-1.5 text-body-sm ${view === v ? 'nav-active' : 'border border-border text-muted hover:text-text'}`}
             >
-              {v === 'list' ? 'List' : 'Pipeline'}
+              {v === 'list' ? 'Gallery' : v === 'timeline' ? 'Timeline' : 'Pipeline'}
             </button>
           ))}
         </div>
@@ -179,7 +181,10 @@ export function OpportunityListPage() {
       </div>
 
       {isPending ? (
-        <PageSpinner label="Loading opportunities" />
+        <div className="grid gap-3 md:grid-cols-2">
+          <SkeletonList label="Loading opportunities" rows={2} />
+          <SkeletonList label="" rows={2} />
+        </div>
       ) : error ? (
         <Alert tone="danger">
           Couldn&apos;t load opportunities.{' '}
@@ -204,14 +209,14 @@ export function OpportunityListPage() {
           action={
             <Button
               variant="secondary"
-              onClick={() =>
-                setParams(new URLSearchParams(view === 'pipeline' ? 'view=pipeline' : ''))
-              }
+              onClick={() => setParams(new URLSearchParams(view !== 'list' ? `view=${view}` : ''))}
             >
               Clear filters
             </Button>
           }
         />
+      ) : view === 'timeline' ? (
+        <OpportunityTimeline opps={filtered} viewerTz={tz} />
       ) : view === 'list' ? (
         <div className="grid gap-3 md:grid-cols-2" data-testid="opportunity-list">
           {filtered.map((o) => (

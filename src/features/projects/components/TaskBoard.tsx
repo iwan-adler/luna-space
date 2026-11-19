@@ -1,3 +1,4 @@
+import { celebrate } from '@/lib/visuals'
 import {
   closestCorners,
   DndContext,
@@ -100,6 +101,16 @@ export function TaskBoard({
     const target = status === task.status && before !== -1 && after > before ? index + 1 : index
     const position = positionAt(column, target < 0 ? column.length : target)
     if (status === task.status && position === task.position) return
+    if (status === 'done' && task.status !== 'done') {
+      // Stardust where the card landed (ADR 0019).
+      const ev = e.activatorEvent as PointerEvent | KeyboardEvent | null
+      const el = document.querySelector(`[data-task-id="${task.id}"]`)
+      celebrate(
+        ev && 'clientX' in ev && e.delta
+          ? { x: ev.clientX + e.delta.x, y: ev.clientY + e.delta.y }
+          : el,
+      )
+    }
     update.mutate(
       { id: task.id, patch: { status, position } },
       { onError: () => toast.show("Couldn't move the task. It was put back.", 'error') },
@@ -319,6 +330,7 @@ function SortableTask({
       }}
       onClick={open}
       data-testid="task-card"
+      data-task-id={task.id}
     >
       <TaskCardView
         task={task}

@@ -1,3 +1,4 @@
+import { SkeletonList } from '@/components/ui/Skeleton'
 import * as Menu from '@radix-ui/react-dropdown-menu'
 import {
   ChevronRight,
@@ -22,7 +23,6 @@ import { EmptyState } from '@/components/patterns/EmptyState'
 import { Button } from '@/components/ui/Button'
 import { Alert } from '@/components/ui/Card'
 import { Dialog } from '@/components/ui/Dialog'
-import { Spinner } from '@/components/ui/Spinner'
 import { useToast } from '@/components/ui/Toast'
 import { useCreateNote } from '@/features/notes'
 import { useViewerTimeZone } from '@/features/profile'
@@ -179,7 +179,7 @@ export function VaultPage() {
             <FolderIcon className="size-4" aria-hidden /> All of the Vault
           </Link>
           {folders.isPending ? (
-            <Spinner label="Loading folders" />
+            <SkeletonList label="Loading folders" variant="card" rows={3} />
           ) : folders.error ? (
             <p className="px-3 py-2 text-caption text-danger">Couldn&apos;t load folders.</p>
           ) : (
@@ -317,7 +317,7 @@ export function VaultPage() {
               </div>
 
               {items.isPending ? (
-                <Spinner label="Loading the Vault" />
+                <SkeletonList label="Loading the Vault" variant="card" rows={3} />
               ) : items.error ? (
                 <Alert tone="danger">
                   Couldn&apos;t load this folder. Check your connection and try again.
@@ -429,7 +429,7 @@ function FolderTree({ nodes, selected }: { nodes: FolderNode[]; selected: string
 
 function VaultSearch({ term }: { term: string }) {
   const results = useSearch(term, ['note', 'file', 'bookmark'])
-  if (results.isPending) return <Spinner label="Searching" />
+  if (results.isPending) return <SkeletonList label="Searching" variant="card" rows={3} />
   if (results.error)
     return (
       <Alert tone="danger">Search isn&apos;t available right now. Check your connection.</Alert>
