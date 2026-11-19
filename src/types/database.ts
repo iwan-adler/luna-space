@@ -1282,11 +1282,27 @@ isOneToOne: false
               "avatar_path": string,"display_name": string,"kind": string,"role": string,"user_id": string
             }[]
                            },
+"purge_finish":
+{ Args: { "p_days"?: number,"p_files": (string)[] }; Returns: Json
+                           },
+"purge_prepare":
+{ Args: { "p_days"?: number,"p_limit"?: number }; Returns: {
+              "id": string,"storage_path": string
+            }[]
+                           },
+"recycle_bin":
+{ Args: Record<PropertyKey, never>; Returns: {
+              "deleted_at": string,"deleted_by": string,"id": string,"kind": string,"project_id": string,"purge_at": string,"title": string
+            }[]
+                           },
 "remove_project_guest":
 { Args: { "p_membership": string }; Returns: Json
                            },
 "report_client_error":
 { Args: { "p_app_version": string,"p_error_id": string,"p_message": string,"p_route": string }; Returns: undefined
+                           },
+"restore_item":
+{ Args: { "p_id": string,"p_kind": string }; Returns: undefined
                            },
 "revoke_calendar_feed_token":
 { Args: Record<PropertyKey, never>; Returns: undefined
