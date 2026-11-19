@@ -16,7 +16,7 @@ export function AuthFrame({ children }: { children?: React.ReactNode }) {
       <main id="main" className="panel w-full max-w-[400px] p-7 shadow-3 sm:p-8">
         {children ?? <Outlet />}
       </main>
-      <p className="mt-8 text-caption text-muted/70">A quiet place for two.</p>
+      <p className="mt-8 text-caption text-muted/70">A quiet place for you and your people.</p>
     </div>
   )
 }
