@@ -19,5 +19,5 @@
 /manifest.webmanifest
   Cache-Control: no-cache
 
-/offline.html
+/offline
   Cache-Control: no-cache

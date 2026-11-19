@@ -9,10 +9,25 @@
 const BUILD_ID = '__BUILD_ID__'
 const SHELL = `luna-shell-${BUILD_ID}`
 const ASSETS = 'luna-assets'
-const SHELL_URLS = ['/', '/offline.html', '/manifest.webmanifest', '/icons/icon-192.png']
+// '/offline' (not '/offline.html'): Cloudflare redirects .html URLs, and browsers refuse a
+// redirected response for a page load.
+const SHELL_URLS = ['/', '/offline', '/manifest.webmanifest', '/icons/icon-192.png']
 
+// Store clean copies: hosts may redirect /offline.html to /offline, and a redirected response
+// can't be served for a page navigation.
 self.addEventListener('install', (event) => {
-  event.waitUntil(caches.open(SHELL).then((c) => c.addAll(SHELL_URLS)))
+  event.waitUntil(
+    caches.open(SHELL).then((cache) =>
+      Promise.all(
+        SHELL_URLS.map(async (url) => {
+          const res = await fetch(url, { cache: 'reload' })
+          if (!res.ok) throw new Error(`Could not cache ${url}`)
+          const body = await res.blob()
+          await cache.put(url, new Response(body, { status: 200, headers: res.headers }))
+        }),
+      ),
+    ),
+  )
 })
 
 self.addEventListener('activate', (event) => {
@@ -40,13 +55,13 @@ self.addEventListener('fetch', (event) => {
     event.respondWith(
       fetch(req)
         .then((res) => {
-          if (res.ok) {
+          if (res.ok && !res.redirected && url.pathname === '/') {
             const copy = res.clone()
             void caches.open(SHELL).then((c) => c.put('/', copy))
           }
           return res
         })
-        .catch(async () => (await caches.match('/')) || (await caches.match('/offline.html'))),
+        .catch(async () => (await caches.match('/')) || (await caches.match('/offline'))),
     )
     return
   }
