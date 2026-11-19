@@ -47,9 +47,9 @@ function Stat({
   return (
     <Link
       to={to}
-      className="lift group flex flex-col gap-1 rounded-[18px] border border-hairline bg-[var(--control-fill)] px-3 py-3 backdrop-blur-md sm:flex-row sm:items-center sm:gap-3 sm:px-4"
+      className="lift group flex flex-col gap-1 rounded-[18px] border border-hairline bg-[var(--control-fill)] px-3 py-3 backdrop-blur-md xl:flex-row xl:items-center xl:gap-3 xl:px-4"
     >
-      <span className="icon-bubble hidden size-9 shrink-0 sm:grid">
+      <span className="icon-bubble hidden size-9 shrink-0 xl:grid">
         <Icon className="size-4" aria-hidden />
       </span>
       <span>
@@ -70,7 +70,7 @@ function MoonArt() {
   const lit = litPath(p, 100, 100, 54)
   return (
     <div
-      className="pointer-events-none absolute top-2 right-2 aspect-square w-16 md:pointer-events-auto md:static md:mx-auto md:w-52"
+      className="pointer-events-none absolute top-2 right-2 aspect-square w-16 md:pointer-events-auto md:relative md:inset-auto md:mx-auto md:w-52"
       aria-hidden="true"
     >
       <svg viewBox="0 0 200 200" className="absolute inset-0 size-full overflow-visible">
