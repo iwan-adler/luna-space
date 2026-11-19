@@ -1,5 +1,5 @@
+import { SkeletonList } from '@/components/ui/Skeleton'
 import { useQuery } from '@tanstack/react-query'
-import { Spinner } from '@/components/ui/Spinner'
 import { useAuth } from '@/features/auth'
 import { useViewerTimeZone } from '@/features/profile'
 import { useCurrentWorkspace, useMembers } from '@/features/workspace'
@@ -38,7 +38,7 @@ export function ActivityWidget({ mine }: { mine: boolean }) {
         Recent activity
       </h2>
       {activity.isPending ? (
-        <Spinner label="Loading activity" />
+        <SkeletonList label="Loading activity" variant="line" rows={3} />
       ) : activity.error ? (
         <p className="text-body-sm text-danger">Couldn&apos;t load activity.</p>
       ) : activity.data.length === 0 ? (

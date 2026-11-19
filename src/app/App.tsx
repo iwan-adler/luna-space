@@ -1,3 +1,4 @@
+import { MissionPage } from '@/features/mission'
 import { Ambient } from '@/components/patterns/Ambient'
 import { DataSettingsPage, RecycleBinPage } from '@/features/data'
 import { SearchPage } from '@/features/search'
@@ -118,6 +119,7 @@ function AppRoutes() {
             <Route path="vault" element={page(<VaultPage />)} />
             <Route path="vault/:folderId" element={page(<VaultPage />)} />
             <Route path="search" element={page(<SearchPage />)} />
+            <Route path="mission/:id" element={page(<MissionPage />)} />
             <Route path="trash" element={page(<RecycleBinPage />)} />
             <Route path="settings/data" element={page(<DataSettingsPage />)} />
             <Route path="more" element={<MorePage />} />

@@ -106,3 +106,22 @@ export const FIELD_LABELS: Record<string, string> = {
   status: 'Status',
   ...DATE_KIND_LABELS,
 }
+
+/** One colour per kind of opportunity, so the list reads at a glance. */
+export const TYPE_HUE: Record<string, string> = {
+  hackathon: '#c9a7ff',
+  coding_competition: '#f0a6c8',
+  innovation_challenge: '#ff9fb2',
+  internship: '#7fd8c6',
+  scholarship: '#ffd98a',
+  fellowship: '#9cc3f5',
+  research_programme: '#9cc3f5',
+  conference: '#ebb6d8',
+  workshop: '#ebb6d8',
+  summer_school: '#ffc7a1',
+  ambassador_programme: '#b8e986',
+  open_source_programme: '#7fd8c6',
+  exchange_programme: '#ffc7a1',
+  technical_event: '#c9a7ff',
+  other: '#bba5b5',
+}

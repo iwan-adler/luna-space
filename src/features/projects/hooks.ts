@@ -2,6 +2,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useEffect } from 'react'
 import { useAuth } from '@/features/auth'
 import { useCurrentWorkspace } from '@/features/workspace'
+import { toAppError } from '@/lib/errors'
 import { requireSupabase } from '@/lib/supabase'
 import {
   addChecklistItem,
@@ -406,4 +407,31 @@ export function useProjectRealtime(projectId: string) {
       void client.removeChannel(channel)
     }
   }, [projectId, qc])
+}
+
+/** Done and total top-level tasks per project, in one query. */
+export function useTaskProgress() {
+  const { workspaceId } = useCurrentWorkspace()
+  return useQuery({
+    queryKey: ['projects', 'progress', workspaceId],
+    queryFn: async (): Promise<Map<string, { done: number; total: number }>> => {
+      const { data, error } = await requireSupabase()
+        .from('tasks')
+        .select('project_id, status')
+        .is('deleted_at', null)
+        .is('parent_task_id', null)
+        .not('project_id', 'is', null)
+        .limit(10000)
+      if (error) throw toAppError(error)
+      const map = new Map<string, { done: number; total: number }>()
+      for (const t of data) {
+        if (!t.project_id) continue
+        const p = map.get(t.project_id) ?? { done: 0, total: 0 }
+        p.total++
+        if (t.status === 'done') p.done++
+        map.set(t.project_id, p)
+      }
+      return map
+    },
+  })
 }

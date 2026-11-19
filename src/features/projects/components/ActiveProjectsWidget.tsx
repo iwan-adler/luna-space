@@ -1,7 +1,7 @@
+import { SkeletonList } from '@/components/ui/Skeleton'
 import { useQuery } from '@tanstack/react-query'
 import { ArrowRight } from 'lucide-react'
 import { Link } from 'react-router'
-import { Spinner } from '@/components/ui/Spinner'
 import { formatDateOnly } from '@/lib/dates'
 import { toAppError } from '@/lib/errors'
 import { requireSupabase } from '@/lib/supabase'
@@ -55,7 +55,7 @@ export function ActiveProjectsWidget({
         </Link>
       </div>
       {projects.isPending ? (
-        <Spinner label="Loading projects" />
+        <SkeletonList label="Loading projects" variant="line" rows={3} />
       ) : projects.error ? (
         <p className="text-body-sm text-danger">Couldn&apos;t load projects.</p>
       ) : active.length === 0 ? (

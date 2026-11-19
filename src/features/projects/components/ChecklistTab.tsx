@@ -1,3 +1,4 @@
+import { celebrate } from '@/lib/visuals'
 import { Plus } from 'lucide-react'
 import { useState } from 'react'
 import { EmptyState } from '@/components/patterns/EmptyState'
@@ -134,7 +135,10 @@ function ChecklistCard({
                 className="mt-0.5 size-4 accent-[var(--color-primary)]"
                 checked={i.is_done}
                 disabled={!perms.editTasks}
-                onChange={(e) => toggle.mutate({ id: i.id, done: e.target.checked })}
+                onChange={(e) => {
+                  if (e.target.checked) celebrate(e.target)
+                  toggle.mutate({ id: i.id, done: e.target.checked })
+                }}
               />
               <span className={i.is_done ? 'text-muted line-through' : ''}>{i.label}</span>
             </label>

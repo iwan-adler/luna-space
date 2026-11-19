@@ -1,17 +1,18 @@
-import { CalendarPlus, ListPlus, MessageCircle, NotebookPen, Plus, UserPlus } from 'lucide-react'
+import { CalendarPlus, ListPlus, MessageCircle, NotebookPen, Plus } from 'lucide-react'
 import { useState, type CSSProperties } from 'react'
 import { Link, useNavigate } from 'react-router'
-import { Spinner } from '@/components/ui/Spinner'
 import { useAuth } from '@/features/auth'
 import { DeadlinesWidget, UpcomingAgenda } from '@/features/calendar'
 import { useCreateNote } from '@/features/notes'
 import { NotificationsWidget } from '@/features/notifications'
+import { PipelineStrip } from '@/features/opportunities'
 import { ActiveProjectsWidget } from '@/features/projects'
 import { useCurrentWorkspace, useMembers } from '@/features/workspace'
 import { useViewerTimeZone } from '@/features/profile'
 import { formatDateOnly, todayIn } from '@/lib/dates'
 import { ActivityWidget } from '../ActivityWidget'
 import { Hero } from '../Hero'
+import { TeamCard, WeeklyRecap } from '../TeamWidgets'
 
 type View = 'shared' | 'me'
 const VIEW_KEY = 'luna.dashboard.view'
@@ -41,7 +42,6 @@ export function HomePage() {
   const navigate = useNavigate()
   const [view, setView] = useState<View>(readView)
   const me = members.data?.find((m) => m.userId === user?.id)
-  const others = members.data?.filter((m) => m.userId !== user?.id) ?? []
   const mine = view === 'me'
   const tz = useViewerTimeZone()
 
@@ -135,61 +135,26 @@ export function HomePage() {
           <DeadlinesWidget mine={mine} userId={user?.id} />
         </div>
         <div className="rise" style={{ '--i': 3 } as CSSProperties}>
-          <ActiveProjectsWidget mine={mine} userId={user?.id} />
+          <TeamCard />
         </div>
         <div className="rise" style={{ '--i': 4 } as CSSProperties}>
-          <ActivityWidget mine={mine} />
+          <PipelineStrip />
         </div>
-        <div className="rise space-y-4" style={{ '--i': 5 } as CSSProperties}>
+        <div className="rise" style={{ '--i': 5 } as CSSProperties}>
+          <WeeklyRecap />
+        </div>
+        <div className="rise" style={{ '--i': 6 } as CSSProperties}>
+          <ActiveProjectsWidget mine={mine} userId={user?.id} />
+        </div>
+        <div className="rise" style={{ '--i': 7 } as CSSProperties}>
           <NotificationsWidget />
-          <div className="panel flex flex-col gap-4 p-5" data-testid="team-card">
-            <div className="flex items-center justify-between">
-              <h2 className="text-body font-medium">Your team</h2>
-              <Link
-                to="/settings/workspace"
-                className="icon-btn size-8"
-                aria-label="Workspace members and invites"
-              >
-                <UserPlus className="size-4" strokeWidth={1.75} aria-hidden />
-              </Link>
-            </div>
-            {members.isPending ? (
-              <Spinner className="size-4" label="Loading members" />
-            ) : others.length ? (
-              <div className="space-y-3">
-                <div className="flex -space-x-2.5" aria-hidden>
-                  {members.data?.slice(0, 7).map((m) => (
-                    <span
-                      key={m.userId}
-                      title={m.displayName}
-                      className="btn-primary grid size-10 place-items-center rounded-full border-2 border-[var(--color-surface)] text-body-sm font-semibold"
-                    >
-                      {m.displayName.slice(0, 1).toUpperCase()}
-                    </span>
-                  ))}
-                </div>
-                <p className="text-body-sm text-muted">
-                  {others.length === 1
-                    ? `You and ${others[0]!.displayName} share this workspace.`
-                    : `You, ${others
-                        .slice(0, 3)
-                        .map((m) => m.displayName)
-                        .join(', ')}${others.length > 3 ? ` and ${others.length - 3} more` : ''}.`}
-                </p>
-              </div>
-            ) : (
-              <Link
-                to="/settings/workspace"
-                className="inline-flex items-center gap-2 text-body-sm text-muted hover:text-text"
-              >
-                <UserPlus className="size-4" strokeWidth={1.75} aria-hidden /> Invite your friends
-              </Link>
-            )}
-          </div>
+        </div>
+        <div className="rise md:col-span-2" style={{ '--i': 8 } as CSSProperties}>
+          <ActivityWidget mine={mine} />
         </div>
       </div>
 
-      <div className="rise" style={{ '--i': 6 } as CSSProperties}>
+      <div className="rise" style={{ '--i': 9 } as CSSProperties}>
         <UpcomingAgenda />
       </div>
     </div>

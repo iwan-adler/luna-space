@@ -15,6 +15,7 @@ import { useMyProfile } from '@/features/profile'
 import { useChatRealtime, useChatUnread } from '@/features/chat'
 import { NotificationBell } from '@/features/notifications'
 import { CommandPalette } from '@/features/search'
+import { MissionBar } from '@/features/mission'
 import { WorkspaceSwitcher } from '@/features/workspace'
 import { mobileNav, primaryNav } from './navigation'
 
@@ -113,6 +114,7 @@ export function AppShell() {
             id="main"
             className="mx-auto w-full max-w-6xl flex-1 px-5 pt-6 pb-32 lg:px-6 lg:pt-4 lg:pb-8"
           >
+            <MissionBar />
             <div key={location.pathname.split('/')[1] ?? ''} className="fade-in">
               <Outlet />
             </div>
