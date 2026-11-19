@@ -1,6 +1,7 @@
 import * as RadixDialog from '@radix-ui/react-dialog'
 import {
   ArrowRight,
+  Award,
   CalendarDays,
   FolderKanban,
   House,
@@ -103,6 +104,7 @@ function Palette({ close }: { close: () => void }) {
     { label: 'Notes', icon: NotebookPen, run: go('/notes') },
     { label: 'Chat', icon: MessageCircle, run: go('/chat') },
     { label: 'Vault', icon: Library, run: go('/vault') },
+    { label: 'Trophy wall', icon: Award, run: go('/trophies') },
     { label: 'Settings', icon: Settings, run: go('/settings/profile') },
     { label: 'Add an opportunity', icon: Plus, run: go('/opportunities/new') },
     {

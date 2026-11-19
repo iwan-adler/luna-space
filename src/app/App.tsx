@@ -33,6 +33,7 @@ import { NotFoundPage } from './NotFoundPage'
 
 // Feature modules load on demand (TR-FE-01: route chunks, small initial bundle).
 const opportunities = () => import('@/features/opportunities')
+const TrophyWallPage = lazy(() => opportunities().then((m) => ({ default: m.TrophyWallPage })))
 const OpportunityListPage = lazy(() =>
   opportunities().then((m) => ({ default: m.OpportunityListPage })),
 )
@@ -120,6 +121,7 @@ function AppRoutes() {
             <Route path="vault/:folderId" element={page(<VaultPage />)} />
             <Route path="search" element={page(<SearchPage />)} />
             <Route path="mission/:id" element={page(<MissionPage />)} />
+            <Route path="trophies" element={page(<TrophyWallPage />)} />
             <Route path="trash" element={page(<RecycleBinPage />)} />
             <Route path="settings/data" element={page(<DataSettingsPage />)} />
             <Route path="more" element={<MorePage />} />

@@ -1,5 +1,5 @@
 import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useAuth } from '@/features/auth'
 import { storagePath } from '@/lib/files'
 import { useCurrentWorkspace } from '@/features/workspace'
@@ -275,4 +275,40 @@ export function usePresence(): Set<string> {
     }
   }, [workspaceId, user])
   return online
+}
+
+/**
+ * "Ana is typing…" through a Realtime broadcast (nothing is stored). Only user ids travel;
+ * names come from the member list. Returns who is typing and a throttled notifier.
+ */
+export function useTyping(): { typing: string[]; notify: () => void } {
+  const { workspaceId } = useCurrentWorkspace()
+  const { user } = useAuth()
+  const [until, setUntil] = useState<Record<string, number>>({})
+  const [now, setNow] = useState(() => Date.now())
+  const channel = useRef<ReturnType<ReturnType<typeof requireSupabase>['channel']> | null>(null)
+  const lastSent = useRef(0)
+  useEffect(() => {
+    if (!user) return
+    const client = db()
+    const ch = client.channel(`typing:${workspaceId}`, { config: { broadcast: { self: false } } })
+    ch.on('broadcast', { event: 'typing' }, ({ payload }) => {
+      const id = (payload as { user_id?: string }).user_id
+      if (id && id !== user.id) setUntil((u) => ({ ...u, [id]: Date.now() + 4000 }))
+    }).subscribe()
+    channel.current = ch
+    const tick = window.setInterval(() => setNow(Date.now()), 1000)
+    return () => {
+      window.clearInterval(tick)
+      void client.removeChannel(ch)
+      channel.current = null
+    }
+  }, [workspaceId, user])
+  const notify = () => {
+    const t = Date.now()
+    if (!channel.current || !user || t - lastSent.current < 2500) return
+    lastSent.current = t
+    void channel.current.send({ type: 'broadcast', event: 'typing', payload: { user_id: user.id } })
+  }
+  return { typing: Object.keys(until).filter((id) => until[id]! > now), notify }
 }

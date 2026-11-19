@@ -7,9 +7,37 @@ import { Alert, Card } from '@/components/ui/Card'
 import { SelectField, TextField } from '@/components/ui/Field'
 import { PageSpinner } from '@/components/ui/Spinner'
 import { useToast } from '@/components/ui/Toast'
-import { readThemePreference, saveThemePreference, type ThemePreference } from '@/lib/theme'
+import {
+  readPalette,
+  readThemePreference,
+  savePalette,
+  saveThemePreference,
+  type Palette,
+  type ThemePreference,
+} from '@/lib/theme'
 import { timeZoneOptions } from '@/lib/timezones'
 import { useMyProfile, useUpdateProfile } from './hooks'
+
+const PALETTES: { id: Palette; name: string; note: string; swatch: string }[] = [
+  {
+    id: 'mauve',
+    name: 'Mauve Nocturne',
+    note: 'Plum, rose and violet',
+    swatch: 'linear-gradient(135deg, #b78ca8, #c9a7ff 60%, #ebb6d8)',
+  },
+  {
+    id: 'teal',
+    name: 'Midnight Teal',
+    note: 'Sea glass and blue',
+    swatch: 'linear-gradient(135deg, #2b6a66, #74d8ca 60%, #8ab8ff)',
+  },
+  {
+    id: 'amber',
+    name: 'Solar Amber',
+    note: 'Gold, honey and coral',
+    swatch: 'linear-gradient(135deg, #8a5a24, #f2c27a 60%, #ff9f7a)',
+  },
+]
 
 const schema = z.object({
   displayName: z.string().trim().min(1, 'Enter your name').max(60),
@@ -29,6 +57,7 @@ export function ProfileSettingsPage() {
   const update = useUpdateProfile()
   const toast = useToast()
   const [theme, setTheme] = useState<ThemePreference>(readThemePreference)
+  const [palette, setPalette] = useState<Palette>(readPalette)
   const form = useForm<z.infer<typeof schema>>({
     resolver: zodResolver(schema),
     values: profile.data
@@ -105,6 +134,37 @@ export function ProfileSettingsPage() {
                     ? 'Soft day (light)'
                     : 'Match device'}
               </label>
+            ))}
+          </div>
+        </fieldset>
+        <fieldset className="mt-5">
+          <legend className="mb-2 text-h3 font-semibold">Accent colour</legend>
+          <p className="mb-3 text-body-sm text-muted">
+            Only on this device. Everyone can pick their own.
+          </p>
+          <div className="grid gap-2 sm:grid-cols-3" role="radiogroup" aria-label="Accent colour">
+            {PALETTES.map((p) => (
+              <button
+                key={p.id}
+                type="button"
+                role="radio"
+                aria-checked={palette === p.id}
+                onClick={() => {
+                  setPalette(p.id)
+                  savePalette(p.id)
+                }}
+                className={`lift flex items-center gap-3 rounded-[16px] border p-3 text-left text-body-sm ${palette === p.id ? 'border-primary/60 bg-primary-subtle' : 'border-hairline'}`}
+              >
+                <span
+                  aria-hidden
+                  className="size-9 shrink-0 rounded-full shadow-[inset_0_1px_0_rgb(255_255_255/0.3)]"
+                  style={{ background: p.swatch }}
+                />
+                <span>
+                  <span className="block font-medium">{p.name}</span>
+                  <span className="block text-caption text-muted">{p.note}</span>
+                </span>
+              </button>
             ))}
           </div>
         </fieldset>

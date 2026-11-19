@@ -7,10 +7,11 @@ import { ToastProvider } from '@/components/ui/Toast'
 import { AuthProvider } from '@/features/auth'
 import { queryClient } from '@/lib/queryClient'
 import { registerServiceWorker } from '@/lib/push'
-import { applyTheme, readThemePreference } from '@/lib/theme'
+import { applyPalette, applyTheme, readPalette, readThemePreference } from '@/lib/theme'
 import '@/styles/index.css'
 
 applyTheme(readThemePreference())
+applyPalette(readPalette())
 registerServiceWorker()
 
 const root = document.getElementById('root')

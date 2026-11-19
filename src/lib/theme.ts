@@ -26,3 +26,31 @@ export function saveThemePreference(pref: ThemePreference) {
   }
   applyTheme(pref)
 }
+
+/** Accent palettes (ADR 0020): Mauve Nocturne (default), Midnight Teal, Solar Amber. */
+export type Palette = 'mauve' | 'teal' | 'amber'
+const PALETTE_KEY = 'luna.palette'
+
+export function readPalette(): Palette {
+  try {
+    const value = localStorage.getItem(PALETTE_KEY)
+    return value === 'teal' || value === 'amber' ? value : 'mauve'
+  } catch {
+    return 'mauve'
+  }
+}
+
+export function applyPalette(palette: Palette) {
+  if (palette === 'mauve') document.documentElement.removeAttribute('data-palette')
+  else document.documentElement.setAttribute('data-palette', palette)
+}
+
+export function savePalette(palette: Palette) {
+  try {
+    if (palette === 'mauve') localStorage.removeItem(PALETTE_KEY)
+    else localStorage.setItem(PALETTE_KEY, palette)
+  } catch {
+    // storage unavailable: the choice still applies for this page view
+  }
+  applyPalette(palette)
+}

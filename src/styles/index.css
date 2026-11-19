@@ -3,6 +3,7 @@
 @import '@fontsource-variable/jetbrains-mono';
 @import './tokens.css';
 @import './effects.css';
+@import './palettes.css';
 
 /* Expose tokens as Tailwind utilities: bg-surface, text-muted, border-border, … */
 @theme inline {
