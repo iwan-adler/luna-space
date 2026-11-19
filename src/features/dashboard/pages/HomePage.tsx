@@ -1,12 +1,4 @@
-import {
-  CalendarPlus,
-  ListPlus,
-  MessageCircle,
-  NotebookPen,
-  Plus,
-  Sparkles,
-  UserPlus,
-} from 'lucide-react'
+import { CalendarPlus, ListPlus, MessageCircle, NotebookPen, Plus, UserPlus } from 'lucide-react'
 import { useState, type CSSProperties } from 'react'
 import { Link, useNavigate } from 'react-router'
 import { Spinner } from '@/components/ui/Spinner'
@@ -49,7 +41,7 @@ export function HomePage() {
   const navigate = useNavigate()
   const [view, setView] = useState<View>(readView)
   const me = members.data?.find((m) => m.userId === user?.id)
-  const partner = members.data?.find((m) => m.userId !== user?.id)
+  const others = members.data?.filter((m) => m.userId !== user?.id) ?? []
   const mine = view === 'me'
   const tz = useViewerTimeZone()
 
@@ -150,29 +142,47 @@ export function HomePage() {
         </div>
         <div className="rise space-y-4" style={{ '--i': 5 } as CSSProperties}>
           <NotificationsWidget />
-          <div className="panel flex flex-col gap-4 p-5" data-testid="partner-card">
+          <div className="panel flex flex-col gap-4 p-5" data-testid="team-card">
             <div className="flex items-center justify-between">
-              <h2 className="text-body font-medium">Your partner</h2>
-              <Sparkles className="size-4 text-highlight" strokeWidth={1.75} aria-hidden />
+              <h2 className="text-body font-medium">Your team</h2>
+              <Link
+                to="/settings/workspace"
+                className="icon-btn size-8"
+                aria-label="Workspace members and invites"
+              >
+                <UserPlus className="size-4" strokeWidth={1.75} aria-hidden />
+              </Link>
             </div>
             {members.isPending ? (
               <Spinner className="size-4" label="Loading members" />
-            ) : partner ? (
-              <div className="flex items-center gap-3">
-                <span className="btn-primary flex size-11 items-center justify-center rounded-full text-body font-semibold">
-                  {partner.displayName.slice(0, 1).toUpperCase()}
-                </span>
-                <div>
-                  <p className="font-medium">{partner.displayName}</p>
-                  <p className="text-body-sm text-muted">Shares this workspace with you</p>
+            ) : others.length ? (
+              <div className="space-y-3">
+                <div className="flex -space-x-2.5" aria-hidden>
+                  {members.data?.slice(0, 7).map((m) => (
+                    <span
+                      key={m.userId}
+                      title={m.displayName}
+                      className="btn-primary grid size-10 place-items-center rounded-full border-2 border-[var(--color-surface)] text-body-sm font-semibold"
+                    >
+                      {m.displayName.slice(0, 1).toUpperCase()}
+                    </span>
+                  ))}
                 </div>
+                <p className="text-body-sm text-muted">
+                  {others.length === 1
+                    ? `You and ${others[0]!.displayName} share this workspace.`
+                    : `You, ${others
+                        .slice(0, 3)
+                        .map((m) => m.displayName)
+                        .join(', ')}${others.length > 3 ? ` and ${others.length - 3} more` : ''}.`}
+                </p>
               </div>
             ) : (
               <Link
                 to="/settings/workspace"
                 className="inline-flex items-center gap-2 text-body-sm text-muted hover:text-text"
               >
-                <UserPlus className="size-4" strokeWidth={1.75} aria-hidden /> Invite your partner
+                <UserPlus className="size-4" strokeWidth={1.75} aria-hidden /> Invite your friends
               </Link>
             )}
           </div>

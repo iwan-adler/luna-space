@@ -53,7 +53,7 @@ export function RecycleBinPage() {
           Recycle bin
         </h1>
         <p className="mt-1 text-body-sm text-muted">
-          Deleted items stay here for 30 days, then they are removed for good. Either of you can
+          Deleted items stay here for 30 days, then they are removed for good. Any member can
           restore shared items; private items only their owner.
         </p>
       </div>
@@ -65,7 +65,7 @@ export function RecycleBinPage() {
       ) : bin.data.length === 0 ? (
         <div className="panel panel-glow">
           <EmptyState title="Nothing deleted">
-            Things you or your partner delete land here for 30 days.
+            Things anyone in this workspace deletes land here for 30 days.
           </EmptyState>
         </div>
       ) : (

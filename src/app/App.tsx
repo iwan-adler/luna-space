@@ -19,6 +19,8 @@ import { NotificationsPage } from '@/features/notifications'
 import { ProfileSettingsPage } from '@/features/profile'
 import {
   AcceptInvitePage,
+  JoinWorkspacePage,
+  NewWorkspacePage,
   OnboardingPage,
   RequireWorkspace,
   WorkspaceSettingsPage,
@@ -121,6 +123,8 @@ function AppRoutes() {
             <Route path="more" element={<MorePage />} />
             <Route path="settings/profile" element={<ProfileSettingsPage />} />
             <Route path="settings/workspace" element={<WorkspaceSettingsPage />} />
+            <Route path="workspaces/new" element={<NewWorkspacePage />} />
+            <Route path="workspaces/join" element={<JoinWorkspacePage />} />
             <Route path="*" element={<NotFoundPage />} />
           </Route>
         </Route>

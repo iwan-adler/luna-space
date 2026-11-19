@@ -41,8 +41,8 @@ export function DataSettingsPage() {
         <h2 className="text-h2">Download everything</h2>
         <p className="text-body-sm text-muted">
           One JSON file with your own items and everything shared in {ws.workspaceName}:
-          opportunities, projects, tasks, calendar, notes, the Vault, chat and activity. Your
-          partner&apos;s private items are never included. Uploaded files are listed by name; their
+          opportunities, projects, tasks, calendar, notes, the Vault, chat and activity. Your Other
+          members&apos; private items are never included. Uploaded files are listed by name; their
           contents are not part of the file.
         </p>
         {error ? <Alert tone="danger">{error}</Alert> : null}

@@ -73,7 +73,7 @@ export function ProfileSettingsPage() {
           />
           <SelectField
             label="Availability"
-            hint="Your partner sees this next to your name."
+            hint="Others in your workspaces see this next to your name."
             options={availabilityOptions}
             {...form.register('availability')}
           />

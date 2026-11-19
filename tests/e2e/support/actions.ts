@@ -16,7 +16,7 @@ export async function onboardWithInvite(page: Page, user: TestUser, workspace: s
   await page.getByRole('button', { name: 'Continue' }).click()
   await page.getByLabel('Workspace name').fill(workspace)
   await page.getByRole('button', { name: 'Create workspace' }).click()
-  await page.getByRole('button', { name: 'Create invitation link' }).click()
+  await page.getByRole('button', { name: 'Create invite link' }).click()
   return page.getByTestId('invite-link').inputValue()
 }
 

@@ -1,4 +1,4 @@
--- Phase 1: profiles, workspaces, two-seat membership, invitations (AC-01 – AC-06, NFR-SEC-02/05/07).
+-- Profiles, workspaces, membership and invitations (AC-01 – AC-06, NFR-SEC-05/07; ADR 0018 multi-workspace).
 begin;
 create extension if not exists pgtap with schema extensions;
 select plan(35);
@@ -37,8 +37,8 @@ create temp table ws_a on commit drop as select public.create_workspace('Moonsho
 select isnt((select id from ws_a), null, 'A creates a workspace');
 select is((select seat from public.workspace_members where user_id = 'aaaaaaaa-0000-0000-0000-000000000001'),
           1::smallint, 'creator takes seat 1');
-select throws_ok($$ select public.create_workspace('Second') $$, 'P0001', null,
-                 'a member cannot create a second workspace');
+select isnt(public.create_workspace('Second'), null, 'a member can create a second workspace');
+select public.set_active_workspace((select id from ws_a));
 select is((select count(*)::int from public.activity_log where action = 'workspace.created'), 1,
           'creation is in the activity log');
 
@@ -65,21 +65,22 @@ select is((select seat from public.workspace_members where user_id = 'bbbbbbbb-0
           2::smallint, 'B takes seat 2');
 
 select pg_temp.login('cccccccc-0000-0000-0000-000000000003');
-select is((select public.accept_workspace_invitation((select r ->> 'token' from inv2)) ->> 'code'),
-          'INVITE_INVALID', 'an accepted token cannot be reused (AC-05)');
+select is((select public.accept_workspace_invitation((select r ->> 'token' from inv2)) ->> 'ok'),
+          'true', 'one invite link works for several friends');
 
 select pg_temp.login('aaaaaaaa-0000-0000-0000-000000000001');
+select public.update_workspace(null, null, 3::smallint);
 select is((select public.create_workspace_invitation() ->> 'code'), 'WORKSPACE_FULL',
-          'no invitations once both seats are taken');
+          'no invitations once the member limit is reached');
 
--- Two-member limit enforced by the database (AC-04, NFR-SEC-02) ----------------------------
+-- Membership is written only through the functions above ---------------------------------
 select throws_ok($$ insert into public.workspace_members (workspace_id, user_id, seat)
                     values ((select id from ws_a), 'cccccccc-0000-0000-0000-000000000003', 2) $$,
                  '42501', null, 'clients cannot insert members directly');
 select pg_temp.logout();
 select throws_ok($$ insert into public.workspace_members (workspace_id, user_id, seat)
-                    values ((select id from ws_a), 'cccccccc-0000-0000-0000-000000000003', 3) $$,
-                 '23514', null, 'seat 3 violates the check constraint, even for the database owner');
+                    values ((select id from ws_a), 'dddddddd-0000-0000-0000-000000000004', 51) $$,
+                 '23514', null, 'seat numbers are bounded, even for the database owner');
 select throws_ok($$ insert into public.workspace_members (workspace_id, user_id, seat)
                     values ((select id from ws_a), 'cccccccc-0000-0000-0000-000000000003', 2) $$,
                  '23505', null, 'a taken seat cannot be reused');
@@ -111,8 +112,8 @@ select is((select name from public.workspaces where id = (select id from ws_a)),
           'outsider cannot rename another workspace');
 
 select pg_temp.login('bbbbbbbb-0000-0000-0000-000000000002');
-select is((select count(*)::int from public.profiles), 2, 'B sees exactly self and partner');
-select is((select count(*)::int from public.workspace_members), 2, 'B sees both members');
+select is((select count(*)::int from public.profiles), 3, 'B sees exactly the members of the workspace');
+select is((select count(*)::int from public.workspace_members), 3, 'B sees all three members');
 update public.profiles set display_name = 'Renamed' where id = 'aaaaaaaa-0000-0000-0000-000000000001';
 select pg_temp.logout();
 select is((select display_name from public.profiles where id = 'aaaaaaaa-0000-0000-0000-000000000001'),

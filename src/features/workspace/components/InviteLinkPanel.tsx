@@ -6,7 +6,7 @@ import { useToast } from '@/components/ui/Toast'
 import { formatDateTime } from '@/lib/format'
 import { useCreateInvitation } from '../hooks'
 
-/** Creates a partner invitation and shows the link exactly once (FR-PLAT-03, NFR-SEC-05). */
+/** Creates the workspace's invite link and shows it exactly once (FR-PLAT-03, NFR-SEC-05). */
 export function InviteLinkPanel({ workspaceId }: { workspaceId: string }) {
   const toast = useToast()
   const create = useCreateInvitation(workspaceId)
@@ -41,8 +41,8 @@ export function InviteLinkPanel({ workspaceId }: { workspaceId: string }) {
           </Button>
         </div>
         <p className="text-caption text-muted">
-          Single use · expires {formatDateTime(link.expiresAt)}. Send it to your partner through any
-          app.
+          Works for several people · expires {formatDateTime(link.expiresAt)}. Share it with your
+          friends through any app.
         </p>
       </div>
     )
@@ -56,7 +56,7 @@ export function InviteLinkPanel({ workspaceId }: { workspaceId: string }) {
         loading={create.isPending}
         icon={<Link2 className="size-4" aria-hidden />}
       >
-        Create invitation link
+        Create invite link
       </Button>
     </div>
   )

@@ -13,7 +13,7 @@ export type HistoryRow = Tables['opportunity_field_history']['Row']
 const OPP_COLUMNS =
   'id, workspace_id, owner_id, visibility, type, title, organizer, description, official_url, registration_url, rules_url, rules_text, mode, location, eligibility_text, eligibility_criteria, team_min, team_max, is_free, fee_amount, fee_currency, prizes, benefits, required_documents, tracks, tags, status, created_at, updated_at, deleted_at, deleted_by, dates:opportunity_dates(kind, all_day, on_date, at_time, source_timezone)'
 
-/** All live opportunities the viewer can see (RLS filters private items of the partner). */
+/** All live opportunities the viewer can see (RLS hides other members' private items). */
 export async function listOpportunities(): Promise<Opportunity[]> {
   const { data, error } = await requireSupabase()
     .from('opportunities')

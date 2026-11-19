@@ -5,7 +5,7 @@ import { PageSpinner } from '@/components/ui/Spinner'
 import { AuthFrame, useAuth } from '@/features/auth'
 import { AppError } from '@/lib/errors'
 import { savePendingRoute } from '@/lib/pendingRoute'
-import { useAcceptInvitation } from '../hooks'
+import { useAcceptInvitation, useSwitchWorkspace } from '../hooks'
 
 /** /invite/:token — works signed out (Flow §6). */
 export function AcceptInvitePage() {
@@ -13,6 +13,7 @@ export function AcceptInvitePage() {
   const { user, loading } = useAuth()
   const navigate = useNavigate()
   const accept = useAcceptInvitation()
+  const switchTo = useSwitchWorkspace()
 
   if (loading) return <PageSpinner />
 
@@ -23,8 +24,9 @@ export function AcceptInvitePage() {
       <div className="space-y-4">
         <h1 className="font-display text-h1">You&apos;re invited</h1>
         <p className="text-body-sm text-muted">
-          Your partner invited you to share a private Luna Space workspace — opportunities,
-          projects, deadlines and chat for the two of you.
+          You&apos;ve been invited to a private Luna Space workspace: opportunities, projects,
+          deadlines, notes and chat, shared with the people in it. You can belong to several
+          workspaces and switch between them.
         </p>
 
         {!user ? (
@@ -60,9 +62,7 @@ export function AcceptInvitePage() {
               <Button
                 className="w-full"
                 loading={accept.isPending}
-                onClick={() =>
-                  accept.mutate(token, { onSuccess: () => navigate('/', { replace: true }) })
-                }
+                onClick={() => accept.mutate(token, { onSuccess: (id) => void switchTo(id) })}
               >
                 Join workspace
               </Button>

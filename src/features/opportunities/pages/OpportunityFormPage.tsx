@@ -126,7 +126,7 @@ function OpportunityForm({
             label="Visibility"
             hint="Private items are visible only to you."
             options={[
-              { value: 'shared', label: 'Shared with my partner' },
+              { value: 'shared', label: 'Shared with the workspace' },
               { value: 'private', label: 'Private (only me)' },
             ]}
             {...form.register('visibility')}

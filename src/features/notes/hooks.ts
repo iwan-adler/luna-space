@@ -143,7 +143,7 @@ export function useUpdateNoteMeta() {
   })
 }
 
-/** Live list and note updates from the partner (TRD §9). */
+/** Live list and note updates from other members (TRD §9). */
 export function useNotesRealtime(onNoteChange?: (id: string) => void) {
   const qc = useQueryClient()
   useEffect(() => {

@@ -15,7 +15,7 @@ import { useMyProfile } from '@/features/profile'
 import { useChatRealtime, useChatUnread } from '@/features/chat'
 import { NotificationBell } from '@/features/notifications'
 import { CommandPalette } from '@/features/search'
-import { useCurrentWorkspace } from '@/features/workspace'
+import { WorkspaceSwitcher } from '@/features/workspace'
 import { mobileNav, primaryNav } from './navigation'
 
 const sideLink = ({ isActive }: { isActive: boolean }) =>
@@ -28,7 +28,6 @@ const sideLink = ({ isActive }: { isActive: boolean }) =>
  * large screens; a top bar and floating bottom bar on phones (UI spec §9–11).
  */
 export function AppShell() {
-  const ws = useCurrentWorkspace()
   const location = useLocation()
   return (
     <div className="min-h-dvh lg:p-4">
@@ -47,9 +46,9 @@ export function AppShell() {
             <MoonLogo className="logo-glow size-7" />
             Luna Space
           </Link>
-          <p className="mt-8 mb-2 truncate px-3.5 text-caption text-muted" title={ws.workspaceName}>
-            {ws.workspaceName}
-          </p>
+          <div className="mt-6 mb-3">
+            <WorkspaceSwitcher />
+          </div>
           <nav aria-label="Main" className="flex flex-col gap-1">
             {primaryNav.map((item) => (
               <NavLink key={item.to} to={item.to} end={item.to === '/'} className={sideLink}>
@@ -219,6 +218,7 @@ export function MorePage() {
       <h1 id="more-title" className="font-display text-h1">
         More
       </h1>
+      <WorkspaceSwitcher />
       <nav aria-label="More" className="panel divide-y divide-hairline overflow-hidden p-0">
         {extra.map((item) => (
           <Link key={item.to} to={item.to} className={moreRow}>
@@ -260,7 +260,7 @@ export function MorePage() {
   )
 }
 
-/** Unread messages from the partner, kept live on every page (FR-CHAT-06). */
+/** Unread messages from others in the workspace, kept live on every page (FR-CHAT-06). */
 function ChatBadge() {
   useChatRealtime()
   const unread = useChatUnread()

@@ -1,7 +1,8 @@
 # Luna Space — instructions for coding assistants
 
-Luna Space is a private workspace for exactly two collaborators (hackathons, opportunities,
-projects, calendar, chat, knowledge). The specifications are the source of truth:
+Luna Space is a private workspace for small groups of friends (hackathons, opportunities,
+projects, calendar, chat, knowledge). A person can belong to several workspaces (ADR 0018); the
+specifications are the source of truth, with ADRs in `docs/adr/` recording later changes:
 
 | Spec                      | Use it for                                                          |
 | ------------------------- | ------------------------------------------------------------------- |
@@ -29,7 +30,8 @@ Add a library only in the phase that first needs it (ADR 0001).
 - Migrations live in `supabase/migrations/<YYYYMMDDHHMMSS>_<name>.sql`, follow the order in
   Schema §30, and are **never edited after merge** — add a new migration instead.
 - Every new `public` table: `workspace_id`, RLS enabled, policies using
-  `workspace_id = (select private.current_workspace_id())`; add owner/partner/outsider/anon tests.
+  `workspace_id = (select private.current_workspace_id())` (the tab's workspace, from the
+  `x-workspace-id` header; ADR 0018); add owner/member/outsider/anon tests.
   `supabase/tests/database/0000_rls_coverage.test.sql` fails CI if any table lacks RLS.
 - No DELETE policies on content tables: soft delete via `deleted_at`.
 - Grant table privileges explicitly in the migration that creates a table: `revoke all … from anon,

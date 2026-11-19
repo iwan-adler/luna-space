@@ -717,17 +717,23 @@ isOneToOne: false
                   ]
                 },"profiles": {
                   Row: {
-                    "availability": Database["public"]['Enums']["availability_status"],"avatar_path": string | null,"created_at": string,"display_name": string,"id": string,"timezone": string,"updated_at": string
+                    "active_workspace_id": string | null,"availability": Database["public"]['Enums']["availability_status"],"avatar_path": string | null,"created_at": string,"display_name": string,"id": string,"timezone": string,"updated_at": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "availability"?: Database["public"]['Enums']["availability_status"],"avatar_path"?: string | null,"created_at"?: string,"display_name": string,"id": string,"timezone"?: string,"updated_at"?: string
+                    "active_workspace_id"?: string | null,"availability"?: Database["public"]['Enums']["availability_status"],"avatar_path"?: string | null,"created_at"?: string,"display_name": string,"id": string,"timezone"?: string,"updated_at"?: string
                   }
                   Update: {
-                    "availability"?: Database["public"]['Enums']["availability_status"],"avatar_path"?: string | null,"created_at"?: string,"display_name"?: string,"id"?: string,"timezone"?: string,"updated_at"?: string
+                    "active_workspace_id"?: string | null,"availability"?: Database["public"]['Enums']["availability_status"],"avatar_path"?: string | null,"created_at"?: string,"display_name"?: string,"id"?: string,"timezone"?: string,"updated_at"?: string
                   }
                   Relationships: [
-                    
+                    {
+      foreignKeyName: "profiles_active_workspace_id_fkey"
+      columns: ["active_workspace_id"]
+isOneToOne: false
+      referencedRelation: "workspaces"
+      referencedColumns: ["id"]
+    }
                   ]
                 },"project_guest_invitations": {
                   Row: {
@@ -1115,14 +1121,14 @@ isOneToOne: false
                   ]
                 },"workspace_invitations": {
                   Row: {
-                    "accepted_at": string | null,"accepted_by": string | null,"created_at": string,"created_by": string | null,"expires_at": string,"id": string,"revoked_at": string | null,"token_hash": string,"workspace_id": string
+                    "accepted_at": string | null,"accepted_by": string | null,"created_at": string,"created_by": string | null,"expires_at": string,"id": string,"revoked_at": string | null,"token_hash": string,"use_count": number,"workspace_id": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "accepted_at"?: string | null,"accepted_by"?: string | null,"created_at"?: string,"created_by"?: string | null,"expires_at": string,"id"?: string,"revoked_at"?: string | null,"token_hash": string,"workspace_id": string
+                    "accepted_at"?: string | null,"accepted_by"?: string | null,"created_at"?: string,"created_by"?: string | null,"expires_at": string,"id"?: string,"revoked_at"?: string | null,"token_hash": string,"use_count"?: number,"workspace_id": string
                   }
                   Update: {
-                    "accepted_at"?: string | null,"accepted_by"?: string | null,"created_at"?: string,"created_by"?: string | null,"expires_at"?: string,"id"?: string,"revoked_at"?: string | null,"token_hash"?: string,"workspace_id"?: string
+                    "accepted_at"?: string | null,"accepted_by"?: string | null,"created_at"?: string,"created_by"?: string | null,"expires_at"?: string,"id"?: string,"revoked_at"?: string | null,"token_hash"?: string,"use_count"?: number,"workspace_id"?: string
                   }
                   Relationships: [
                     {
@@ -1167,20 +1173,20 @@ isOneToOne: false
                   ]
                 },"workspace_members": {
                   Row: {
-                    "joined_at": string,"seat": number,"user_id": string,"workspace_id": string
+                    "joined_at": string,"role": string,"seat": number,"user_id": string,"workspace_id": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "joined_at"?: string,"seat": number,"user_id": string,"workspace_id": string
+                    "joined_at"?: string,"role"?: string,"seat": number,"user_id": string,"workspace_id": string
                   }
                   Update: {
-                    "joined_at"?: string,"seat"?: number,"user_id"?: string,"workspace_id"?: string
+                    "joined_at"?: string,"role"?: string,"seat"?: number,"user_id"?: string,"workspace_id"?: string
                   }
                   Relationships: [
                     {
       foreignKeyName: "workspace_members_user_id_fkey"
       columns: ["user_id"]
-isOneToOne: true
+isOneToOne: false
       referencedRelation: "profiles"
       referencedColumns: ["id"]
     },{
@@ -1193,14 +1199,14 @@ isOneToOne: false
                   ]
                 },"workspaces": {
                   Row: {
-                    "created_at": string,"created_by": string | null,"deleted_at": string | null,"id": string,"name": string,"updated_at": string
+                    "created_at": string,"created_by": string | null,"deleted_at": string | null,"emoji": string | null,"id": string,"max_members": number,"name": string,"updated_at": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "created_at"?: string,"created_by"?: string | null,"deleted_at"?: string | null,"id"?: string,"name": string,"updated_at"?: string
+                    "created_at"?: string,"created_by"?: string | null,"deleted_at"?: string | null,"emoji"?: string | null,"id"?: string,"max_members"?: number,"name": string,"updated_at"?: string
                   }
                   Update: {
-                    "created_at"?: string,"created_by"?: string | null,"deleted_at"?: string | null,"id"?: string,"name"?: string,"updated_at"?: string
+                    "created_at"?: string,"created_by"?: string | null,"deleted_at"?: string | null,"emoji"?: string | null,"id"?: string,"max_members"?: number,"name"?: string,"updated_at"?: string
                   }
                   Relationships: [
                     {
@@ -1271,11 +1277,19 @@ isOneToOne: false
 "leave_project":
 { Args: { "p_project": string }; Returns: Json
                            },
+"leave_workspace":
+{ Args: { "p_workspace": string }; Returns: undefined
+                           },
 "mark_all_notifications_read":
 { Args: Record<PropertyKey, never>; Returns: number
                            },
 "mark_chat_read":
 { Args: { "p_message": string }; Returns: undefined
+                           },
+"my_workspaces":
+{ Args: Record<PropertyKey, never>; Returns: {
+              "emoji": string,"id": string,"is_active": boolean,"joined_at": string,"max_members": number,"member_count": number,"name": string,"role": string
+            }[]
                            },
 "project_directory":
 { Args: { "p_project": string }; Returns: {
@@ -1297,6 +1311,9 @@ isOneToOne: false
                            },
 "remove_project_guest":
 { Args: { "p_membership": string }; Returns: Json
+                           },
+"remove_workspace_member":
+{ Args: { "p_user": string }; Returns: undefined
                            },
 "report_client_error":
 { Args: { "p_app_version": string,"p_error_id": string,"p_message": string,"p_route": string }; Returns: undefined
@@ -1333,11 +1350,17 @@ isOneToOne: false
 "send_test_notification":
 { Args: Record<PropertyKey, never>; Returns: Json
                            },
+"set_active_workspace":
+{ Args: { "p_workspace": string }; Returns: undefined
+                           },
 "set_guest_role":
 { Args: { "p_membership": string,"p_role": Database["public"]['Enums']["guest_role"] }; Returns: Json
                            },
 "start_extraction_run":
 { Args: { "p_url": string }; Returns: Json
+                           },
+"update_workspace":
+{ Args: { "p_emoji": string,"p_max_members": number,"p_name": string }; Returns: undefined
                            }
           }
           Enums: {

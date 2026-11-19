@@ -114,7 +114,7 @@ export function VaultPage() {
   if (folderId && folders.isSuccess && !current) {
     return (
       <Alert tone="warning">
-        This folder doesn&apos;t exist, was deleted, or is private to your partner.{' '}
+        This folder doesn&apos;t exist, was deleted, or is private to someone else.{' '}
         <Link to="/vault" className="underline">
           Back to the Vault
         </Link>

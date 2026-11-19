@@ -55,12 +55,15 @@ type Availability = keyof typeof AVAILABILITY
 const ACCEPT =
   'image/png,image/jpeg,image/webp,image/gif,application/pdf,text/plain,text/markdown,text/csv,application/zip,.docx,.xlsx,.pptx,.odt'
 
-/** /chat — the two members' conversation (FR-CHAT-01–08). */
+/** /chat — the workspace's conversation, for two people or a whole group (FR-CHAT-01–08, ADR 0018). */
 export function ChatPage() {
   const { user } = useAuth()
-  const { workspaceId } = useCurrentWorkspace()
+  const { workspaceId, workspaceName } = useCurrentWorkspace()
   const members = useMembers(workspaceId)
-  const partner = members.data?.find((m) => m.userId !== user?.id)
+  const others = members.data?.filter((m) => m.userId !== user?.id) ?? []
+  const group = others.length > 1
+  // In a two-person workspace the header shows the other person, as before.
+  const partner = group ? undefined : others[0]
   const messages = useMessages()
   const reads = useReadStates()
   const online = usePresence()
@@ -89,14 +92,32 @@ export function ChatPage() {
         const day = utcIsoToZonedLocal(m.created_at, tz).slice(0, 10)
         const prev = list[i - 1]
         const showDay = !prev || utcIsoToZonedLocal(prev.created_at, tz).slice(0, 10) !== day
-        return { m, day, showDay }
+        const showSender = !prev || prev.sender_id !== m.sender_id || showDay
+        return { m, day, showDay, showSender }
       }),
     [list, tz],
   )
-  const partnerRead = reads.data?.find((r) => r.user_id === partner?.userId)?.last_read_at ?? null
-  const lastMineSeen = [...list]
-    .reverse()
-    .find((m) => m.sender_id === user?.id && partnerRead && m.created_at <= partnerRead)?.id
+  // "Seen" goes under my latest message that someone else has read; in a group it names them.
+  const readAt = (uid: string) => reads.data?.find((r) => r.user_id === uid)?.last_read_at ?? null
+  const lastMineSeen = [...list].reverse().find(
+    (m) =>
+      m.sender_id === user?.id &&
+      others.some((o) => {
+        const at = readAt(o.userId)
+        return at !== null && m.created_at <= at
+      }),
+  )
+  const seenLabel = (() => {
+    if (!lastMineSeen) return null
+    if (!group) return 'Seen'
+    const by = others.filter((o) => {
+      const at = readAt(o.userId)
+      return at !== null && lastMineSeen.created_at <= at
+    })
+    return by.length === others.length
+      ? 'Seen by everyone'
+      : `Seen by ${by.map((o) => o.displayName).join(', ')}`
+  })()
 
   // Mark read when new messages arrive while the page is visible.
   const newest = list[list.length - 1]
@@ -128,6 +149,7 @@ export function ChatPage() {
       : (members.data?.find((m) => m.userId === id)?.displayName ?? 'Former member')
 
   const partnerOnline = partner ? online.has(partner.userId) : false
+  const onlineCount = others.filter((o) => online.has(o.userId)).length
   const status = (partnerProfile.data?.availability ?? 'available') as Availability
 
   return (
@@ -136,21 +158,39 @@ export function ChatPage() {
       className="flex h-[calc(100dvh-12rem)] flex-col gap-3 lg:h-[calc(100dvh-8.5rem)]"
     >
       <header className="flex items-center gap-3">
-        <span className="btn-primary relative grid size-11 shrink-0 place-items-center rounded-full font-semibold">
-          {(partner?.displayName ?? '?').slice(0, 1).toUpperCase()}
-          <span
-            aria-hidden
-            className={`absolute -right-0.5 -bottom-0.5 size-3 rounded-full border-2 border-bg ${partnerOnline ? 'bg-success' : 'bg-neutral'}`}
-          />
-        </span>
+        {group ? (
+          <span className="flex shrink-0 -space-x-2.5" aria-hidden>
+            {others.slice(0, 4).map((o) => (
+              <span
+                key={o.userId}
+                className="btn-primary relative grid size-9 place-items-center rounded-full border-2 border-bg text-body-sm font-semibold"
+              >
+                {o.displayName.slice(0, 1).toUpperCase()}
+                <span
+                  className={`absolute -right-0.5 -bottom-0.5 size-2.5 rounded-full border-2 border-bg ${online.has(o.userId) ? 'bg-success' : 'bg-neutral'}`}
+                />
+              </span>
+            ))}
+          </span>
+        ) : (
+          <span className="btn-primary relative grid size-11 shrink-0 place-items-center rounded-full font-semibold">
+            {(partner?.displayName ?? '?').slice(0, 1).toUpperCase()}
+            <span
+              aria-hidden
+              className={`absolute -right-0.5 -bottom-0.5 size-3 rounded-full border-2 border-bg ${partnerOnline ? 'bg-success' : 'bg-neutral'}`}
+            />
+          </span>
+        )}
         <div className="min-w-0 flex-1">
           <h1 id="chat-title" className="truncate text-h2">
-            {partner ? partner.displayName : 'Chat'}
+            {group ? workspaceName : partner ? partner.displayName : 'Chat'}
           </h1>
           <p className="text-caption text-muted" data-testid="partner-status">
-            {partner
-              ? `${partnerOnline ? 'Online' : 'Offline'} · ${AVAILABILITY[status]}`
-              : 'Invite your partner to start chatting'}
+            {group
+              ? `${others.length + 1} members · ${onlineCount} online now`
+              : partner
+                ? `${partnerOnline ? 'Online' : 'Offline'} · ${AVAILABILITY[status]}`
+                : 'Invite someone to start chatting'}
           </p>
         </div>
         <MyAvailability />
@@ -191,7 +231,7 @@ export function ChatPage() {
                 No messages yet. Say hello 👋
               </p>
             ) : null}
-            {rows.map(({ m, day, showDay }) => {
+            {rows.map(({ m, day, showDay, showSender }) => {
               return (
                 <Fragment key={m.id}>
                   {showDay ? (
@@ -205,7 +245,10 @@ export function ChatPage() {
                     reply={m.reply_to_id ? (byId.get(m.reply_to_id) ?? null) : null}
                     replyName={(id) => nameOf(id)}
                     time={utcIsoToZonedLocal(m.created_at, tz).slice(11)}
-                    seen={m.id === lastMineSeen}
+                    seen={m.id === lastMineSeen?.id ? seenLabel : null}
+                    sender={
+                      group && showSender && m.sender_id !== user?.id ? nameOf(m.sender_id) : null
+                    }
                     myId={user?.id ?? ''}
                     onReply={() => {
                       setEditing(null)
@@ -267,6 +310,7 @@ function Bubble({
   replyName,
   time,
   seen,
+  sender,
   myId,
   onReply,
   onEdit,
@@ -276,7 +320,8 @@ function Bubble({
   reply: Message | null
   replyName: (id: string | null) => string
   time: string
-  seen: boolean
+  seen: string | null
+  sender: string | null
   myId: string
   onReply: () => void
   onEdit: () => void
@@ -301,6 +346,9 @@ function Bubble({
       data-testid="chat-message"
     >
       <div className={`flex max-w-[82%] flex-col gap-1 ${mine ? 'items-end' : 'items-start'}`}>
+        {sender ? (
+          <span className="px-1 pt-1 text-caption font-medium text-highlight">{sender}</span>
+        ) : null}
         <div className="relative">
           <div
             className={`rounded-[18px] px-3.5 py-2 text-body-sm ${mine ? 'btn-primary rounded-br-[6px]' : 'rounded-bl-[6px] border border-hairline bg-surface-raised'} ${deleted ? 'opacity-60' : ''}`}
@@ -414,7 +462,7 @@ function Bubble({
           {m.edited_at && !deleted ? ' · edited' : ''}
           {seen ? (
             <span data-testid="seen" className="ml-1 inline-flex items-center gap-0.5">
-              · <Check className="size-3" aria-hidden /> Seen
+              · <Check className="size-3" aria-hidden /> {seen}
             </span>
           ) : null}
         </p>

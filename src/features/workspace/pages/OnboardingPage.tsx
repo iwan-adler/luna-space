@@ -19,7 +19,7 @@ const profileSchema = z.object({
 })
 const workspaceSchema = z.object({ name: z.string().trim().min(1, 'Enter a name').max(60) })
 
-/** Three-step onboarding: profile → workspace → invite partner (Flow §4). */
+/** Three-step onboarding: profile → workspace → invite friends (Flow §4, ADR 0018). */
 export function OnboardingPage() {
   const navigate = useNavigate()
   const membership = useMembership()
@@ -64,10 +64,11 @@ export function OnboardingPage() {
         ) : null}
         {step === 3 && workspaceId ? (
           <div className="space-y-4">
-            <h1 className="font-display text-h1">Invite your partner</h1>
+            <h1 className="font-display text-h1">Invite your people</h1>
             <p className="text-body-sm text-muted">
-              Luna Space is built for two. Send your partner this link — it works once and expires
-              in 7 days. You can also do this later in Settings.
+              Send this link to the friends you build with. Anyone with it can join until the
+              workspace is full or the link expires in 7 days. You can also do this later in
+              Settings.
             </p>
             <InviteLinkPanel workspaceId={workspaceId} />
             <Button
@@ -137,7 +138,8 @@ function WorkspaceStep({ onDone }: { onDone: (workspaceId: string) => void }) {
     >
       <h1 className="font-display text-h1">Name your workspace</h1>
       <p className="text-body-sm text-muted">
-        A private space for you and one partner. You can rename it later.
+        A private space for you and the people you build with. You can rename it later, and create
+        more workspaces for other groups of friends.
       </p>
       {create.error ? <Alert tone="danger">{create.error.message}</Alert> : null}
       <TextField
