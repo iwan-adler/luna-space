@@ -7,3 +7,4 @@ export { useOpportunities, useOpportunity, useSetStatus, useViewerTimeZone } fro
 export type { Opportunity } from './model'
 export { nextDeadline as nextDeadlineOf } from './model'
 export { PipelineStrip } from './components/PipelineStrip'
+export { TrophyWallPage } from './pages/TrophyWallPage'

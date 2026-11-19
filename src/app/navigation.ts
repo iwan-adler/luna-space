@@ -1,4 +1,5 @@
 import {
+  Award,
   CalendarDays,
   FolderKanban,
   House,
@@ -28,6 +29,7 @@ export const primaryNav: NavItem[] = [
   { to: '/notes', label: 'Notes', icon: NotebookPen },
   { to: '/chat', label: 'Chat', icon: MessageCircle },
   { to: '/vault', label: 'Vault', icon: Library },
+  { to: '/trophies', label: 'Trophies', icon: Award },
 ]
 
 /** Mobile bottom bar: Home, Opportunities, Projects, Chat, More (UI spec §8). */

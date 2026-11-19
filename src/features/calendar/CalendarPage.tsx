@@ -20,6 +20,7 @@ import { useCalendarEvent, useCalendarFeed, useMoveEvent } from './hooks'
 import { SyncDialog } from './SyncDialog'
 import { TimeGrid } from './TimeGrid'
 import {
+  isoWeekday,
   addDays,
   addMonths,
   findClashes,
@@ -39,12 +40,14 @@ import {
 type View = 'month' | 'week' | 'day' | 'agenda'
 const WEEKDAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
 
+// Glassy chips with a glowing edge in the layer's colour (ADR 0020).
+const glass = 'backdrop-blur-sm border-l-[3px] shadow-[inset_0_1px_0_rgb(255_255_255/0.06)]'
 const tone: Record<Layer, string> = {
-  shared: 'bg-primary/18 text-text border-primary/40',
-  personal: 'bg-rose/15 text-text border-rose/40',
-  deadlines: 'bg-highlight/14 text-text border-highlight/45',
-  tasks: 'bg-info/14 text-text border-info/40',
-  projects: 'bg-accent/14 text-text border-accent/40',
+  shared: `bg-primary/18 text-text border-primary/40 border-l-primary ${glass}`,
+  personal: `bg-rose/15 text-text border-rose/40 border-l-rose ${glass}`,
+  deadlines: `bg-highlight/14 text-text border-highlight/45 border-l-highlight ${glass}`,
+  tasks: `bg-info/14 text-text border-info/40 border-l-info ${glass}`,
+  projects: `bg-accent/14 text-text border-accent/40 border-l-accent ${glass}`,
 }
 const dot: Record<Layer, string> = {
   shared: 'bg-primary',
@@ -317,13 +320,13 @@ export function CalendarPage() {
                 <div
                   key={d}
                   data-date={d}
-                  className={`group relative border-b border-l border-hairline p-1.5 first:border-l-0 [&:nth-child(7n+1)]:border-l-0 ${view === 'month' ? 'min-h-24 sm:min-h-28' : 'min-h-64'} ${outside ? 'opacity-45' : ''}`}
+                  className={`group relative border-b border-l border-hairline p-1.5 first:border-l-0 [&:nth-child(7n+1)]:border-l-0 ${view === 'month' ? 'min-h-24 sm:min-h-28' : 'min-h-64'} ${outside ? 'opacity-45' : ''} ${d === today ? 'bg-primary/[0.07] shadow-[inset_0_0_0_1px_var(--color-primary-subtle)]' : isoWeekday(d) >= 6 ? 'bg-hairline/40' : ''}`}
                 >
                   <button
                     type="button"
                     onClick={() => setEditing({ id: null, day: d })}
                     aria-label={`Add an event on ${formatDateOnly(d)}`}
-                    className={`mb-1 grid size-7 place-items-center rounded-full text-caption ${d === today ? 'btn-primary font-semibold' : 'text-muted hover:bg-hairline hover:text-text'}`}
+                    className={`mb-1 grid size-7 place-items-center rounded-full text-caption ${d === today ? 'btn-primary font-semibold shadow-[0_0_14px_-2px_var(--color-highlight)]' : 'text-muted hover:bg-hairline hover:text-text'}`}
                   >
                     {Number(d.slice(8))}
                   </button>

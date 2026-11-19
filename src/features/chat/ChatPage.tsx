@@ -18,6 +18,8 @@ import { controlClass } from '@/components/ui/styles'
 import { useToast } from '@/components/ui/Toast'
 import { useAuth } from '@/features/auth'
 import { Markdown } from '@/features/notes'
+import { LinkCard } from './LinkCard'
+import { firstLink } from './links'
 import { useMyProfile, useUpdateProfile, useViewerTimeZone } from '@/features/profile'
 import { formatBytes, signedFileUrl } from '@/lib/files'
 import { useCurrentWorkspace, useMembers } from '@/features/workspace'
@@ -30,6 +32,7 @@ import {
   useEditMessage,
   useMessages,
   usePresence,
+  useTyping,
   useReadStates,
   useSendMessage,
   useToggleReaction,
@@ -67,6 +70,7 @@ export function ChatPage() {
   const messages = useMessages()
   const reads = useReadStates()
   const online = usePresence()
+  const typing = useTyping()
   const tz = useViewerTimeZone()
   useChatRealtime()
 
@@ -270,6 +274,14 @@ export function ChatPage() {
         replyTo={replyTo}
         editing={editing}
         replyName={nameOf}
+        onTyping={typing.notify}
+        typingLabel={
+          typing.typing.length === 0
+            ? null
+            : typing.typing.length === 1
+              ? `${nameOf(typing.typing[0]!)} is typing`
+              : `${typing.typing.length} people are typing`
+        }
         onDone={() => {
           setReplyTo(null)
           setEditing(null)
@@ -366,6 +378,9 @@ function Bubble({
             ) : (
               <>
                 {m.body ? <Markdown body={m.body} /> : null}
+                {m.body && firstLink(m.body) ? (
+                  <LinkCard url={firstLink(m.body)!} mine={mine} />
+                ) : null}
                 {m.files
                   .filter((f) => !f.deleted_at && f.upload_state === 'stored')
                   .map((f) => (
@@ -445,12 +460,12 @@ function Bubble({
           <div className="flex flex-wrap gap-1">
             {[...counts.entries()].map(([emoji, c]) => (
               <button
-                key={emoji}
+                key={`${emoji}:${c.n}`}
                 type="button"
                 aria-pressed={c.mine}
                 aria-label={`${emoji} ${c.n}`}
                 onClick={() => toggle(emoji)}
-                className={`rounded-full border px-2 py-0.5 text-caption ${c.mine ? 'border-primary/60 bg-primary-subtle' : 'border-hairline'}`}
+                className={`pop rounded-full border px-2 py-0.5 text-caption ${c.mine ? 'border-primary/60 bg-primary-subtle shadow-[0_0_10px_-3px_var(--color-primary)]' : 'border-hairline'}`}
               >
                 {emoji} {c.n}
               </button>
@@ -522,11 +537,15 @@ function Composer({
   editing,
   replyName,
   onDone,
+  onTyping,
+  typingLabel,
 }: {
   replyTo: Message | null
   editing: Message | null
   replyName: (id: string | null) => string
   onDone: () => void
+  onTyping: () => void
+  typingLabel: string | null
 }) {
   const send = useSendMessage()
   const edit = useEditMessage()
@@ -606,6 +625,24 @@ function Composer({
           </button>
         </div>
       ) : null}
+      {typingLabel ? (
+        <p
+          className="flex items-center gap-1.5 px-2 text-caption text-muted"
+          aria-live="polite"
+          data-testid="typing"
+        >
+          <span className="flex gap-0.5" aria-hidden>
+            {[0, 1, 2].map((i) => (
+              <span
+                key={i}
+                className="size-1.5 animate-bounce rounded-full bg-highlight"
+                style={{ animationDelay: `${i * 140}ms` }}
+              />
+            ))}
+          </span>
+          {typingLabel}…
+        </p>
+      ) : null}
       <form
         className="flex items-end gap-2"
         onSubmit={(e) => {
@@ -641,7 +678,10 @@ function Composer({
           value={text}
           maxLength={8000}
           placeholder="Write a message"
-          onChange={(e) => setText(e.target.value)}
+          onChange={(e) => {
+            setText(e.target.value)
+            if (e.target.value.trim()) onTyping()
+          }}
           onKeyDown={(e) => {
             if (e.key === 'Enter' && !e.shiftKey && !e.nativeEvent.isComposing) {
               e.preventDefault()

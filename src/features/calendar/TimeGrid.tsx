@@ -1,7 +1,15 @@
 import { AlertTriangle, Lock, Repeat } from 'lucide-react'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import type { DateOnly } from '@/lib/dates'
-import { itemDates, itemKey, layerOf, minutesInDay, type FeedItem, type Layer } from './model'
+import {
+  isoWeekday,
+  itemDates,
+  itemKey,
+  layerOf,
+  minutesInDay,
+  type FeedItem,
+  type Layer,
+} from './model'
 
 const PX = 0.8 // pixels per minute: 48 px per hour
 const SNAP = 15
@@ -126,7 +134,7 @@ export function TimeGrid({
               )}
             </p>
             <p
-              className={`mx-auto mt-0.5 grid size-8 place-items-center rounded-full text-body-sm font-semibold ${d === today ? 'btn-primary' : ''}`}
+              className={`mx-auto mt-0.5 grid size-8 place-items-center rounded-full text-body-sm font-semibold ${d === today ? 'btn-primary shadow-[0_0_14px_-2px_var(--color-highlight)]' : ''}`}
             >
               {Number(d.slice(8))}
             </p>
@@ -182,7 +190,7 @@ export function TimeGrid({
               <div
                 key={d}
                 data-day={d}
-                className="relative border-l border-hairline"
+                className={`relative border-l border-hairline ${d === today ? 'bg-primary/[0.05]' : isoWeekday(d) >= 6 ? 'bg-hairline/30' : ''}`}
                 onClick={(e) => {
                   if (e.target !== e.currentTarget) return
                   const y = e.nativeEvent.offsetY
@@ -200,9 +208,11 @@ export function TimeGrid({
                 {d === today ? (
                   <div
                     aria-hidden
-                    className="pointer-events-none absolute inset-x-0 z-10 h-0.5 bg-highlight"
+                    className="pointer-events-none absolute inset-x-0 z-10 h-0.5 bg-gradient-to-r from-highlight via-highlight to-transparent shadow-[0_0_10px_1px_var(--color-highlight)]"
                     style={{ top: nowMinutes * PX }}
-                  />
+                  >
+                    <span className="absolute -top-[5px] -left-[5px] size-3 rounded-full bg-highlight shadow-[0_0_12px_3px_var(--color-highlight)]" />
+                  </div>
                 ) : null}
                 {placed[di]!.map(({ item, top, height, col, cols: n }) => {
                   const key = itemKey(item)

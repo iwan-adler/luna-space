@@ -44,7 +44,7 @@ export function PipelineStrip() {
                 ) : null}
                 <li className="min-w-0 flex-1">
                   <Link
-                    to={`/opportunities?view=pipeline`}
+                    to={won ? '/trophies' : '/opportunities?view=pipeline'}
                     className={`lift flex h-full flex-col items-center justify-center rounded-[16px] border px-2 py-3 text-center ${won && n ? 'border-transparent bg-[var(--gradient-primary)] text-white shadow-[var(--glow-primary)]' : 'border-hairline bg-[var(--control-fill)]'}`}
                   >
                     <span className="stat-number flex items-center gap-1 text-[24px] leading-7">
