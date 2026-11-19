@@ -1,3 +1,4 @@
+import { Ambient } from '@/components/patterns/Ambient'
 import { DataSettingsPage, RecycleBinPage } from '@/features/data'
 import { SearchPage } from '@/features/search'
 import { VaultPage } from '@/features/vault'
@@ -64,6 +65,15 @@ const page = (node: ReactNode) => <Suspense fallback={<PageSpinner />}>{node}</S
 
 export function App() {
   if (!publicEnv.ok) return <ConfigMissingPage />
+  return (
+    <>
+      <Ambient />
+      <AppRoutes />
+    </>
+  )
+}
+
+function AppRoutes() {
   return (
     <Routes>
       <Route path="auth" element={<AuthLayout />}>

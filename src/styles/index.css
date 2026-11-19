@@ -2,6 +2,7 @@
 @import '@fontsource-variable/inter';
 @import '@fontsource-variable/jetbrains-mono';
 @import './tokens.css';
+@import './effects.css';
 
 /* Expose tokens as Tailwind utilities: bg-surface, text-muted, border-border, … */
 @theme inline {
