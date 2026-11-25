@@ -71,10 +71,10 @@ export function CommandPalette({ shortcut = false }: { shortcut?: boolean }) {
         </button>
       </RadixDialog.Trigger>
       <RadixDialog.Portal>
-        <RadixDialog.Overlay className="fixed inset-0 z-40 bg-black/55 backdrop-blur-sm" />
+        <RadixDialog.Overlay className="fixed inset-0 z-40 bg-black/65 backdrop-blur-sm" />
         <RadixDialog.Content
           aria-describedby={undefined}
-          className="glass fixed top-[12dvh] left-1/2 z-50 w-[min(94vw,38rem)] -translate-x-1/2 overflow-hidden rounded-[22px] border border-hairline shadow-3"
+          className="fixed top-[12dvh] left-1/2 z-50 w-[min(94vw,38rem)] -translate-x-1/2 overflow-hidden rounded-2xl border border-border bg-surface shadow-2xl backdrop-blur-none"
         >
           <RadixDialog.Title className="sr-only">Search and commands</RadixDialog.Title>
           {open ? <Palette close={() => setOpen(false)} /> : null}

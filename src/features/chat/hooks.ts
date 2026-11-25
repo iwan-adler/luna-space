@@ -1,5 +1,5 @@
 import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from 'react'
 import { useAuth } from '@/features/auth'
 import { storagePath } from '@/lib/files'
 import { useCurrentWorkspace } from '@/features/workspace'
@@ -331,30 +331,59 @@ export function useChatRealtime() {
   }, [qc, workspaceId])
 }
 
+type Channel = ReturnType<ReturnType<typeof requireSupabase>['channel']>
+interface PresenceHub {
+  channel: Channel
+  online: Set<string>
+  listeners: Set<() => void>
+}
+// One presence channel per workspace, shared by every component that asks who is online
+// (supabase-js returns the same channel for the same topic, and it can be subscribed once).
+const presenceHubs = new Map<string, PresenceHub>()
+const nobody = new Set<string>()
+
+function joinPresence(topic: string, userId: string): PresenceHub {
+  const existing = presenceHubs.get(topic)
+  if (existing) return existing
+  // Private channel: Realtime admits only members of this workspace (migration 0025).
+  const channel = db().channel(topic, { config: { private: true, presence: { key: userId } } })
+  const hub: PresenceHub = { channel, online: nobody, listeners: new Set() }
+  channel
+    .on('presence', { event: 'sync' }, () => {
+      hub.online = new Set(Object.keys(channel.presenceState()))
+      hub.listeners.forEach((l) => l())
+    })
+    .subscribe((status) => {
+      if (status === 'SUBSCRIBED') void channel.track({ at: new Date().toISOString() })
+    })
+  presenceHubs.set(topic, hub)
+  return hub
+}
+
 /** Who is online right now, through Realtime presence (FR-CHAT-08). */
 export function usePresence(): Set<string> {
   const { workspaceId } = useCurrentWorkspace()
   const { user } = useAuth()
-  const [online, setOnline] = useState<Set<string>>(new Set())
-  useEffect(() => {
-    if (!user) return
-    const client = db()
-    // Private channel: Realtime admits only members of this workspace (migration 0025).
-    const channel = client.channel(`presence:${workspaceId}`, {
-      config: { private: true, presence: { key: user.id } },
-    })
-    channel
-      .on('presence', { event: 'sync' }, () =>
-        setOnline(new Set(Object.keys(channel.presenceState()))),
-      )
-      .subscribe((status) => {
-        if (status === 'SUBSCRIBED') void channel.track({ at: new Date().toISOString() })
-      })
-    return () => {
-      void client.removeChannel(channel)
-    }
-  }, [workspaceId, user])
-  return online
+  const userId = user?.id
+  const topic = userId ? `presence:${workspaceId}` : null
+  const subscribe = useCallback(
+    (onChange: () => void) => {
+      if (!topic || !userId) return () => undefined
+      const hub = joinPresence(topic, userId)
+      hub.listeners.add(onChange)
+      return () => {
+        hub.listeners.delete(onChange)
+        if (hub.listeners.size === 0) {
+          presenceHubs.delete(topic)
+          void db().removeChannel(hub.channel)
+        }
+      }
+    },
+    [topic, userId],
+  )
+  return useSyncExternalStore(subscribe, () =>
+    topic ? (presenceHubs.get(topic)?.online ?? nobody) : nobody,
+  )
 }
 
 /**

@@ -4,24 +4,24 @@ import { Alert, Card } from '@/components/ui/Card'
 import { TextField } from '@/components/ui/Field'
 import { useToast } from '@/components/ui/Toast'
 import { useUpdateProfile, type Profile } from './hooks'
-import { parseDevpost, parseGithub, parseLinkedin, parseWebsite, type LinkResult } from './links'
+import { parseDevpost, parseLinkedin, parseWebsite, type LinkResult } from './links'
 
 /** Bio and links shown on your profile card (ADR 0021). Mount with a key per profile. */
 export function AboutYouCard({ profile }: { profile: Profile }) {
   const update = useUpdateProfile()
   const toast = useToast()
   const [bio, setBio] = useState(profile.bio ?? '')
-  const [github, setGithub] = useState(profile.github_username ?? '')
   const [linkedin, setLinkedin] = useState(profile.linkedin_url ?? '')
   const [website, setWebsite] = useState(profile.website_url ?? '')
   const [devpost, setDevpost] = useState(profile.devpost_username ?? '')
-  const [skills, setSkills] = useState(profile.skills.join(', '))
+  const [skills, setSkills] = useState(
+    Array.isArray(profile.skills) ? profile.skills.join(', ') : '',
+  )
   const [errors, setErrors] = useState<Record<string, string>>({})
 
   const submit = (e: FormEvent) => {
     e.preventDefault()
     const parsed: Record<string, LinkResult> = {
-      github: parseGithub(github),
       linkedin: parseLinkedin(linkedin),
       website: parseWebsite(website),
       devpost: parseDevpost(devpost),
@@ -34,7 +34,6 @@ export function AboutYouCard({ profile }: { profile: Profile }) {
     update.mutate(
       {
         bio: bio.trim() || null,
-        github_username: val('github'),
         linkedin_url: val('linkedin'),
         website_url: val('website'),
         devpost_username: val('devpost'),
@@ -49,7 +48,6 @@ export function AboutYouCard({ profile }: { profile: Profile }) {
       },
       {
         onSuccess: () => {
-          if (val('github')) setGithub(val('github')!)
           if (val('linkedin')) setLinkedin(val('linkedin')!)
           if (val('website')) setWebsite(val('website')!)
           if (val('devpost')) setDevpost(val('devpost')!)
@@ -85,18 +83,17 @@ export function AboutYouCard({ profile }: { profile: Profile }) {
         </div>
         <TextField
           label="Skills"
-          hint="Up to 12, separated by commas. Shown in the team finder."
           placeholder="react, ui design, ml, robotics"
           value={skills}
           onChange={(e) => setSkills(e.target.value)}
         />
-        <div className="grid gap-3 sm:grid-cols-2">
+        <div className="grid gap-3 sm:grid-cols-3">
           <TextField
-            label="GitHub"
-            placeholder="username or github.com/…"
-            value={github}
-            error={errors.github}
-            onChange={(e) => setGithub(e.target.value)}
+            label="Devpost Profile"
+            placeholder="username or devpost.com/…"
+            value={devpost}
+            error={errors.devpost}
+            onChange={(e) => setDevpost(e.target.value)}
           />
           <TextField
             label="LinkedIn"
@@ -106,18 +103,11 @@ export function AboutYouCard({ profile }: { profile: Profile }) {
             onChange={(e) => setLinkedin(e.target.value)}
           />
           <TextField
-            label="Website"
+            label="Personal Website"
             placeholder="yourname.dev"
             value={website}
             error={errors.website}
             onChange={(e) => setWebsite(e.target.value)}
-          />
-          <TextField
-            label="Devpost"
-            placeholder="username or devpost.com/…"
-            value={devpost}
-            error={errors.devpost}
-            onChange={(e) => setDevpost(e.target.value)}
           />
         </div>
         {update.error ? <Alert tone="danger">{update.error.message}</Alert> : null}

@@ -32,7 +32,7 @@ export function MyTasksPage() {
 
   return (
     <section aria-labelledby="my-tasks-title" className="space-y-4">
-      <h1 id="my-tasks-title" className="font-display text-h1">
+      <h1 id="my-tasks-title" className="font-sans text-h1">
         My tasks
       </h1>
       {tasks.isPending ? (
@@ -57,7 +57,10 @@ export function MyTasksPage() {
               <h2 className={`eyebrow ${g === 'overdue' ? 'text-danger' : ''}`}>
                 {GROUP_LABELS[g]} · {items.length}
               </h2>
-              <ul className="panel divide-y divide-hairline" data-testid={`my-tasks-${g}`}>
+              <ul
+                className="panel divide-y divide-hairline overflow-hidden p-0"
+                data-testid={`my-tasks-${g}`}
+              >
                 {items.map((t) => (
                   <li key={t.id}>
                     <Link

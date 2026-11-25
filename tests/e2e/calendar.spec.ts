@@ -1,5 +1,5 @@
 import { expect, test, type Browser, type Page } from '@playwright/test'
-import { acceptInvite, onboardWithInvite } from './support/actions'
+import { acceptInvite, choose, onboardWithInvite } from './support/actions'
 import { createTestUser, localBackend } from './support/backend'
 
 /** A in Kolkata, B in Los Angeles: date-only values must not move between them (AC-18). */
@@ -12,7 +12,7 @@ async function pair(browser: Browser): Promise<{ a: Page; b: Page }> {
   await acceptInvite(b, url, ub)
   await expect(b.getByRole('heading', { level: 1, name: /, Ben/ })).toBeVisible()
   await b.goto('/settings/profile')
-  await b.getByLabel('Time zone').selectOption('America/Los_Angeles')
+  await choose(b, 'Time zone', 'America/Los_Angeles')
   await b.getByRole('button', { name: 'Save profile' }).click()
   return { a, b }
 }
@@ -43,16 +43,16 @@ test.describe('calendar and notifications (Phase 5)', () => {
     await a.goto(`/calendar?view=agenda&date=${isoIn(1)}`)
     await a.getByRole('button', { name: 'New event' }).click()
     await a.getByLabel('Title').fill('Team sync')
-    await a.getByLabel('All day').check()
+    await a.getByRole('switch', { name: 'All day' }).check()
     await a.getByLabel('Date', { exact: true }).fill(isoIn(3))
     await a.getByRole('button', { name: 'Add event' }).click()
     await expect(a.getByText('Event added')).toBeVisible()
 
     await a.getByRole('button', { name: 'New event' }).click()
     await a.getByLabel('Title').fill('Dentist')
-    await a.getByLabel('All day').check()
+    await a.getByRole('switch', { name: 'All day' }).check()
     await a.getByLabel('Date', { exact: true }).fill(isoIn(4))
-    await a.getByLabel('Private (only you can see it)').check()
+    await a.getByRole('switch', { name: 'Private' }).check()
     await a.getByRole('button', { name: 'Add event' }).click()
     await expect(a.getByTestId('calendar-agenda')).toContainText('Dentist')
 
@@ -95,7 +95,7 @@ test.describe('calendar and notifications (Phase 5)', () => {
       'Notifications',
     )
     await a.getByTestId('column-todo').getByText('Design the logo').click()
-    await a.getByLabel('Assignee').selectOption({ label: 'Ben' })
+    await choose(a, 'Assignee', { label: 'Ben' })
     await expect(b.getByTestId('notification-bell').filter({ visible: true })).toHaveAccessibleName(
       'Notifications, 1 unread',
     )

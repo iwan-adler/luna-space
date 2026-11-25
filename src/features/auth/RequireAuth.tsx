@@ -7,7 +7,7 @@ import { useAuth } from './AuthProvider'
 export function RequireAuth() {
   const { user, loading } = useAuth()
   const location = useLocation()
-  if (loading) return <PageSpinner label="Checking your session" />
+  if (loading) return <PageSpinner label="Checking your session" fullScreen />
   if (!user) {
     savePendingRoute(location.pathname + location.search)
     return <Navigate to="/auth/sign-in" replace />

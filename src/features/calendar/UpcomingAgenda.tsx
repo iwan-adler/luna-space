@@ -3,7 +3,7 @@ import { AlertTriangle, ArrowRight, Lock, Repeat } from 'lucide-react'
 import { useMemo } from 'react'
 import { Link, useNavigate } from 'react-router'
 import { useViewerTimeZone } from '@/features/profile'
-import { formatDateOnly, todayIn } from '@/lib/dates'
+import { formatDateOnly, format12HourTime, todayIn } from '@/lib/dates'
 import { useCalendarFeed } from './hooks'
 import {
   addDays,
@@ -61,7 +61,10 @@ export function UpcomingAgenda() {
           A clear week. Add an event or an opportunity with a deadline and it shows up here.
         </p>
       ) : (
-        <ol className="panel divide-y divide-hairline p-0" data-testid="upcoming-agenda">
+        <ol
+          className="panel divide-y divide-hairline overflow-hidden p-0"
+          data-testid="upcoming-agenda"
+        >
           {withItems.map((d) => (
             <li key={d} className="flex gap-4 px-4 py-3">
               <div className="w-16 shrink-0">
@@ -90,8 +93,8 @@ export function UpcomingAgenda() {
                           aria-hidden
                           className={`size-2 shrink-0 rounded-full ${dot[layerOf(item)]}`}
                         />
-                        <span className="w-11 shrink-0 text-caption text-muted">
-                          {itemTime(item, tz) ?? 'All day'}
+                        <span className="w-16 shrink-0 text-caption text-muted">
+                          {itemTime(item, tz) ? format12HourTime(itemTime(item, tz)!) : 'All day'}
                         </span>
                         <span className="flex-1 truncate">{item.title}</span>
                         {item.rrule ? (

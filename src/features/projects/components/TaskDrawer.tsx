@@ -3,7 +3,9 @@ import * as RadixDialog from '@radix-ui/react-dialog'
 import { Paperclip, Plus, Trash2, X } from 'lucide-react'
 import { useState } from 'react'
 import { Button } from '@/components/ui/Button'
+import { CustomSelect } from '@/components/ui/CustomSelect'
 import { Spinner } from '@/components/ui/Spinner'
+import { Switch } from '@/components/ui/Switch'
 import { controlClass, inputClass } from '@/components/ui/styles'
 import { useToast } from '@/components/ui/Toast'
 import { useAuth } from '@/features/auth'
@@ -44,9 +46,9 @@ export function TaskDrawer({
   return (
     <RadixDialog.Root open={Boolean(task)} onOpenChange={(open) => !open && onClose()}>
       <RadixDialog.Portal>
-        <RadixDialog.Overlay className="fixed inset-0 z-40 bg-black/45 backdrop-blur-[2px]" />
+        <RadixDialog.Overlay className="fixed inset-0 z-40 bg-black/65 backdrop-blur-sm" />
         <RadixDialog.Content
-          className="fixed inset-y-0 right-0 z-50 flex w-full max-w-lg flex-col glass border-l border-hairline shadow-3 outline-none"
+          className="fixed inset-y-0 right-0 z-50 flex w-full max-w-lg flex-col border-l border-border bg-surface shadow-2xl outline-none"
           aria-describedby={undefined}
         >
           {task ? (
@@ -126,17 +128,16 @@ function TaskDetails({
       <div className="flex-1 space-y-6 overflow-y-auto p-5">
         <dl className="grid grid-cols-[7rem_1fr] items-center gap-x-3 gap-y-2.5 text-body-sm">
           <dt className="text-muted">
-            <label htmlFor="task-status">Status</label>
+            <span>Status</span>
           </dt>
           <dd>
-            <select
-              id="task-status"
+            <CustomSelect
+              ariaLabel="Status"
               disabled={readOnly}
-              className={controlClass}
               value={task.status}
-              onChange={(e) => {
-                const status = e.target.value as TaskStatus
-                if (status === 'done' && task.status !== 'done') celebrate(e.target)
+              onChange={(val) => {
+                const status = val as TaskStatus
+                if (status === 'done' && task.status !== 'done') celebrate(document.body)
                 const column = tasks.filter((t) => t.status === status && !t.parent_task_id)
                 save(
                   {
@@ -149,53 +150,46 @@ function TaskDetails({
                   `Moved to ${STATUS_LABELS[status]}`,
                 )
               }}
-            >
-              {TASK_STATUSES.map((s) => (
-                <option key={s} value={s}>
-                  {STATUS_LABELS[s]}
-                </option>
-              ))}
-            </select>
+              options={TASK_STATUSES.map((s) => ({
+                value: s,
+                label: STATUS_LABELS[s],
+              }))}
+            />
           </dd>
           <dt className="text-muted">
-            <label htmlFor="task-priority">Priority</label>
+            <span>Priority</span>
           </dt>
           <dd>
-            <select
-              id="task-priority"
+            <CustomSelect
+              ariaLabel="Priority"
               disabled={readOnly}
-              className={controlClass}
               value={task.priority}
-              onChange={(e) => save({ priority: e.target.value as TaskPriority })}
-            >
-              {Object.entries(PRIORITY_LABELS).map(([k, l]) => (
-                <option key={k} value={k}>
-                  {l}
-                </option>
-              ))}
-            </select>
+              onChange={(val) => save({ priority: val as TaskPriority })}
+              options={Object.entries(PRIORITY_LABELS).map(([k, l]) => ({
+                value: k,
+                label: l,
+              }))}
+            />
           </dd>
           <dt className="text-muted">
-            <label htmlFor="task-assignee">Assignee</label>
+            <span>Assignee</span>
           </dt>
           <dd>
-            <select
-              id="task-assignee"
+            <CustomSelect
+              ariaLabel="Assignee"
               disabled={readOnly}
-              className={controlClass}
               value={task.assignee_id ?? ''}
-              onChange={(e) => save({ assignee_id: e.target.value || null })}
-            >
-              <option value="">Unassigned</option>
-              {people
-                .filter((m) => m.kind === 'member' || task.guest_visible)
-                .map((m) => (
-                  <option key={m.userId} value={m.userId}>
-                    {m.displayName}
-                    {m.userId === user?.id ? ' (you)' : m.kind === 'guest' ? ' (guest)' : ''}
-                  </option>
-                ))}
-            </select>
+              onChange={(val) => save({ assignee_id: val || null })}
+              options={[
+                { value: '', label: 'Unassigned' },
+                ...people
+                  .filter((m) => m.kind === 'member' || task.guest_visible)
+                  .map((m) => ({
+                    value: m.userId,
+                    label: `${m.displayName}${m.userId === user?.id ? ' (you)' : m.kind === 'guest' ? ' (guest)' : ''}`,
+                  })),
+              ]}
+            />
           </dd>
           <dt className="text-muted">
             <label htmlFor="task-due">Due date</label>
@@ -225,15 +219,11 @@ function TaskDetails({
             <>
               <dt className="text-muted">Guests</dt>
               <dd>
-                <label className="flex items-center gap-2">
-                  <input
-                    type="checkbox"
-                    className="size-4 accent-[var(--color-primary)]"
-                    checked={task.guest_visible}
-                    onChange={(e) => save({ guest_visible: e.target.checked })}
-                  />
-                  Visible to guests
-                </label>
+                <Switch
+                  checked={task.guest_visible}
+                  onCheckedChange={(checked) => save({ guest_visible: checked })}
+                  label="Visible to guests"
+                />
               </dd>
             </>
           ) : null}
@@ -313,19 +303,23 @@ function Subtasks({
       </h3>
       <ul className="space-y-1">
         {subtasks.map((s) => (
-          <li key={s.id} className="flex items-center gap-2.5 text-body-sm">
-            <input
-              type="checkbox"
-              className="size-4 accent-[var(--color-primary)]"
-              checked={s.status === 'done'}
-              disabled={!perms.editTasks}
-              aria-label={`Done: ${s.title}`}
-              onChange={(e) => {
-                if (e.target.checked) celebrate(e.target)
-                update.mutate({ id: s.id, patch: { status: e.target.checked ? 'done' : 'todo' } })
-              }}
-            />
-            <span className={s.status === 'done' ? 'text-muted line-through' : ''}>{s.title}</span>
+          <li key={s.id} className="flex items-center text-body-sm py-0.5">
+            <label className="custom-checkbox flex cursor-pointer items-center">
+              <input
+                type="checkbox"
+                checked={s.status === 'done'}
+                disabled={!perms.editTasks}
+                aria-label={`Done: ${s.title}`}
+                onChange={(e) => {
+                  if (e.target.checked) celebrate(e.target)
+                  update.mutate({ id: s.id, patch: { status: e.target.checked ? 'done' : 'todo' } })
+                }}
+              />
+              <span className="checkmark" />
+              <span className={s.status === 'done' ? 'text-muted line-through' : ''}>
+                {s.title}
+              </span>
+            </label>
           </li>
         ))}
       </ul>

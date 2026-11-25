@@ -5,8 +5,10 @@ import { DateTimeInput, type DateTimeValue } from '@/components/patterns/DateTim
 import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
 import { Alert, Card } from '@/components/ui/Card'
+import { CustomSelect } from '@/components/ui/CustomSelect'
 import { SelectField } from '@/components/ui/Field'
 import { PageSpinner } from '@/components/ui/Spinner'
+import { Switch } from '@/components/ui/Switch'
 import { inputClass } from '@/components/ui/styles'
 import { useToast } from '@/components/ui/Toast'
 import { formatDated, type DatedValue } from '@/lib/dates'
@@ -240,7 +242,7 @@ function Review({
   return (
     <section aria-labelledby="review-title" className="max-w-4xl space-y-4">
       <div className="flex flex-wrap items-center gap-2">
-        <h1 id="review-title" className="flex-1 font-display text-h1">
+        <h1 id="review-title" className="flex-1 font-sans text-h1">
           Review extracted details
         </h1>
         {(['confirmed', 'inferred', 'missing', 'conflicting'] as const).map((s) =>
@@ -312,10 +314,17 @@ function Review({
               </div>
 
               {status === 'conflicting' ? (
-                <fieldset className="mb-2 space-y-1">
+                <fieldset className="mb-3 space-y-2">
                   <legend className="sr-only">Choose a value for {LABELS[k]}</legend>
                   {rows.map((r) => (
-                    <label key={r.candidate_no} className="flex items-start gap-2 text-body-sm">
+                    <label
+                      key={r.candidate_no}
+                      className={`relative flex items-start gap-3 rounded-xl border p-3 text-body-sm cursor-pointer transition-colors ${
+                        s.choice === r.candidate_no
+                          ? 'border-primary/50 bg-primary/10'
+                          : 'border-border/60 bg-surface-raised/40 hover:bg-surface-raised'
+                      }`}
+                    >
                       <input
                         type="radio"
                         name={`choice-${k}`}
@@ -323,14 +332,37 @@ function Review({
                         onChange={() =>
                           set(k, { choice: r.candidate_no, value: toEditorValue(k, r.value, tz) })
                         }
+                        className="peer absolute inset-0 m-0 size-full cursor-pointer opacity-0"
                       />
-                      <span>
-                        <strong>{previewValue(k, r.value)}</strong>
-                        <span className="block text-caption text-muted">“{r.evidence}”</span>
+                      <span
+                        className={`size-4.5 rounded-full border-2 flex items-center justify-center shrink-0 mt-0.5 transition-colors peer-focus-visible:ring-2 peer-focus-visible:ring-primary peer-focus-visible:ring-offset-2 peer-focus-visible:ring-offset-surface ${
+                          s.choice === r.candidate_no
+                            ? 'border-primary bg-primary'
+                            : 'border-muted/50 bg-surface'
+                        }`}
+                        aria-hidden="true"
+                      >
+                        {s.choice === r.candidate_no && (
+                          <span className="size-2 rounded-full bg-white" />
+                        )}
+                      </span>
+                      <span className="flex-1 min-w-0">
+                        <strong className="text-text block font-semibold">
+                          {previewValue(k, r.value)}
+                        </strong>
+                        <span className="block text-caption text-text-secondary mt-0.5">
+                          “{r.evidence}”
+                        </span>
                       </span>
                     </label>
                   ))}
-                  <label className="flex items-center gap-2 text-body-sm">
+                  <label
+                    className={`relative flex items-center gap-3 rounded-xl border p-3 text-body-sm cursor-pointer transition-colors ${
+                      s.choice === 'other'
+                        ? 'border-primary/50 bg-primary/10'
+                        : 'border-border/60 bg-surface-raised/40 hover:bg-surface-raised'
+                    }`}
+                  >
                     <input
                       type="radio"
                       name={`choice-${k}`}
@@ -338,8 +370,21 @@ function Review({
                       onChange={() =>
                         set(k, { choice: 'other', value: toEditorValue(k, null, tz) })
                       }
+                      className="peer absolute inset-0 m-0 size-full cursor-pointer opacity-0"
                     />
-                    Enter another value or leave empty
+                    <span
+                      className={`size-4.5 rounded-full border-2 flex items-center justify-center shrink-0 transition-colors peer-focus-visible:ring-2 peer-focus-visible:ring-primary peer-focus-visible:ring-offset-2 peer-focus-visible:ring-offset-surface ${
+                        s.choice === 'other'
+                          ? 'border-primary bg-primary'
+                          : 'border-muted/50 bg-surface'
+                      }`}
+                      aria-hidden="true"
+                    >
+                      {s.choice === 'other' && <span className="size-2 rounded-full bg-white" />}
+                    </span>
+                    <span className="text-text font-medium">
+                      Enter another value or leave empty
+                    </span>
                   </label>
                 </fieldset>
               ) : null}
@@ -357,14 +402,14 @@ function Review({
                 </p>
               ) : null}
               {status === 'inferred' && !isEdited(k) && !isEmptyEditorValue(s.value) ? (
-                <label className="mt-2 flex items-center gap-2 text-body-sm">
-                  <input
-                    type="checkbox"
+                <div className="mt-3 pt-2 border-t border-border/40">
+                  <Switch
+                    label="I checked this"
+                    description="Confirm inferred field value is accurate"
                     checked={s.checked}
-                    onChange={(e) => set(k, { checked: e.target.checked })}
+                    onCheckedChange={(checked) => set(k, { checked })}
                   />
-                  I checked this
-                </label>
+                </div>
               ) : null}
             </li>
           )
@@ -407,35 +452,35 @@ function FieldEditor({
   }
   if (k === 'mode') {
     return (
-      <select
-        aria-label={LABELS[k]}
-        className={input}
-        value={value as string}
-        onChange={(e) => onChange(e.target.value)}
-      >
-        <option value="">Not known</option>
-        {(['online', 'offline', 'hybrid'] as const).map((m) => (
-          <option key={m} value={m}>
-            {MODE_LABELS[m]}
-          </option>
-        ))}
-      </select>
+      <CustomSelect
+        ariaLabel={LABELS[k]}
+        value={(value as string) || ''}
+        onChange={(val) => onChange(val)}
+        options={[
+          { value: '', label: 'Not known' },
+          ...(['online', 'offline', 'hybrid'] as const).map((m) => ({
+            value: m,
+            label: MODE_LABELS[m],
+          })),
+        ]}
+      />
     )
   }
   if (k === 'fee') {
     const f = value as { fee: 'unknown' | 'free' | 'paid'; amount: string; currency: string }
     return (
       <div className="flex flex-wrap gap-2">
-        <select
-          aria-label="Registration fee"
-          className={`${input} w-40`}
+        <CustomSelect
+          ariaLabel="Registration fee"
+          className="w-40"
           value={f.fee}
-          onChange={(e) => onChange({ ...f, fee: e.target.value as typeof f.fee })}
-        >
-          <option value="unknown">Not known</option>
-          <option value="free">Free</option>
-          <option value="paid">Paid</option>
-        </select>
+          onChange={(val) => onChange({ ...f, fee: val as typeof f.fee })}
+          options={[
+            { value: 'unknown', label: 'Not known' },
+            { value: 'free', label: 'Free' },
+            { value: 'paid', label: 'Paid' },
+          ]}
+        />
         {f.fee === 'paid' ? (
           <>
             <input

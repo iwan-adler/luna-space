@@ -3,8 +3,9 @@ import { useMemo, useState } from 'react'
 import { Link, NavLink, useParams, useSearchParams } from 'react-router'
 import { Badge } from '@/components/ui/Badge'
 import { Alert, Card } from '@/components/ui/Card'
+import { CustomSelect } from '@/components/ui/CustomSelect'
 import { PageSpinner } from '@/components/ui/Spinner'
-import { controlClass, inputClass } from '@/components/ui/styles'
+import { inputClass } from '@/components/ui/styles'
 import { useToast } from '@/components/ui/Toast'
 import { useAuth } from '@/features/auth'
 import { useViewerTimeZone } from '@/features/profile'
@@ -126,7 +127,7 @@ export function ProjectRoomPage({ base = '/projects' }: { base?: string }) {
             </div>
           </div>
           <div className="flex flex-wrap items-center gap-2.5">
-            <h1 className="font-display text-h1">{p.name}</h1>
+            <h1 className="font-sans text-h1">{p.name}</h1>
             {p.visibility === 'private' ? (
               <Lock className="size-4 text-muted" aria-label="Private" />
             ) : null}
@@ -264,24 +265,20 @@ function Overview({
       <aside className="space-y-4">
         <Card className="space-y-3 text-body-sm">
           <div className="space-y-1">
-            <label htmlFor="project-stage" className="eyebrow block">
-              Stage
-            </label>
-            <select
-              id="project-stage"
-              className={`${controlClass} w-full`}
-              value={p.stage}
+            <span className="eyebrow block">Stage</span>
+            <CustomSelect
+              ariaLabel="Stage"
               disabled={!perms.editProject}
-              onChange={(e) => save({ stage: e.target.value as ProjectStage }, 'Stage updated')}
-            >
-              {Object.entries(STAGE_LABELS)
+              value={p.stage}
+              onChange={(val) => save({ stage: val as ProjectStage }, 'Stage updated')}
+              options={Object.entries(STAGE_LABELS)
                 .filter(([k]) => perms.member || k !== 'archived' || p.stage === 'archived')
-                .map(([k, l]) => (
-                  <option key={k} value={k}>
-                    {l}
-                  </option>
-                ))}
-            </select>
+                .map(([k, l]) => ({
+                  value: k,
+                  label: l,
+                }))}
+              className="w-full"
+            />
           </div>
           <p>
             <span className="text-muted">Dates: </span>
@@ -291,7 +288,7 @@ function Overview({
           {p.opportunity_id && perms.member ? (
             <Link
               to={`/opportunities/${p.opportunity_id}`}
-              className="inline-flex items-center gap-1.5 text-primary hover:underline"
+              className="inline-flex items-center gap-1.5 text-primary-ink hover:underline"
             >
               <Trophy className="size-3.5" aria-hidden /> View the opportunity
             </Link>
@@ -309,7 +306,7 @@ function Overview({
                     href={l.url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1 text-primary hover:underline"
+                    className="inline-flex items-center gap-1 text-primary-ink hover:underline"
                   >
                     {l.label} <ExternalLink className="size-3" aria-hidden />
                   </a>

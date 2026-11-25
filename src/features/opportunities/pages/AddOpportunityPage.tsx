@@ -107,7 +107,7 @@ export function AddOpportunityPage() {
       <Link to="/opportunities" className="text-body-sm text-muted hover:underline">
         ← Opportunities
       </Link>
-      <h1 id="add-title" className="font-display text-h1">
+      <h1 id="add-title" className="font-sans text-h1">
         Add an opportunity
       </h1>
       <Card className="space-y-3">
@@ -119,7 +119,6 @@ export function AddOpportunityPage() {
             placeholder="https://"
             value={url}
             onChange={(e) => setUrl(e.target.value)}
-            hint="We read the page and propose the details for you to check. Nothing is saved until you confirm."
             error={error ?? undefined}
             autoFocus
           />
@@ -194,14 +193,14 @@ export function AddOpportunityPage() {
           <button
             type="button"
             onClick={() => setPasteOpen(true)}
-            className="inline-flex items-center gap-1 font-medium text-primary hover:underline"
+            className="inline-flex items-center gap-1 font-medium text-primary-ink hover:underline"
           >
             <ClipboardPaste className="size-4" aria-hidden /> Paste the page text instead
           </button>
         )}
         <Link
           to={manualLink()}
-          className="inline-flex items-center gap-1 font-medium text-primary hover:underline"
+          className="inline-flex items-center gap-1 font-medium text-primary-ink hover:underline"
         >
           <PencilLine className="size-4" aria-hidden /> Enter details manually
         </Link>

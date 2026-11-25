@@ -22,7 +22,7 @@ export function ConvertToProjectCard({ opportunityId }: { opportunityId: string 
       ) : project.data ? (
         <Link
           to={`/projects/${project.data.id}`}
-          className="inline-flex items-center gap-1.5 text-body-sm text-primary hover:underline"
+          className="inline-flex items-center gap-1.5 text-body-sm text-primary-ink hover:underline"
         >
           <FolderKanban className="size-4" aria-hidden /> Open {project.data.name}
         </Link>

@@ -9,7 +9,6 @@ import { Dialog } from '@/components/ui/Dialog'
 import { PageSpinner, Spinner } from '@/components/ui/Spinner'
 import { useToast } from '@/components/ui/Toast'
 import { ConvertToProjectCard } from '@/features/projects'
-import { TeamFinder } from '../teams/TeamFinder'
 import { useCurrentWorkspace, useMembers } from '@/features/workspace'
 import { formatDateOnly, formatDated, formatInstant } from '@/lib/dates'
 import { formatDateTime } from '@/lib/format'
@@ -80,7 +79,7 @@ export function OpportunityDetailPage() {
         ← Opportunities
       </Link>
       <header className="flex flex-wrap items-center gap-3">
-        <h1 id="opp-name" className="min-w-0 flex-1 font-display text-h1">
+        <h1 id="opp-name" className="min-w-0 flex-1 font-sans text-h1">
           {o.title}
           {o.visibility === 'private' ? (
             <Badge className="ml-2 align-middle">
@@ -137,7 +136,7 @@ export function OpportunityDetailPage() {
               else next.set('tab', key)
               setParams(next, { replace: true })
             }}
-            className={`-mb-px border-b-2 px-1 py-2 text-body-sm font-medium ${tab === key ? 'border-primary text-primary' : 'border-transparent text-muted'}`}
+            className={`-mb-px border-b-2 px-1 py-2 text-body-sm font-medium ${tab === key ? 'border-primary text-primary-ink' : 'border-transparent text-muted'}`}
           >
             {label}
           </button>
@@ -313,7 +312,7 @@ function Overview({ o, tz }: { o: Opportunity; tz: string }) {
                     href={url!}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1 text-primary hover:underline"
+                    className="inline-flex items-center gap-1 text-primary-ink hover:underline"
                   >
                     {label} <ExternalLink className="size-3" aria-hidden />
                   </a>
@@ -325,9 +324,6 @@ function Overview({ o, tz }: { o: Opportunity; tz: string }) {
           </ul>
         </Card>
         <ConvertToProjectCard opportunityId={o.id} />
-        {['hackathon', 'coding_competition', 'innovation_challenge'].includes(o.type) ? (
-          <TeamFinder opportunityId={o.id} />
-        ) : null}
       </aside>
     </div>
   )
@@ -431,7 +427,7 @@ function HistoryTab({ o }: { o: Opportunity }) {
                   href={s.url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="break-all text-primary hover:underline"
+                  className="break-all text-primary-ink hover:underline"
                 >
                   {s.domain}
                 </a>

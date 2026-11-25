@@ -1,4 +1,5 @@
 import { SkeletonList } from '@/components/ui/Skeleton'
+import { CustomSelect } from '@/components/ui/CustomSelect'
 import { OpportunityTimeline } from '../components/OpportunityTimeline'
 import { Plus } from 'lucide-react'
 import { useMemo } from 'react'
@@ -21,9 +22,6 @@ import { nextDeadline, type Opportunity } from '../model'
 
 type Sort = 'deadline' | 'recent' | 'name'
 type Window = 'any' | '7' | '30'
-
-const selectClass =
-  'rounded-full border border-hairline bg-surface-raised/70 px-3.5 py-2 text-body-sm text-muted hover:text-text'
 
 /** /opportunities — list and pipeline views; all filters live in the URL (UI spec §13). */
 export function OpportunityListPage() {
@@ -85,7 +83,7 @@ export function OpportunityListPage() {
   return (
     <section aria-labelledby="opp-title" className="space-y-4">
       <div className="flex flex-wrap items-center gap-3">
-        <h1 id="opp-title" className="flex-1 font-display text-h1">
+        <h1 id="opp-title" className="flex-1 font-sans text-h1">
           Opportunities
         </h1>
         <div role="tablist" aria-label="View" className="flex gap-1.5">
@@ -114,70 +112,58 @@ export function OpportunityListPage() {
           onChange={(e) => set('q', e.target.value)}
           placeholder="Search name, organizer, tag"
           aria-label="Search opportunities"
-          className="min-w-48 flex-1 rounded-full border border-hairline bg-surface-raised/70 px-4 py-2 text-body-sm placeholder:text-muted/70"
+          className="min-w-48 flex-1 rounded-lg border border-border bg-surface px-3.5 py-2 text-body-sm text-text placeholder:text-muted focus:border-primary outline-none"
         />
-        <select
-          aria-label="Type"
-          className={selectClass}
+        <CustomSelect
+          ariaLabel="Type"
           value={type}
-          onChange={(e) => set('type', e.target.value)}
-        >
-          <option value="">All types</option>
-          {Object.entries(TYPE_LABELS).map(([k, l]) => (
-            <option key={k} value={k}>
-              {l}
-            </option>
-          ))}
-        </select>
-        <select
-          aria-label="Status"
-          className={selectClass}
+          onChange={(v) => set('type', v)}
+          options={[
+            { value: '', label: 'All types' },
+            ...Object.entries(TYPE_LABELS).map(([k, l]) => ({ value: k, label: l })),
+          ]}
+        />
+        <CustomSelect
+          ariaLabel="Status"
           value={status}
-          onChange={(e) => set('status', e.target.value, 'open')}
-        >
-          <option value="open">Open (not closed)</option>
-          <option value="all">All statuses</option>
-          {Object.entries(STATUS_LABELS).map(([k, l]) => (
-            <option key={k} value={k}>
-              {l}
-            </option>
-          ))}
-        </select>
-        <select
-          aria-label="Mode"
-          className={selectClass}
+          onChange={(v) => set('status', v, 'open')}
+          options={[
+            { value: 'open', label: 'Open (not closed)' },
+            { value: 'all', label: 'All statuses' },
+            ...Object.entries(STATUS_LABELS).map(([k, l]) => ({ value: k, label: l })),
+          ]}
+        />
+        <CustomSelect
+          ariaLabel="Mode"
           value={mode}
-          onChange={(e) => set('mode', e.target.value)}
-        >
-          <option value="">Any mode</option>
-          {Object.entries(MODE_LABELS)
-            .filter(([k]) => k !== 'unknown')
-            .map(([k, l]) => (
-              <option key={k} value={k}>
-                {l}
-              </option>
-            ))}
-        </select>
-        <select
-          aria-label="Deadline"
-          className={selectClass}
+          onChange={(v) => set('mode', v)}
+          options={[
+            { value: '', label: 'Any mode' },
+            ...Object.entries(MODE_LABELS)
+              .filter(([k]) => k !== 'unknown')
+              .map(([k, l]) => ({ value: k, label: l })),
+          ]}
+        />
+        <CustomSelect
+          ariaLabel="Deadline"
           value={windowDays}
-          onChange={(e) => set('due', e.target.value, 'any')}
-        >
-          <option value="any">Any deadline</option>
-          <option value="7">Due in 7 days</option>
-          <option value="30">Due in 30 days</option>
-        </select>
-        <select
-          aria-label="Sort"
-          className={selectClass}
+          onChange={(v) => set('due', v, 'any')}
+          options={[
+            { value: 'any', label: 'Any deadline' },
+            { value: '7', label: 'Due in 7 days' },
+            { value: '30', label: 'Due in 30 days' },
+          ]}
+        />
+        <CustomSelect
+          ariaLabel="Sort"
           value={sort}
-          onChange={(e) => set('sort', e.target.value, 'deadline')}
-        >
-          <option value="deadline">Nearest deadline</option>
-          <option value="recent">Recently added</option>
-          <option value="name">Name</option>
-        </select>
+          onChange={(v) => set('sort', v, 'deadline')}
+          options={[
+            { value: 'deadline', label: 'Nearest deadline' },
+            { value: 'recent', label: 'Recently added' },
+            { value: 'name', label: 'Name' },
+          ]}
+        />
       </div>
 
       {isPending ? (
@@ -218,7 +204,7 @@ export function OpportunityListPage() {
       ) : view === 'timeline' ? (
         <OpportunityTimeline opps={filtered} viewerTz={tz} />
       ) : view === 'list' ? (
-        <div className="grid gap-3 md:grid-cols-2" data-testid="opportunity-list">
+        <div className="grid gap-4 md:grid-cols-2" data-testid="opportunity-list">
           {filtered.map((o) => (
             <OpportunityCard key={o.id} opp={o} viewerTz={tz} />
           ))}

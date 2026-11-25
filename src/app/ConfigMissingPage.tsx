@@ -6,11 +6,11 @@ import { publicEnv } from '@/lib/env'
 export function ConfigMissingPage() {
   return (
     <main id="main" className="mx-auto flex min-h-dvh max-w-md flex-col justify-center gap-4 px-4">
-      <div className="flex items-center gap-2 text-h2 font-bold">
+      <div className="flex items-center gap-2 text-h2 font-semibold">
         <MoonLogo className="size-8" />
         Luna Space
       </div>
-      <h1 className="font-display text-h1">Backend not configured</h1>
+      <h1 className="font-sans text-h1">Backend not configured</h1>
       <Alert tone="warning" data-testid="backend-status">
         {publicEnv.ok ? 'Configured.' : publicEnv.problems.join('; ')}
       </Alert>

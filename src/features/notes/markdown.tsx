@@ -22,7 +22,7 @@ function inline(text: string, key: string): ReactNode[] {
     const k = `${key}-${i++}`
     if (m[1])
       out.push(
-        <code key={k} className="rounded bg-hairline px-1 font-mono text-[0.9em]">
+        <code key={k} className="rounded bg-hairline px-1 font-sans text-[0.9em]">
           {t.slice(1, -1)}
         </code>,
       )
@@ -38,7 +38,7 @@ function inline(text: string, key: string): ReactNode[] {
             href={href}
             target="_blank"
             rel="noopener noreferrer"
-            className="text-primary underline"
+            className="text-primary-ink underline"
           >
             {label}
           </a>
@@ -53,7 +53,7 @@ function inline(text: string, key: string): ReactNode[] {
           href={t}
           target="_blank"
           rel="noopener noreferrer"
-          className="text-primary underline"
+          className="text-primary-ink underline"
         >
           {t}
         </a>,
@@ -85,7 +85,7 @@ export function Markdown({
       blocks.push(
         <pre
           key={key}
-          className="overflow-x-auto rounded-[12px] bg-hairline p-3 font-mono text-body-sm"
+          className="overflow-x-auto rounded-[12px] bg-hairline p-3 font-sans text-body-sm"
         >
           {code.join('\n')}
         </pre>,

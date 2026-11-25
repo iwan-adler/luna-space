@@ -49,7 +49,7 @@ export function JoinRoomPage() {
   return (
     <AuthFrame>
       <div className="space-y-4">
-        <h1 className="font-display text-h1">Join a project room</h1>
+        <h1 className="font-sans text-h1">Join a project room</h1>
         <p className="text-body-sm text-muted">
           You&apos;ve been invited as a guest to one project room in Luna Space. You&apos;ll see
           that room only — its board, checklists and the files the team shares with guests.
@@ -85,7 +85,7 @@ export function JoinRoomPage() {
           <>
             {accept.error ? <Alert tone="danger">{accept.error.message}</Alert> : null}
             {errorCode === 'INVITE_INVALID' ? (
-              <Link to="/" className="text-primary hover:underline">
+              <Link to="/" className="text-primary-ink hover:underline">
                 Go to Luna Space
               </Link>
             ) : (

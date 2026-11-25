@@ -45,17 +45,13 @@ export function PipelineStrip() {
                 <li className="min-w-0 flex-1">
                   <Link
                     to={won ? '/trophies' : '/opportunities?view=pipeline'}
-                    className={`lift flex h-full flex-col items-center justify-center rounded-[16px] border px-2 py-3 text-center ${won && n ? 'border-transparent bg-[var(--gradient-primary)] text-white shadow-[var(--glow-primary)]' : 'border-hairline bg-[var(--control-fill)]'}`}
+                    className={`lift flex h-full flex-col items-center justify-center rounded-md border px-2 py-3 text-center ${won && n ? 'border-primary/30 bg-primary-subtle text-text' : 'border-hairline bg-[var(--control-fill)]'}`}
                   >
                     <span className="stat-number flex items-center gap-1 text-[24px] leading-7">
                       {won ? <Trophy className="size-4" aria-hidden /> : null}
                       {n}
                     </span>
-                    <span
-                      className={`truncate text-caption ${won && n ? 'text-white/85' : 'text-muted'}`}
-                    >
-                      {s.label}
-                    </span>
+                    <span className="truncate text-caption text-muted">{s.label}</span>
                   </Link>
                 </li>
               </Fragment>

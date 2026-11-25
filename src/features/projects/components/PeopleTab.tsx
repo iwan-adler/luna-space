@@ -3,9 +3,11 @@ import { useState } from 'react'
 import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
 import { Alert, Card } from '@/components/ui/Card'
+import { CustomSelect } from '@/components/ui/CustomSelect'
 import { Dialog } from '@/components/ui/Dialog'
 import { SelectField, TextField } from '@/components/ui/Field'
 import { PageSpinner } from '@/components/ui/Spinner'
+import { Switch } from '@/components/ui/Switch'
 import { controlClass } from '@/components/ui/styles'
 import { useToast } from '@/components/ui/Toast'
 import { useAuth } from '@/features/auth'
@@ -124,16 +126,12 @@ function GuestRows({
             </span>
             {editable ? (
               <>
-                <label className="sr-only" htmlFor={`role-${g.userId}`}>
-                  Role of {g.displayName}
-                </label>
-                <select
-                  id={`role-${g.userId}`}
-                  className={`${controlClass} py-1.5`}
+                <CustomSelect
+                  ariaLabel={`Role of ${g.displayName}`}
                   value={g.role ?? 'viewer'}
-                  onChange={(e) =>
+                  onChange={(val) =>
                     setRole.mutate(
-                      { membershipId: membership.id, role: e.target.value as GuestRole },
+                      { membershipId: membership.id, role: val as GuestRole },
                       {
                         onSuccess: () => toast.show('Role updated', 'success'),
                         onError: (err) =>
@@ -141,15 +139,14 @@ function GuestRows({
                       },
                     )
                   }
-                >
-                  {(Object.keys(GUEST_ROLE_LABELS) as GuestRole[])
+                  options={(Object.keys(GUEST_ROLE_LABELS) as GuestRole[])
                     .filter((r) => perms.grantAdmin || r !== 'project_admin')
-                    .map((r) => (
-                      <option key={r} value={r}>
-                        Guest · {GUEST_ROLE_LABELS[r]}
-                      </option>
-                    ))}
-                </select>
+                    .map((r) => ({
+                      value: r,
+                      label: `Guest · ${GUEST_ROLE_LABELS[r]}`,
+                    }))}
+                  className="w-48"
+                />
                 <Button
                   variant="ghost"
                   size="sm"
@@ -317,7 +314,7 @@ function InviteDialog({
             value={link}
             aria-label="Invitation link"
             data-testid="guest-invite-link"
-            className={`${controlClass} w-full font-mono text-caption`}
+            className={`${controlClass} w-full font-sans text-caption`}
             onFocus={(e) => e.target.select()}
           />
           <div className="flex justify-end gap-2">
@@ -405,30 +402,26 @@ function GuestSettingsCard({ projectId }: { projectId: string }) {
     <Card className="h-fit space-y-3">
       <h2 className="text-h3 font-semibold">Guest settings</h2>
       {TOGGLES.map((t) => (
-        <label key={t.key} className="flex items-center gap-2.5 text-body-sm">
-          <input
-            type="checkbox"
-            className="size-4 accent-[var(--color-primary)]"
-            checked={Boolean(s[t.key as keyof typeof s])}
-            onChange={(e) => save({ [t.key]: e.target.checked })}
-          />
-          {t.label}
-        </label>
+        <Switch
+          key={t.key}
+          label={t.label}
+          checked={Boolean(s[t.key as keyof typeof s])}
+          onCheckedChange={(checked) => save({ [t.key]: checked })}
+        />
       ))}
-      <label className="flex items-center gap-2.5 text-body-sm">
-        Maximum guests
-        <select
-          className={`${controlClass} py-1.5`}
-          value={s.max_guests}
-          onChange={(e) => save({ max_guests: Number(e.target.value) })}
-        >
-          {[1, 2, 3, 5, 10, 15, 20, 25].map((n) => (
-            <option key={n} value={n}>
-              {n}
-            </option>
-          ))}
-        </select>
-      </label>
+      <div className="flex items-center gap-2.5 text-body-sm">
+        <span>Maximum guests</span>
+        <CustomSelect
+          ariaLabel="Maximum guests"
+          value={String(s.max_guests)}
+          onChange={(val) => save({ max_guests: Number(val) })}
+          options={[1, 2, 3, 5, 10, 15, 20, 25].map((n) => ({
+            value: String(n),
+            label: String(n),
+          }))}
+          className="w-24"
+        />
+      </div>
     </Card>
   )
 }

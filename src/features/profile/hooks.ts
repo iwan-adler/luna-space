@@ -34,7 +34,7 @@ export function useProfile(userId: string | null) {
       const { data, error } = await requireSupabase()
         .from('profiles')
         .select(
-          'id, display_name, bio, skills, github_username, linkedin_url, website_url, devpost_username, availability, timezone',
+          'id, display_name, avatar_path, bio, skills, github_username, linkedin_url, website_url, devpost_username, availability, timezone',
         )
         .eq('id', userId!)
         .maybeSingle()

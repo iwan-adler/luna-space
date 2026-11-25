@@ -1,6 +1,5 @@
 import { lazy, Suspense, type ReactNode } from 'react'
-import { Route, Routes } from 'react-router'
-import { Ambient } from '@/components/patterns/Ambient'
+import { Navigate, Route, Routes } from 'react-router'
 import { PageSpinner } from '@/components/ui/Spinner'
 import { AuthLayout, RequireAuth } from '@/features/auth'
 import { HomePage } from '@/features/dashboard'
@@ -39,6 +38,11 @@ const ChatPage = lazy(() =>
 )
 const RecycleBinPage = lazy(() =>
   import('@/features/data/RecycleBinPage').then((x) => ({ default: x.RecycleBinPage })),
+)
+const NotificationSettingsPage = lazy(() =>
+  import('@/features/notifications/NotificationSettingsPage').then((x) => ({
+    default: x.NotificationSettingsPage,
+  })),
 )
 const DataSettingsPage = lazy(() =>
   import('@/features/data/DataSettingsPage').then((x) => ({ default: x.DataSettingsPage })),
@@ -142,12 +146,7 @@ const page = (node: ReactNode) => <Suspense fallback={<PageSpinner />}>{node}</S
 
 export function App() {
   if (!publicEnv.ok) return <ConfigMissingPage />
-  return (
-    <>
-      <Ambient />
-      <AppRoutes />
-    </>
-  )
+  return <AppRoutes />
 }
 
 function AppRoutes() {
@@ -184,6 +183,7 @@ function AppRoutes() {
             <Route path="projects" element={page(<ProjectListPage />)} />
             <Route path="projects/:id" element={page(<ProjectRoomPage />)} />
             <Route path="projects/:id/:tab" element={page(<ProjectRoomPage />)} />
+            <Route path="meet" element={<Navigate to="/chat?view=meet" replace />} />
             <Route path="tasks" element={page(<MyTasksPage />)} />
             <Route path="calendar" element={page(<CalendarPage />)} />
             <Route path="notifications" element={<NotificationsPage />} />
@@ -200,6 +200,7 @@ function AppRoutes() {
             <Route path="trash" element={page(<RecycleBinPage />)} />
             <Route path="settings/data" element={page(<DataSettingsPage />)} />
             <Route path="more" element={<MorePage />} />
+            <Route path="more/notifications" element={page(<NotificationSettingsPage />)} />
             <Route path="settings/profile" element={page(<ProfileSettingsPage />)} />
             <Route path="settings/workspace" element={page(<WorkspaceSettingsPage />)} />
             <Route path="workspaces/new" element={page(<NewWorkspacePage />)} />

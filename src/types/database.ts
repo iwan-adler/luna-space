@@ -407,6 +407,38 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
+                },"live_rooms": {
+                  Row: {
+                    "id": string,"is_active": boolean,"meet_url": string,"project_id": string | null,"started_at": string | null,"started_by": string | null,"updated_at": string,"workspace_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "id"?: string,"is_active"?: boolean,"meet_url"?: string,"project_id"?: string | null,"started_at"?: string | null,"started_by"?: string | null,"updated_at"?: string,"workspace_id": string
+                  }
+                  Update: {
+                    "id"?: string,"is_active"?: boolean,"meet_url"?: string,"project_id"?: string | null,"started_at"?: string | null,"started_by"?: string | null,"updated_at"?: string,"workspace_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "live_rooms_project_id_workspace_id_fkey"
+      columns: ["project_id","workspace_id"]
+isOneToOne: false
+      referencedRelation: "projects"
+      referencedColumns: ["id","workspace_id"]
+    },{
+      foreignKeyName: "live_rooms_started_by_fkey"
+      columns: ["started_by"]
+isOneToOne: false
+      referencedRelation: "profiles"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "live_rooms_workspace_id_fkey"
+      columns: ["workspace_id"]
+isOneToOne: false
+      referencedRelation: "workspaces"
+      referencedColumns: ["id"]
+    }
+                  ]
                 },"message_reactions": {
                   Row: {
                     "created_at": string,"emoji": string,"message_id": string,"user_id": string,"workspace_id": string

@@ -57,7 +57,7 @@ export function SignInPage() {
   return (
     <div className="space-y-5">
       <div>
-        <h1 className="font-display text-h1">Sign in</h1>
+        <h1 className="font-sans text-h1">Sign in</h1>
         {inviting ? (
           <p className="mt-1 text-body-sm text-muted">
             Sign in or create an account to accept your invitation.
@@ -109,7 +109,7 @@ export function SignInPage() {
             Sign in
           </Button>
           <p className="text-center text-body-sm">
-            <Link to="/auth/reset" className="text-primary hover:underline">
+            <Link to="/auth/reset" className="text-primary-ink hover:underline">
               Forgot password?
             </Link>
           </p>
@@ -135,7 +135,7 @@ export function SignInPage() {
 
       <p className="text-center text-body-sm text-muted">
         New here?{' '}
-        <Link to="/auth/sign-up" className="font-medium text-primary hover:underline">
+        <Link to="/auth/sign-up" className="font-medium text-primary-ink hover:underline">
           Create an account
         </Link>
       </p>

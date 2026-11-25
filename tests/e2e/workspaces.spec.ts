@@ -23,7 +23,7 @@ test.describe('several workspaces (ADR 0018)', () => {
 
     // A second workspace from the switcher, with its own invite link.
     await a.getByTestId('workspace-switcher').click()
-    await a.getByRole('menuitem', { name: 'New workspace' }).click()
+    await a.getByRole('menuitem', { name: 'New team workspace' }).click()
     await a.getByLabel('Emoji').fill('📚')
     await a.getByLabel('Name').fill('Study duo')
     await a.getByRole('button', { name: 'Create workspace' }).click()

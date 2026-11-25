@@ -20,6 +20,8 @@ export const EXTRACT_MESSAGES: Record<string, string> = {
   TOO_LARGE: 'The page is too large to read.',
   TOO_MANY_REDIRECTS: 'The link redirects too many times.',
   ROBOTS_DISALLOWED: 'This site asks automated tools not to read this page.',
+  LOCAL_ONLY:
+    'Link reading needs a hosted service. You can enter the opportunity details manually.',
   RATE_LIMITED:
     'You have fetched many links recently. Please wait a while or enter the details manually.',
   NOT_MEMBER: 'You need a workspace first.',

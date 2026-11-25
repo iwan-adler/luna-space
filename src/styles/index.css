@@ -1,24 +1,32 @@
 @import 'tailwindcss';
-@import '@fontsource-variable/inter';
-@import '@fontsource-variable/jetbrains-mono';
+@import '@fontsource-variable/inter/opsz.css';
 @import './tokens.css';
 @import './effects.css';
-@import './palettes.css';
 
-/* Expose tokens as Tailwind utilities: bg-surface, text-muted, border-border, … */
+@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *, .dark, .dark *));
+
+/* Expose the visual foundation as Tailwind v4 utilities. */
 @theme inline {
   --color-primary: var(--color-primary);
   --color-primary-hover: var(--color-primary-hover);
+  --color-primary-ink: var(--color-primary-ink);
   --color-primary-subtle: var(--color-primary-subtle);
   --color-on-primary: var(--color-on-primary);
   --color-accent: var(--color-accent);
   --color-bg: var(--color-bg);
   --color-surface: var(--color-surface);
   --color-surface-raised: var(--color-surface-raised);
+  --color-surface-hover: var(--color-surface-hover);
   --color-border: var(--color-border);
   --color-hairline: var(--color-hairline);
   --color-text: var(--color-text);
+  --color-text-secondary: var(--color-text-secondary);
   --color-muted: var(--color-text-muted);
+  --color-text-dim: var(--color-text-dim);
+  --color-btn-primary: var(--color-btn-primary);
+  --color-btn-primary-hover: var(--color-btn-primary-hover);
+  --color-on-btn-primary: var(--color-on-btn-primary);
+  --color-border-strong: var(--color-border-strong);
   --color-success: var(--color-success);
   --color-info: var(--color-info);
   --color-warning: var(--color-warning);
@@ -28,31 +36,31 @@
   --color-sidebar: var(--color-sidebar);
   --color-rose: var(--color-rose);
 
-  --font-sans: 'Inter Variable', 'Segoe UI', Roboto, sans-serif;
-  --font-mono: 'JetBrains Mono Variable', Consolas, monospace;
-  /* Headlines use the same sans face, set tighter and heavier. */
-  --font-display: 'Inter Variable', 'Segoe UI', Roboto, sans-serif;
+  --font-sans:
+    -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'Inter Variable', 'Inter',
+    system-ui, sans-serif;
 
-  /* Type scale (UI spec §5): size / line height */
-  --text-caption: 12px;
-  --text-caption--line-height: 16px;
-  --text-body-sm: 13px;
-  --text-body-sm--line-height: 20px;
-  --text-body: 15px;
-  --text-body--line-height: 23px;
-  --text-h3: 15px;
-  --text-h3--line-height: 22px;
-  --text-h2: 19px;
-  --text-h2--line-height: 26px;
-  --text-h1: 30px;
-  --text-h1--line-height: 36px;
-  --text-display: 40px;
-  --text-display--line-height: 46px;
+  --text-caption: 13px;
+  --text-caption--line-height: 18px;
+  --text-body-sm: 15px;
+  --text-body-sm--line-height: 21px;
+  --text-body: 17px;
+  --text-body--line-height: 24px;
+  --text-h3: 20px;
+  --text-h3--line-height: 25px;
+  --text-h2: 24px;
+  --text-h2--line-height: 29px;
+  --text-h1: 34px;
+  --text-h1--line-height: 41px;
+  --text-display: 44px;
+  --text-display--line-height: 52px;
 
+  --radius-xs: 6px;
   --radius-sm: 8px;
   --radius-md: 12px;
-  --radius-lg: 20px;
-  --radius-xl: 26px;
+  --radius-lg: 16px;
+  --radius-xl: 20px;
+  --radius-2xl: 24px;
 
   --shadow-1: var(--shadow-1);
   --shadow-2: var(--shadow-2);
@@ -62,101 +70,659 @@
 @layer base {
   html {
     -webkit-text-size-adjust: 100%;
+    font-family: var(--font-sans);
+    font-variant-numeric: tabular-nums;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+    font-feature-settings: 'cv11', 'ss01', 'calt', 'opsz';
+    -webkit-tap-highlight-color: transparent;
   }
+
   body {
-    @apply bg-bg font-sans text-body text-text antialiased;
-    font-feature-settings: 'cv11', 'ss01';
     min-height: 100dvh;
-    background-image: var(--page-glow);
-    background-attachment: fixed;
+    background: var(--color-bg);
+    color: var(--color-text);
+    font-family: var(--font-sans);
+    font-size: var(--text-body);
+    line-height: 1.48;
+    letter-spacing: -0.011em;
+    font-variant-numeric: tabular-nums;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+    font-feature-settings: 'cv11', 'ss01', 'calt', 'opsz';
+    -webkit-tap-highlight-color: transparent;
   }
-  h1,
-  h2,
-  h3 {
+
+  /* Universal SF Pro / Inter font stack across entire application */
+  html,
+  body {
+    font-family: var(--font-sans);
+  }
+
+  button,
+  input,
+  optgroup,
+  select,
+  textarea,
+  option {
+    font-family: inherit;
+  }
+
+  table {
+    font-family: inherit;
+  }
+
+  h1 {
+    color: var(--color-text);
+    font-weight: 700;
+    letter-spacing: -0.03em;
+    line-height: 1.1;
+  }
+
+  h2 {
+    color: var(--color-text);
     font-weight: 600;
     letter-spacing: -0.025em;
+    line-height: 1.2;
   }
+
+  h3 {
+    color: var(--color-text);
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    line-height: 1.3;
+  }
+
   ::selection {
-    background: color-mix(in srgb, var(--color-primary) 35%, transparent);
+    background: color-mix(in srgb, var(--color-primary) 28%, transparent);
+    color: var(--color-text);
   }
+
   :focus-visible {
     outline: 2px solid var(--color-primary);
     outline-offset: 2px;
-    border-radius: 6px;
+    border-radius: 4px;
+  }
+
+  /* Custom sleek scrollbar across the application — eliminates ugly default OS bars */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: var(--color-border) transparent;
+  }
+
+  ::-webkit-scrollbar {
+    width: 5px;
+    height: 5px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: rgba(142, 142, 147, 0.35);
+    border-radius: 9999px;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: rgba(142, 142, 147, 0.55);
+  }
+
+  ::-webkit-scrollbar-button {
+    display: none !important;
+    width: 0 !important;
+    height: 0 !important;
   }
 }
 
 @layer components {
-  /* Card: near-black (white in light mode) with a hairline border and soft depth. */
-  .panel {
-    border-radius: var(--radius-lg);
-    border: 1px solid var(--color-hairline);
-    background: var(--color-surface);
-    box-shadow: var(--shadow-1);
-  }
-  /* A card lit from below by a soft mauve glow (hero and feature cards). */
-  .panel-glow {
-    background: var(--glow-card), var(--color-surface);
-  }
-  /* A card with a faint glow in its top corner. */
-  .panel-corner {
-    background: var(--glow-corner), var(--color-surface);
-  }
-  /* Floating UI (dialogs, drawers, menus, bars). */
-  .glass {
-    background: var(--color-surface-raised);
-  }
   .eyebrow {
     @apply text-caption font-medium text-muted;
+    letter-spacing: 0.04em;
   }
-  /* The person's name and similar highlights in soft pink. */
+
   .text-highlight {
-    color: var(--color-highlight);
+    color: var(--color-primary);
   }
-  /* Primary call to action: mauve gradient pill with a soft glow. */
-  .btn-primary {
-    background: var(--gradient-primary);
-    color: var(--color-on-primary);
-    box-shadow:
-      inset 0 1px 0 rgb(255 255 255 / 0.22),
-      var(--glow-primary);
+
+  .stat-number {
+    font-variant-numeric: tabular-nums;
+    font-weight: 600;
+    letter-spacing: -0.02em;
   }
-  .btn-primary:hover:not(:disabled) {
-    filter: brightness(1.08);
-  }
-  /* Round bordered icon button (bell, settings). */
+
   .icon-btn {
     display: grid;
     place-items: center;
-    width: 2.5rem;
-    height: 2.5rem;
-    border-radius: 9999px;
+    width: 2.25rem;
+    height: 2.25rem;
     border: 1px solid var(--color-border);
-    background: var(--control-fill);
-    color: var(--color-text);
-    transition: background-color var(--motion-fast);
+    border-radius: 8px;
+    background: var(--color-surface);
+    color: var(--color-text-muted);
+    transition:
+      color var(--motion-fast) var(--ease-standard),
+      background-color var(--motion-fast) var(--ease-standard),
+      border-color var(--motion-fast) var(--ease-standard);
   }
+
   .icon-btn:hover {
-    background: var(--color-primary-subtle);
-  }
-  /* Selected item in the sidebar: a glowing mauve pill. */
-  .nav-active {
-    background: var(--nav-active);
-    box-shadow: var(--nav-active-glow);
+    border-color: var(--color-border-hover);
     color: var(--color-text);
+    background: var(--color-surface-hover);
   }
+
   .sidebar-card {
     background: var(--color-sidebar);
-    border: 1px solid var(--color-hairline);
-    border-radius: var(--radius-lg);
+    border-right: 1px solid var(--color-border);
   }
-  /* On large screens the whole app sits inside one rounded frame. */
-  @media (min-width: 1024px) {
-    .app-frame {
-      border-radius: 28px;
-      border: 1px solid var(--color-hairline);
-      background: var(--frame-fill);
-      box-shadow: var(--shadow-2);
+
+  .app-frame {
+    background: var(--color-bg);
+  }
+
+  /* From Uiverse.io by KhaledMatalkah — 3D animated checklist checkbox */
+  .custom-checkbox {
+    display: inline-flex;
+    align-items: center;
+    cursor: pointer;
+    user-select: none;
+    font-size: 14px;
+    color: var(--color-text);
+    transition: color 0.3s;
+  }
+
+  /* The real checkbox sits invisibly on top of the drawn one, so Tab, Space and screen readers
+     reach it. */
+  .custom-checkbox {
+    position: relative;
+  }
+  .custom-checkbox input[type='checkbox'] {
+    position: absolute;
+    left: 0;
+    top: 50%;
+    width: 20px;
+    height: 20px;
+    margin: 0;
+    transform: translateY(-50%);
+    opacity: 0;
+    cursor: inherit;
+    z-index: 1;
+  }
+  .custom-checkbox input[type='checkbox']:focus-visible + .checkmark {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 2px;
+  }
+
+  .custom-checkbox .checkmark {
+    width: 20px;
+    height: 20px;
+    border: 2px solid var(--color-border);
+    border-radius: 5px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 8px;
+    flex-shrink: 0;
+    transition:
+      background-color 0.4s,
+      border-color 0.4s,
+      transform 0.4s;
+    transform-style: preserve-3d;
+    background-color: var(--color-surface-raised);
+  }
+
+  .custom-checkbox .checkmark::before {
+    content: '\2713';
+    font-size: 13px;
+    font-weight: 700;
+    color: transparent;
+    transition:
+      color 0.3s,
+      transform 0.3s;
+  }
+
+  .custom-checkbox input[type='checkbox']:checked + .checkmark {
+    background-color: var(--color-primary);
+    border-color: var(--color-primary);
+    transform: scale(1.1) rotateZ(360deg) rotateY(360deg);
+  }
+
+  .custom-checkbox input[type='checkbox']:checked + .checkmark::before {
+    color: #ffffff;
+  }
+
+  .custom-checkbox:hover .checkmark {
+    border-color: var(--color-border-hover);
+    background-color: var(--color-surface);
+    transform: scale(1.05);
+  }
+
+  .custom-checkbox input[type='checkbox']:focus + .checkmark {
+    box-shadow: 0 0 0 2px var(--color-primary);
+    outline: none;
+  }
+
+  /* Fluid iOS glassmorphic bottom strip */
+  .fluid-nav-group {
+    display: inline-flex; /* hug the content instead of stretching */
+    align-items: center;
+    gap: 2px;
+    padding: 5px 6px; /* refined Apple bezel */
+    border-radius: 9999px;
+    background: var(--glass-bg);
+    backdrop-filter: blur(20px) saturate(180%);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    box-shadow: var(--shadow-2);
+    border: 1px solid var(--color-border);
+    position: relative;
+  }
+
+  .nav-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+    min-width: 58px; /* fits cleanly from 360px up */
+    max-width: 72px;
+    width: clamp(58px, 18vw, 70px);
+    flex-shrink: 0;
+    min-height: 48px; /* Apple HIG min tap target */
+    padding: 6px 4px;
+    border-radius: 9999px;
+    position: relative;
+    user-select: none;
+    transition: color 150ms ease;
+  }
+
+  .nav-item.center-hero {
+    min-width: 64px;
+    max-width: 76px;
+    width: clamp(64px, 19.5vw, 76px);
+  }
+
+  .nav-item svg {
+    width: 22px;
+    height: 22px; /* same icon box, including More */
+    flex-shrink: 0;
+  }
+
+  .fluid-nav-slider {
+    position: absolute;
+    inset: 0;
+    background: var(--color-primary-subtle);
+    border-radius: 9999px;
+    border: 1px solid var(--color-primary-subtle);
+    z-index: 0;
+  }
+
+  /* Circular tactile send button for chat */
+  .chat-send-btn {
+    width: 32px;
+    height: 32px;
+    border: none;
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+    flex-shrink: 0;
+    background: var(--color-primary);
+    color: var(--color-on-primary);
+    cursor: pointer;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+    transition:
+      background 150ms ease,
+      color 150ms ease,
+      transform 100ms ease,
+      box-shadow 150ms ease;
+  }
+  .chat-send-btn:hover:not(:disabled) {
+    background: var(--color-primary-hover);
+    box-shadow: 0 0 10px var(--color-primary-subtle);
+  }
+  .chat-send-btn:active:not(:disabled) {
+    transform: scale(0.92);
+  }
+  .chat-send-btn:disabled {
+    background: var(--color-surface-raised);
+    color: var(--color-text-muted);
+    opacity: 0.5;
+    box-shadow: none;
+    cursor: not-allowed;
+  }
+
+  /* From Uiverse.io by kencode7 — Vibrant premium grid container */
+  .vibrant-container,
+  .container-vibrant {
+    width: 100%;
+    background:
+      linear-gradient(
+        to bottom,
+        rgba(12, 13, 16, 0.32) 0%,
+        rgba(12, 13, 16, 0.62) 45%,
+        var(--color-surface, #15171d) 100%
+      ),
+      linear-gradient(to right, #0ed2da, #5f29c7);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .vibrant-container::before,
+  .container-vibrant::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image: linear-gradient(90deg, rgba(255, 255, 255, 0.22) 1px, transparent 1px);
+    background-size: 50px 100%;
+    pointer-events: none;
+    mask-image: linear-gradient(to bottom, rgba(0, 0, 0, 1) 0%, rgba(0, 0, 0, 0) 70%);
+    -webkit-mask-image: linear-gradient(to bottom, rgba(0, 0, 0, 1) 0%, rgba(0, 0, 0, 0) 70%);
+  }
+
+  [data-theme='light'] .vibrant-container,
+  [data-theme='light'] .container-vibrant,
+  .vibrant-container-light {
+    background:
+      linear-gradient(to bottom, #fff 0%, #fff 40%, rgba(255, 255, 255, 0) 100%),
+      linear-gradient(to right, #0ed2da, #5f29c7);
+  }
+
+  [data-theme='light'] .vibrant-container::before,
+  [data-theme='light'] .container-vibrant::before,
+  .vibrant-container-light::before {
+    background-image: linear-gradient(90deg, #ccc 1px, transparent 1px);
+  }
+
+  /* From Uiverse.io by andrew-manzyk — Solar corona procedural loader */
+  .uiverse-loader,
+  .loader {
+    --color-one: #ffbf48;
+    --color-two: #be4a1d;
+    --color-three: #ffbf4780;
+    --color-four: #bf4a1d80;
+    --color-five: #ffbf4740;
+    --time-animation: 2s;
+    --size: 1;
+    position: relative;
+    display: inline-block;
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    transform: scale(var(--size));
+    transform-origin: center center;
+    box-shadow:
+      0 0 25px 0 var(--color-three),
+      0 20px 50px 0 var(--color-four);
+    animation: colorize calc(var(--time-animation) * 3) ease-in-out infinite;
+    flex-shrink: 0;
+  }
+
+  .uiverse-loader[data-compact='true'],
+  .loader[data-compact='true'] {
+    box-shadow: 0 0 10px 0 var(--color-three);
+  }
+
+  .uiverse-loader::before,
+  .loader::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    border-top: solid 1px var(--color-one);
+    border-bottom: solid 1px var(--color-two);
+    background: linear-gradient(180deg, var(--color-five), var(--color-four));
+    box-shadow:
+      inset 0 10px 10px 0 var(--color-three),
+      inset 0 -10px 10px 0 var(--color-four);
+  }
+
+  .uiverse-loader .box,
+  .loader .box {
+    width: 100px;
+    height: 100px;
+    background: linear-gradient(180deg, var(--color-one) 30%, var(--color-two) 70%);
+    mask: var(--mask-url, url(#clipping));
+    -webkit-mask: var(--mask-url, url(#clipping));
+  }
+
+  .uiverse-loader svg,
+  .loader svg {
+    position: absolute;
+    top: 0;
+    left: 0;
+    pointer-events: none;
+  }
+
+  .uiverse-loader svg mask,
+  .loader svg mask,
+  .loader svg #clipping {
+    filter: contrast(15);
+    animation: roundness calc(var(--time-animation) / 2) linear infinite;
+  }
+
+  .uiverse-loader svg mask polygon,
+  .loader svg mask polygon,
+  .loader svg #clipping polygon {
+    filter: blur(7px);
+  }
+
+  .uiverse-loader svg mask polygon:nth-child(1),
+  .loader svg mask polygon:nth-child(1),
+  .loader svg #clipping polygon:nth-child(1) {
+    transform-origin: 75% 25%;
+    transform: rotate(90deg);
+  }
+
+  .uiverse-loader svg mask polygon:nth-child(2),
+  .loader svg mask polygon:nth-child(2),
+  .loader svg #clipping polygon:nth-child(2) {
+    transform-origin: 50% 50%;
+    animation: rotation var(--time-animation) linear infinite reverse;
+  }
+
+  .uiverse-loader svg mask polygon:nth-child(3),
+  .loader svg mask polygon:nth-child(3),
+  .loader svg #clipping polygon:nth-child(3) {
+    transform-origin: 50% 60%;
+    animation: rotation var(--time-animation) linear infinite;
+    animation-delay: calc(var(--time-animation) / -3);
+  }
+
+  .uiverse-loader svg mask polygon:nth-child(4),
+  .loader svg mask polygon:nth-child(4),
+  .loader svg #clipping polygon:nth-child(4) {
+    transform-origin: 40% 40%;
+    animation: rotation var(--time-animation) linear infinite reverse;
+  }
+
+  .uiverse-loader svg mask polygon:nth-child(5),
+  .loader svg mask polygon:nth-child(5),
+  .loader svg #clipping polygon:nth-child(5) {
+    transform-origin: 40% 40%;
+    animation: rotation var(--time-animation) linear infinite reverse;
+    animation-delay: calc(var(--time-animation) / -2);
+  }
+
+  .uiverse-loader svg mask polygon:nth-child(6),
+  .loader svg mask polygon:nth-child(6),
+  .loader svg #clipping polygon:nth-child(6) {
+    transform-origin: 60% 40%;
+    animation: rotation var(--time-animation) linear infinite;
+  }
+
+  .uiverse-loader svg mask polygon:nth-child(7),
+  .loader svg mask polygon:nth-child(7),
+  .loader svg #clipping polygon:nth-child(7) {
+    transform-origin: 60% 40%;
+    animation: rotation var(--time-animation) linear infinite;
+    animation-delay: calc(var(--time-animation) / -1.5);
+  }
+
+  @keyframes rotation {
+    0% {
+      transform: rotate(0deg);
+    }
+    100% {
+      transform: rotate(360deg);
+    }
+  }
+
+  @keyframes roundness {
+    0% {
+      filter: contrast(15);
+    }
+    20% {
+      filter: contrast(3);
+    }
+    40% {
+      filter: contrast(3);
+    }
+    60% {
+      filter: contrast(15);
+    }
+    100% {
+      filter: contrast(15);
+    }
+  }
+
+  @keyframes colorize {
+    0% {
+      filter: hue-rotate(0deg);
+    }
+    20% {
+      filter: hue-rotate(-30deg);
+    }
+    40% {
+      filter: hue-rotate(-60deg);
+    }
+    60% {
+      filter: hue-rotate(-90deg);
+    }
+    80% {
+      filter: hue-rotate(-45deg);
+    }
+    100% {
+      filter: hue-rotate(0deg);
+    }
+  }
+
+  /* From Uiverse.io by LightAndy1 — Tactile search input */
+  .uiverse-search-group,
+  .search-group {
+    display: flex;
+    line-height: 28px;
+    align-items: center;
+    position: relative;
+    width: 100%;
+  }
+
+  /* Disable native browser search cancel / clear buttons */
+  input::-webkit-search-cancel-button,
+  input::-webkit-search-decoration,
+  input::-webkit-search-results-button,
+  input::-webkit-search-results-decoration {
+    -webkit-appearance: none !important;
+    appearance: none !important;
+    display: none !important;
+  }
+  input::-ms-clear,
+  input::-ms-reveal {
+    display: none !important;
+    width: 0 !important;
+    height: 0 !important;
+  }
+
+  .uiverse-search-input,
+  .search-input {
+    font-family: inherit;
+    width: 100%;
+    height: 44px;
+    min-height: 44px;
+    padding-left: 2.75rem;
+    padding-right: 1.25rem;
+    box-shadow: 0 0 0 1px var(--color-border);
+    border: 0;
+    border-radius: 9999px;
+    background-color: var(--color-surface-raised);
+    outline: none;
+    color: var(--color-text);
+    transition: all 0.25s cubic-bezier(0.22, 1, 0.36, 1);
+    cursor: text;
+    z-index: 0;
+    font-size: 15px;
+  }
+
+  .uiverse-search-input::placeholder,
+  .search-input::placeholder {
+    color: var(--color-text-muted);
+  }
+
+  .uiverse-search-input:hover,
+  .search-input:hover {
+    box-shadow: 0 0 0 1px var(--color-border-hover);
+  }
+
+  .uiverse-search-input:active,
+  .search-input:active {
+    transform: scale(0.99);
+  }
+
+  .uiverse-search-input:focus,
+  .search-input:focus {
+    box-shadow: 0 0 0 2px var(--color-primary);
+    background-color: var(--color-surface);
+    color: var(--color-text);
+  }
+
+  .uiverse-search-icon,
+  .search-icon {
+    position: absolute;
+    left: 1rem;
+    fill: var(--color-text-muted);
+    width: 1.15rem;
+    height: 1.15rem;
+    pointer-events: none;
+    z-index: 1;
+    transition:
+      fill 0.2s ease,
+      transform 0.2s ease;
+  }
+
+  .uiverse-search-group:focus-within .uiverse-search-icon,
+  .search-group:focus-within .search-icon {
+    fill: var(--color-primary);
+    transform: scale(1.05);
+  }
+
+  /* Atmospheric Banner Sky & Cloud Animations (GPU-friendly, 0 layout thrashing) */
+  @keyframes bannerCloudDrift {
+    0% {
+      transform: translate3d(0, 0, 0);
+    }
+    100% {
+      transform: translate3d(-50%, 0, 0);
+    }
+  }
+
+  .banner-cloud-layer {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100%;
+    width: 200%;
+    will-change: transform;
+    pointer-events: none;
+    animation: bannerCloudDrift linear infinite;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .banner-cloud-layer {
+      animation: none !important;
     }
   }
 }

@@ -1,5 +1,5 @@
 import { expect, test, type Browser, type Page } from '@playwright/test'
-import { acceptInvite, onboardWithInvite } from './support/actions'
+import { acceptInvite, choose, dropdown, onboardWithInvite } from './support/actions'
 import { createTestUser, localBackend } from './support/backend'
 
 async function pair(browser: Browser): Promise<{ a: Page; b: Page }> {
@@ -31,7 +31,7 @@ test.describe('project rooms (Phase 4)', () => {
     await a.getByRole('button', { name: 'Save opportunity' }).click()
     await a.getByRole('button', { name: 'Convert to project' }).click()
     await expect(a.getByRole('heading', { level: 1, name: 'Lunar Build Week' })).toBeVisible()
-    await expect(a.getByLabel('Stage')).toHaveValue('planning')
+    await expect(dropdown(a, 'Stage')).toHaveAttribute('data-value', 'planning')
     await expect(a.getByRole('link', { name: /Official website/ })).toBeVisible()
 
     // The opportunity now links to the room instead of offering a second conversion.
@@ -49,9 +49,9 @@ test.describe('project rooms (Phase 4)', () => {
 
     // A assigns it to B with a due date and moves it to In progress from the drawer.
     await a.getByTestId('column-todo').getByText('Record the demo video').click()
-    await a.getByLabel('Assignee').selectOption({ label: 'Ben' })
+    await choose(a, 'Assignee', { label: 'Ben' })
     await a.getByLabel('Due date').fill('2027-02-18')
-    await a.getByLabel('Status').selectOption('in_progress')
+    await choose(a, 'Status', 'in_progress')
     await expect(a.getByText('Moved to In progress')).toBeVisible()
     await a.getByLabel('Write a comment').fill('Keep it under three minutes')
     await a.getByRole('button', { name: 'Comment' }).click()

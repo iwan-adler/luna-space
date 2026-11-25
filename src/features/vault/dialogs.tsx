@@ -5,6 +5,7 @@ import { Alert } from '@/components/ui/Card'
 import { Dialog } from '@/components/ui/Dialog'
 import { SelectField, TextField } from '@/components/ui/Field'
 import { Spinner } from '@/components/ui/Spinner'
+import { Switch } from '@/components/ui/Switch'
 import { useToast } from '@/components/ui/Toast'
 import { signedFileUrl } from '@/lib/files'
 import {
@@ -56,10 +57,9 @@ function PrivateToggle({
   label: string
 }) {
   return (
-    <label className="flex items-center gap-2 text-body-sm text-muted">
-      <input type="checkbox" checked={checked} onChange={(e) => onChange(e.target.checked)} />
-      {label}
-    </label>
+    <div className="py-1 border-t border-border/40">
+      <Switch label={label} checked={checked} onCheckedChange={onChange} />
+    </div>
   )
 }
 

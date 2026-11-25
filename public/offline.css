@@ -1,5 +1,6 @@
 /* The offline page (public/offline.html): Mauve colours, no external resources. */
 :root {
+  --font-sans: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Inter", system-ui, "Segoe UI", Roboto, sans-serif;
   color-scheme: dark;
 }
 body {
@@ -9,11 +10,15 @@ body {
   place-items: center;
   background: radial-gradient(1200px 720px at 50% -12%, #3b2e37 0%, transparent 70%), #120e12;
   color: #f5eff3;
-  font:
-    15px/1.55 system-ui,
-    'Segoe UI',
-    Roboto,
-    sans-serif;
+  font-family: var(--font-sans);
+  font-size: 15px;
+  line-height: 1.55;
+}
+button,
+input,
+select,
+textarea {
+  font-family: inherit;
 }
 main {
   max-width: 22rem;

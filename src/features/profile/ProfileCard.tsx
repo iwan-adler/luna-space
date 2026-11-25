@@ -1,6 +1,7 @@
 import * as RadixDialog from '@radix-ui/react-dialog'
 import { Globe, Trophy, X } from 'lucide-react'
 import type { ReactNode } from 'react'
+import { Avatar } from '@/components/ui/Avatar'
 import { Skeleton } from '@/components/ui/Skeleton'
 import { gradientFor } from '@/lib/visuals'
 import { useProfile } from './hooks'
@@ -74,10 +75,10 @@ export function ProfileCard({
         </button>
       </RadixDialog.Trigger>
       <RadixDialog.Portal>
-        <RadixDialog.Overlay className="fixed inset-0 z-40 bg-black/55 backdrop-blur-sm" />
+        <RadixDialog.Overlay className="fixed inset-0 z-40 bg-black/65 backdrop-blur-sm" />
         <RadixDialog.Content
           aria-describedby={undefined}
-          className="glass fixed top-1/2 left-1/2 z-50 w-[min(92vw,24rem)] -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-[22px] border border-hairline shadow-3"
+          className="fixed top-1/2 left-1/2 z-50 w-[min(92vw,24rem)] -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-2xl border border-border bg-surface shadow-2xl backdrop-blur-none"
         >
           <CardBody userId={userId} />
         </RadixDialog.Content>
@@ -100,9 +101,14 @@ function CardBody({ userId }: { userId: string }) {
         <X className="size-4" aria-hidden />
       </RadixDialog.Close>
       <div className="space-y-4 px-5 pb-5">
-        <span className="btn-primary -mt-8 grid size-16 place-items-center rounded-full border-4 border-[var(--color-surface-raised)] text-h2 font-semibold">
-          {(p?.display_name ?? '?').slice(0, 1).toUpperCase()}
-        </span>
+        <div className="-mt-8 inline-block">
+          <Avatar
+            src={p?.avatar_path}
+            name={p?.display_name}
+            size="xl"
+            className="ring-4 ring-surface shadow-lg"
+          />
+        </div>
         {profile.isPending ? (
           <div className="space-y-2">
             <Skeleton className="h-5 w-1/2" />
@@ -113,14 +119,21 @@ function CardBody({ userId }: { userId: string }) {
         ) : (
           <>
             <div>
-              <RadixDialog.Title className="text-h2">{p.display_name}</RadixDialog.Title>
+              <div className="flex items-baseline gap-2">
+                <RadixDialog.Title className="text-h2 font-semibold text-text">
+                  {p.display_name}
+                </RadixDialog.Title>
+                <span className="text-body-sm font-medium text-primary-ink">
+                  @{p.github_username ?? p.display_name.toLowerCase().replace(/\s+/g, '_')}
+                </span>
+              </div>
               {p.bio ? (
                 <p className="mt-1 text-body-sm whitespace-pre-line text-muted">{p.bio}</p>
               ) : (
-                <p className="mt-1 text-body-sm text-muted/70">No bio yet.</p>
+                <p className="mt-1 text-body-sm text-muted/70">Builder on Luna Space.</p>
               )}
             </div>
-            {p.skills.length ? (
+            {p.skills?.length ? (
               <ul className="flex flex-wrap gap-1.5" aria-label="Skills">
                 {p.skills.map((s) => (
                   <li key={s} className="rounded-full bg-hairline px-2.5 py-0.5 text-caption">

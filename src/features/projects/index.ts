@@ -1,3 +1,6 @@
 export { ConvertToProjectCard } from './components/ConvertToProjectCard'
-export { useMyTasks, useProjectForOpportunity } from './hooks'
+export { useActiveMeeting, useMyTasks, useProjectForOpportunity } from './hooks'
 export { ActiveProjectsWidget } from './components/ActiveProjectsWidget'
+export { MeetingCard } from './components/MeetingCard'
+export { StudioMeetRoom, LiveMeetingBottomStrip } from './components/StudioMeetRoom'
+export { useActiveLiveRooms, useLiveRoom } from './liveRooms'
