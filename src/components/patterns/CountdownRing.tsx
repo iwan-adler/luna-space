@@ -31,8 +31,19 @@ export function CountdownRing({
       className="relative inline-grid shrink-0 place-items-center"
       style={{ width: size, height: size }}
     >
-      <svg viewBox="0 0 56 56" className="absolute inset-0 size-full -rotate-90" aria-hidden="true">
-        <circle cx="28" cy="28" r={r} fill="none" stroke="var(--ring-track)" strokeWidth="4" />
+      <svg
+        viewBox="0 0 56 56"
+        className="absolute inset-0 size-full -rotate-90 overflow-visible"
+        aria-hidden="true"
+      >
+        <circle
+          cx="28"
+          cy="28"
+          r={r}
+          fill="none"
+          stroke="rgba(255, 255, 255, 0.15)"
+          strokeWidth="4"
+        />
         <circle
           cx="28"
           cy="28"
@@ -44,15 +55,19 @@ export function CountdownRing({
           strokeDasharray={c}
           strokeDashoffset={c * (1 - f)}
           style={{
-            filter: `drop-shadow(0 0 4px ${colour})`,
+            filter: `drop-shadow(0 0 3px ${colour})`,
             transition: 'stroke-dashoffset 600ms var(--ease-standard)',
           }}
         />
       </svg>
       <span className="relative text-center leading-none">
-        <span className="stat-number block text-[15px]">{label}</span>
+        <span className="stat-number block text-[14px] font-semibold tracking-tight !text-white">
+          {label}
+        </span>
         {sub ? (
-          <span className="block text-[9px] tracking-wide text-muted uppercase">{sub}</span>
+          <span className="block text-[9px] font-medium tracking-wider !text-white/60 uppercase mt-0.5">
+            {sub}
+          </span>
         ) : null}
       </span>
     </span>

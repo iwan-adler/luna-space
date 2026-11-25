@@ -1,4 +1,4 @@
-import { Radio, Rocket, X } from 'lucide-react'
+import { Flag, Radio, X } from 'lucide-react'
 import { useState } from 'react'
 import { Link, useLocation } from 'react-router'
 import { useMissions, useNow } from './hooks'
@@ -28,39 +28,36 @@ export function MissionBar() {
   const c = countdown(mission.endsAt, now)
   const tone =
     c.tone === 'urgent'
-      ? 'from-danger/35 via-danger/15 to-danger/35 border-danger/40'
+      ? 'border-danger/35 bg-danger/5'
       : c.tone === 'soon'
-        ? 'from-warning/30 via-warning/10 to-warning/30 border-warning/35'
-        : 'from-primary/30 via-primary/10 to-primary/30 border-primary/30'
+        ? 'border-warning/35 bg-warning/5'
+        : 'border-primary/30 bg-primary-subtle'
 
   return (
     <div
       role="region"
       aria-label="Mission countdown"
-      className={`mission-sweep mb-4 flex items-center gap-3 rounded-[18px] border bg-gradient-to-r px-4 py-2.5 backdrop-blur-md ${tone}`}
+      className={`mb-4 flex items-center gap-3 rounded-2xl border px-4 py-2.5 ${tone}`}
       data-testid="mission-bar"
     >
       <span className="icon-bubble size-8 shrink-0">
         {mission.live ? (
           <Radio className="size-4" aria-hidden />
         ) : (
-          <Rocket className="size-4" aria-hidden />
+          <Flag className="size-4" aria-hidden />
         )}
       </span>
-      <p className="min-w-0 flex-1 text-body-sm">
-        <span className="font-semibold">{mission.title}</span>
+      <Link
+        to={`/mission/${mission.id}`}
+        className="min-w-0 flex-1 text-body-sm transition-opacity hover:opacity-85"
+      >
+        <span className="font-semibold hover:underline">{mission.title}</span>
         <span className="text-muted">
           {' · '}
           {mission.live ? 'live now · ' : ''}
           {mission.kind === 'submission_deadline' ? 'submission' : 'ends'} in{' '}
         </span>
         <span className="stat-number font-semibold">{shortCountdown(c)}</span>
-      </p>
-      <Link
-        to={`/mission/${mission.id}`}
-        className="btn-primary shrink-0 rounded-full px-3.5 py-1.5 text-body-sm font-medium"
-      >
-        Mission control
       </Link>
       <button
         type="button"

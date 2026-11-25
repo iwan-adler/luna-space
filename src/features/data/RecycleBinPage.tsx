@@ -69,7 +69,10 @@ export function RecycleBinPage() {
           </EmptyState>
         </div>
       ) : (
-        <ul className="panel divide-y divide-hairline p-0" data-testid="recycle-bin">
+        <ul
+          className="panel divide-y divide-hairline overflow-hidden p-0"
+          data-testid="recycle-bin"
+        >
           {bin.data.map((item) => {
             const Icon = ICON[item.kind]
             const left = daysLeft(item.purge_at)

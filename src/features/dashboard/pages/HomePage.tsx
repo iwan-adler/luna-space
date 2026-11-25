@@ -1,4 +1,4 @@
-import { CalendarPlus, ListPlus, MessageCircle, NotebookPen, Plus } from 'lucide-react'
+import { CalendarPlus, ListPlus, NotebookPen, Plus } from 'lucide-react'
 import { useState, type CSSProperties } from 'react'
 import { Link, useNavigate } from 'react-router'
 import { useAuth } from '@/features/auth'
@@ -7,10 +7,10 @@ import { useCreateNote } from '@/features/notes'
 import { NotificationsWidget } from '@/features/notifications'
 import { PipelineStrip } from '@/features/opportunities'
 import { ActiveProjectsWidget } from '@/features/projects'
+
 import { useCurrentWorkspace, useMembers } from '@/features/workspace'
-import { useViewerTimeZone } from '@/features/profile'
-import { formatDateOnly, todayIn } from '@/lib/dates'
 import { ActivityWidget } from '../ActivityWidget'
+import { HackathonRadar } from '../HackathonRadar'
 import { Hero } from '../Hero'
 import { TeamCard, WeeklyRecap } from '../TeamWidgets'
 
@@ -30,8 +30,12 @@ function greeting(now = new Date()) {
   return h < 5 ? 'Good night' : h < 12 ? 'Good morning' : h < 17 ? 'Good afternoon' : 'Good evening'
 }
 
-const action =
-  'lift flex shrink-0 items-center whitespace-nowrap gap-2.5 rounded-full border border-hairline bg-[var(--control-fill)] py-1.5 pr-4 pl-1.5 text-body-sm font-medium backdrop-blur-md hover:border-border'
+const baseAction =
+  'group relative inline-flex h-[44px] shrink-0 snap-start items-center gap-2 rounded-full pl-3.5 pr-4 text-[15px] font-medium tracking-[-0.01em] whitespace-nowrap transition-all duration-150 ease-[cubic-bezier(0.22,1,0.36,1)] active:scale-[0.97] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-bg motion-reduce:transition-none motion-reduce:transform-none select-none cursor-pointer'
+
+const primaryAction = `${baseAction} bg-primary/[0.15] text-primary-ink border border-primary/30 hover:bg-primary/[0.22] hover:border-primary/45 shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]`
+
+const neutralAction = `${baseAction} bg-surface text-text border border-border/60 hover:bg-surface-raised hover:border-border/90 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] disabled:opacity-50 disabled:pointer-events-none`
 
 /** Home dashboard: Shared and Me views, quick actions and widgets (FR-DASH-01–06). */
 export function HomePage() {
@@ -43,7 +47,6 @@ export function HomePage() {
   const [view, setView] = useState<View>(readView)
   const me = members.data?.find((m) => m.userId === user?.id)
   const mine = view === 'me'
-  const tz = useViewerTimeZone()
 
   const choose = (v: View) => {
     setView(v)
@@ -56,64 +59,57 @@ export function HomePage() {
 
   return (
     <div className="space-y-6">
-      <Hero
-        name={me?.displayName}
-        workspaceName={ws.workspaceName}
-        greeting={greeting()}
-        today={formatDateOnly(todayIn(tz), { weekday: true })}
-      />
+      <Hero name={me?.displayName} workspaceName={ws.workspaceName} greeting={greeting()} />
 
       <div className="rise flex flex-wrap items-center gap-3" style={{ '--i': 1 } as CSSProperties}>
         <nav
           aria-label="Quick actions"
-          className="-mx-5 flex min-w-0 basis-full gap-2 overflow-x-auto px-5 pb-1 sm:mx-0 sm:basis-auto sm:flex-1 sm:flex-wrap sm:overflow-visible sm:px-0 sm:pb-0 [scrollbar-width:none]"
+          className="-mx-4 flex min-w-0 basis-full items-center gap-2.5 overflow-x-auto scroll-smooth snap-x snap-mandatory px-4 py-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden [mask-image:linear-gradient(to_right,black_calc(100%-28px),transparent_100%)] min-[520px]:mx-0 min-[520px]:basis-auto min-[520px]:overflow-visible min-[520px]:px-0 min-[520px]:[mask-image:none] sm:gap-3"
         >
-          <Link to="/opportunities/new" className={action}>
-            <span className="icon-bubble size-7">
-              <Plus className="size-3.5" aria-hidden />
-            </span>
+          <Link to="/opportunities/new" className={primaryAction}>
+            <Plus className="size-[18px] stroke-[1.85] text-primary-ink" aria-hidden />
             Add opportunity
           </Link>
-          <Link to="/tasks" className={action}>
-            <span className="icon-bubble size-7">
-              <ListPlus className="size-3.5" aria-hidden />
-            </span>
+          <Link to="/tasks" className={neutralAction}>
+            <ListPlus
+              className="size-[18px] stroke-[1.85] text-muted group-hover:text-text transition-colors"
+              aria-hidden
+            />
             New task
           </Link>
-          <Link to="/calendar?new=event" className={action}>
-            <span className="icon-bubble size-7">
-              <CalendarPlus className="size-3.5" aria-hidden />
-            </span>
+          <Link to="/calendar?new=event" className={neutralAction}>
+            <CalendarPlus
+              className="size-[18px] stroke-[1.85] text-muted group-hover:text-text transition-colors"
+              aria-hidden
+            />
             New event
           </Link>
           <button
             type="button"
-            className={action}
+            className={neutralAction}
             disabled={createNote.isPending}
             onClick={() =>
-              createNote.mutate({}, { onSuccess: (id) => void navigate(`/notes/${id}`) })
+              createNote.mutate(
+                {},
+                { onSuccess: (id) => void navigate(id ? `/notes/${id}` : '/notes') },
+              )
             }
           >
-            <span className="icon-bubble size-7">
-              <NotebookPen className="size-3.5" aria-hidden />
-            </span>
+            <NotebookPen
+              className="size-[18px] stroke-[1.85] text-muted group-hover:text-text transition-colors"
+              aria-hidden
+            />
             New note
           </button>
-          <Link to="/chat" className={action}>
-            <span className="icon-bubble size-7">
-              <MessageCircle className="size-3.5" aria-hidden />
-            </span>
-            Open chat
-          </Link>
         </nav>
         <div
           role="group"
           aria-label="Dashboard view"
-          className="relative ml-auto flex rounded-full border border-hairline bg-[var(--control-fill)] p-1 backdrop-blur-md"
+          className="relative ml-auto flex rounded-lg border border-border bg-surface p-1"
         >
           <span
             aria-hidden
-            className="nav-active absolute top-1 bottom-1 w-[calc(50%-4px)] rounded-full transition-transform duration-[var(--motion-slow)] ease-[var(--ease-standard)]"
+            className="nav-active absolute top-1 bottom-1 w-[calc(50%-4px)] rounded-md transition-transform duration-[var(--motion-slow)] ease-[var(--ease-standard)]"
             style={{ transform: view === 'me' ? 'translateX(100%)' : 'translateX(0)' }}
           />
           {(['shared', 'me'] as const).map((v) => (
@@ -122,7 +118,7 @@ export function HomePage() {
               type="button"
               aria-pressed={view === v}
               onClick={() => choose(v)}
-              className={`relative z-10 min-w-20 rounded-full px-4 py-1.5 text-body-sm transition-colors ${view === v ? 'text-text' : 'text-muted hover:text-text'}`}
+              className={`relative z-10 min-w-20 rounded-md px-4 py-1.5 text-body-sm transition-colors ${view === v ? 'text-text' : 'text-muted hover:text-text'}`}
             >
               {v === 'shared' ? 'Shared' : 'Me'}
             </button>
@@ -130,21 +126,31 @@ export function HomePage() {
         </div>
       </div>
 
+      {/* 1. Active Projects & Today's 7-Day Agenda (Immediate execution radar) */}
+      <div className="rise grid gap-4 md:grid-cols-2" style={{ '--i': 2 } as CSSProperties}>
+        <div>
+          <ActiveProjectsWidget mine={mine} userId={user?.id} />
+        </div>
+        <div>
+          <UpcomingAgenda />
+        </div>
+      </div>
+
+      {/* 2. Your Team (Current builders & active tasks) */}
+      <div className="rise" style={{ '--i': 3 } as CSSProperties}>
+        <TeamCard />
+      </div>
+
+      {/* Deadlines, pipeline, the week and what changed */}
       <div className="grid gap-4 md:grid-cols-2">
-        <div className="rise" style={{ '--i': 2 } as CSSProperties}>
+        <div className="rise" style={{ '--i': 4 } as CSSProperties}>
           <DeadlinesWidget mine={mine} userId={user?.id} />
         </div>
-        <div className="rise" style={{ '--i': 3 } as CSSProperties}>
-          <TeamCard />
-        </div>
-        <div className="rise" style={{ '--i': 4 } as CSSProperties}>
+        <div className="rise" style={{ '--i': 5 } as CSSProperties}>
           <PipelineStrip />
         </div>
-        <div className="rise" style={{ '--i': 5 } as CSSProperties}>
-          <WeeklyRecap />
-        </div>
         <div className="rise" style={{ '--i': 6 } as CSSProperties}>
-          <ActiveProjectsWidget mine={mine} userId={user?.id} />
+          <WeeklyRecap />
         </div>
         <div className="rise" style={{ '--i': 7 } as CSSProperties}>
           <NotificationsWidget />
@@ -154,8 +160,9 @@ export function HomePage() {
         </div>
       </div>
 
+      {/* Hackathon Radar (Curated web feed of upcoming hackathons) */}
       <div className="rise" style={{ '--i': 9 } as CSSProperties}>
-        <UpcomingAgenda />
+        <HackathonRadar />
       </div>
     </div>
   )

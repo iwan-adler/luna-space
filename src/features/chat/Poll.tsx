@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/Button'
 import { Alert } from '@/components/ui/Card'
 import { Dialog } from '@/components/ui/Dialog'
 import { TextField } from '@/components/ui/Field'
+import { Switch } from '@/components/ui/Switch'
 import { useToast } from '@/components/ui/Toast'
 import { useSendPoll, useVote, type Message } from './hooks'
 import { pollOf } from './polls'
@@ -142,10 +143,14 @@ export function PollDialog({ onClose }: { onClose: () => void }) {
             </Button>
           ) : null}
         </fieldset>
-        <label className="flex items-center gap-2 text-body-sm text-muted">
-          <input type="checkbox" checked={multi} onChange={(e) => setMulti(e.target.checked)} />
-          Allow choosing more than one
-        </label>
+        <div className="py-1 border-t border-border/40">
+          <Switch
+            label="Multiple choices"
+            description="Allow choosing more than one option"
+            checked={multi}
+            onCheckedChange={setMulti}
+          />
+        </div>
         {send.error ? <Alert tone="danger">{send.error.message}</Alert> : null}
         <div className="flex justify-end gap-2">
           <Button variant="ghost" onClick={onClose}>

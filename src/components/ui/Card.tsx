@@ -1,8 +1,8 @@
 import type { HTMLAttributes } from 'react'
 
-/** Rounded panel with a soft sheen (Soft night). */
+/** Quiet, bordered surface for related content. */
 export function Card({ className = '', ...rest }: HTMLAttributes<HTMLDivElement>) {
-  return <div className={`panel p-5 ${className}`} {...rest} />
+  return <div className={`panel rounded-2xl sm:rounded-[20px] p-5 sm:p-6 ${className}`} {...rest} />
 }
 
 const toneDot = {
@@ -21,7 +21,7 @@ export function Alert({
   return (
     <div
       role={tone === 'danger' ? 'alert' : 'status'}
-      className={`flex items-start gap-3 rounded-[14px] border border-hairline bg-surface-raised/80 px-4 py-3 text-body-sm text-text ${className}`}
+      className={`flex items-start gap-3 rounded-xl border border-border bg-surface-raised px-4 py-3 text-body-sm text-text ${className}`}
       {...rest}
     >
       <span aria-hidden className={`mt-1.5 size-1.5 shrink-0 rounded-full ${toneDot[tone]}`} />

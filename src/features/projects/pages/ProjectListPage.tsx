@@ -8,6 +8,7 @@ import { Alert } from '@/components/ui/Card'
 import { Dialog } from '@/components/ui/Dialog'
 import { SelectField, TextField } from '@/components/ui/Field'
 import { SkeletonList } from '@/components/ui/Skeleton'
+import { Switch } from '@/components/ui/Switch'
 import { ProgressRing, ProjectCover, StageTrack } from '../components/ProjectVisuals'
 import { useToast } from '@/components/ui/Toast'
 import { formatDateOnly } from '@/lib/dates'
@@ -31,7 +32,7 @@ export function ProjectListPage() {
   return (
     <section aria-labelledby="projects-title" className="space-y-4">
       <div className="flex flex-wrap items-center gap-3">
-        <h1 id="projects-title" className="flex-1 font-display text-h1">
+        <h1 id="projects-title" className="flex-1 font-sans text-h1">
           Projects
         </h1>
         <Button icon={<Plus className="size-4" aria-hidden />} onClick={() => setCreating(true)}>
@@ -66,13 +67,13 @@ export function ProjectListPage() {
                 <ProjectCover name={p.name} className="h-20" />
                 <div className="relative px-5 pb-5">
                   <div className="-mt-7 mb-2 flex items-end justify-between gap-2">
-                    <span className="rounded-full bg-[var(--color-surface)] p-1">
+                    <div className="relative z-10 inline-flex items-center justify-center rounded-full bg-surface border border-border p-1 shadow-md">
                       <ProgressRing
                         done={progress.data?.get(p.id)?.done ?? 0}
                         total={progress.data?.get(p.id)?.total ?? 0}
-                        size={50}
+                        size={52}
                       />
-                    </span>
+                    </div>
                     <StageTrack stage={p.stage} compact />
                   </div>
                   <div className="flex items-start gap-2">
@@ -161,15 +162,11 @@ function CreateProjectDialog({
           onChange={(e) => setCategory(e.target.value as ProjectCategory)}
           options={Object.entries(CATEGORY_LABELS).map(([value, label]) => ({ value, label }))}
         />
-        <label className="flex items-center gap-2 text-body-sm">
-          <input
-            type="checkbox"
-            checked={isPrivate}
-            onChange={(e) => setPrivate(e.target.checked)}
-            className="size-4 accent-[var(--color-primary)]"
-          />
-          Private (only you can see it)
-        </label>
+        <Switch
+          checked={isPrivate}
+          onCheckedChange={setPrivate}
+          label="Private (only you can see it)"
+        />
         <div className="flex justify-end gap-2">
           <Button variant="ghost" onClick={() => onOpenChange(false)}>
             Cancel

@@ -1,6 +1,5 @@
-import { LogOut } from 'lucide-react'
 import { useState } from 'react'
-import { Link, Outlet, useNavigate, useSearchParams } from 'react-router'
+import { Link, Outlet, useSearchParams } from 'react-router'
 import { EmptyState } from '@/components/patterns/EmptyState'
 import { MoonLogo } from '@/components/patterns/MoonLogo'
 import { Badge } from '@/components/ui/Badge'
@@ -19,8 +18,7 @@ import { ProjectRoomPage } from './ProjectRoomPage'
 
 /** Minimal shell for guests: logo, their rooms, sign out — no workspace modules (Flow §3). */
 export function GuestShell() {
-  const { signOut, user } = useAuth()
-  const navigate = useNavigate()
+  const { user } = useAuth()
   return (
     <div className="min-h-dvh">
       <header className="sticky top-0 z-30 border-b border-hairline bg-bg/80 backdrop-blur">
@@ -33,17 +31,6 @@ export function GuestShell() {
           <span className="ml-auto" />
           <NotificationBell to="/guest/notifications" />
           <span className="hidden truncate text-caption text-muted sm:block">{user?.email}</span>
-          <Button
-            variant="ghost"
-            size="sm"
-            icon={<LogOut className="size-4" aria-hidden />}
-            onClick={async () => {
-              await signOut()
-              void navigate('/auth/sign-in', { replace: true })
-            }}
-          >
-            Sign out
-          </Button>
         </div>
       </header>
       <main id="main" className="mx-auto max-w-6xl px-4 py-6">
@@ -62,7 +49,7 @@ export function GuestHomePage() {
 
   return (
     <section aria-labelledby="guest-home-title" className="space-y-4">
-      <h1 id="guest-home-title" className="font-display text-h1">
+      <h1 id="guest-home-title" className="font-sans text-h1">
         Your rooms
       </h1>
       {rooms.isPending ? (
@@ -84,7 +71,7 @@ export function GuestHomePage() {
             <li key={r.id} className="panel flex flex-col gap-3 p-5">
               <Link
                 to={`/guest/rooms/${r.project_id}/board`}
-                className="text-h3 font-semibold hover:text-primary"
+                className="text-h3 font-semibold hover:text-primary-ink"
               >
                 {r.project.name}
               </Link>

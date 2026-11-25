@@ -20,7 +20,7 @@ export function RequireWorkspace() {
     enabled: Boolean(user) && !isPending && !data,
   })
   if (isPending || (!data && guestRooms.isPending))
-    return <PageSpinner label="Loading your workspace" />
+    return <PageSpinner label="Loading your workspace" fullScreen />
   if (isError) {
     return (
       <div className="mx-auto mt-16 max-w-md space-y-3 px-4">

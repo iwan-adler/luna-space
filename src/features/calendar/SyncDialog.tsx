@@ -93,7 +93,7 @@ export function SyncDialog({
                 value={url}
                 data-testid="sync-link"
                 onFocus={(e) => e.target.select()}
-                className={`${controlClass} w-full font-mono text-caption`}
+                className={`${controlClass} w-full font-sans text-caption`}
               />
             </label>
             <div className="flex flex-wrap gap-2">

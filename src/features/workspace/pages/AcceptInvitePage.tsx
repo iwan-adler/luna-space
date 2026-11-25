@@ -22,7 +22,7 @@ export function AcceptInvitePage() {
   return (
     <AuthFrame>
       <div className="space-y-4">
-        <h1 className="font-display text-h1">You&apos;re invited</h1>
+        <h1 className="font-sans text-h1">You&apos;re invited</h1>
         <p className="text-body-sm text-muted">
           You&apos;ve been invited to a private Luna Space workspace: opportunities, projects,
           deadlines, notes and chat, shared with the people in it. You can belong to several
@@ -55,7 +55,7 @@ export function AcceptInvitePage() {
           <>
             {accept.error ? <Alert tone="danger">{accept.error.message}</Alert> : null}
             {errorCode === 'ALREADY_MEMBER' ? (
-              <Link to="/" className="text-primary hover:underline">
+              <Link to="/" className="text-primary-ink hover:underline">
                 Go to your dashboard
               </Link>
             ) : (

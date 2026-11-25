@@ -1,4 +1,4 @@
-/** Dark ("Soft night") is the default; light and "match device" are opt-in (ADR 0005). */
+/** Light is the default; dark and "match device" are available in profile settings. */
 export type ThemePreference = 'dark' | 'light' | 'system'
 
 const KEY = 'luna.theme'
@@ -12,9 +12,41 @@ export function readThemePreference(): ThemePreference {
   }
 }
 
+let systemMediaQuery: MediaQueryList | null = null
+
+function handleSystemThemeChange() {
+  if (readThemePreference() === 'system') {
+    applyTheme('system')
+  }
+}
+
 /** Applies the preference to <html data-theme>; tokens.css reads it. */
 export function applyTheme(pref: ThemePreference) {
   document.documentElement.setAttribute('data-theme', pref)
+
+  if (typeof window !== 'undefined') {
+    if (!systemMediaQuery && window.matchMedia) {
+      systemMediaQuery = window.matchMedia('(prefers-color-scheme: dark)')
+      systemMediaQuery.addEventListener('change', handleSystemThemeChange)
+    }
+
+    const isDark = pref === 'dark' || (pref === 'system' && (systemMediaQuery?.matches ?? true))
+
+    if (isDark) {
+      document.documentElement.classList.add('dark')
+      document.documentElement.classList.remove('light')
+    } else {
+      document.documentElement.classList.add('light')
+      document.documentElement.classList.remove('dark')
+    }
+
+    document.documentElement.style.colorScheme = isDark ? 'dark' : 'light'
+
+    const metaTheme = document.querySelector('meta[name="theme-color"]:not([media])')
+    if (metaTheme) {
+      metaTheme.setAttribute('content', isDark ? '#000000' : '#f5f5f7')
+    }
+  }
 }
 
 export function saveThemePreference(pref: ThemePreference) {
@@ -27,28 +59,34 @@ export function saveThemePreference(pref: ThemePreference) {
   applyTheme(pref)
 }
 
-/** Accent palettes (ADR 0020): Mauve Nocturne (default), Midnight Teal, Solar Amber. */
-export type Palette = 'mauve' | 'teal' | 'amber'
+/** Lunar accent palettes: Blue Moon (iOS Blue default), Moonlight Gold, Golden Pink, Lunar Red. */
+export type Palette = 'gold' | 'rose-moon' | 'lunar-red' | 'blue-moon'
 const PALETTE_KEY = 'luna.palette'
 
 export function readPalette(): Palette {
   try {
-    const value = localStorage.getItem(PALETTE_KEY)
-    return value === 'teal' || value === 'amber' ? value : 'mauve'
+    const value = localStorage.getItem(PALETTE_KEY) as Palette | null
+    if (
+      value === 'gold' ||
+      value === 'rose-moon' ||
+      value === 'lunar-red' ||
+      value === 'blue-moon'
+    ) {
+      return value
+    }
+    return 'blue-moon'
   } catch {
-    return 'mauve'
+    return 'blue-moon'
   }
 }
 
 export function applyPalette(palette: Palette) {
-  if (palette === 'mauve') document.documentElement.removeAttribute('data-palette')
-  else document.documentElement.setAttribute('data-palette', palette)
+  document.documentElement.setAttribute('data-palette', palette)
 }
 
 export function savePalette(palette: Palette) {
   try {
-    if (palette === 'mauve') localStorage.removeItem(PALETTE_KEY)
-    else localStorage.setItem(PALETTE_KEY, palette)
+    localStorage.setItem(PALETTE_KEY, palette)
   } catch {
     // storage unavailable: the choice still applies for this page view
   }

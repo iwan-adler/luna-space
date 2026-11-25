@@ -5,16 +5,19 @@ type Variant = 'primary' | 'secondary' | 'ghost' | 'danger'
 type Size = 'sm' | 'md' | 'lg'
 
 const variants: Record<Variant, string> = {
-  primary: 'btn-primary',
+  primary:
+    'border border-transparent bg-btn-primary text-on-btn-primary hover:bg-btn-primary-hover font-semibold shadow-sm active:scale-[0.97]',
   secondary:
-    'border border-hairline bg-surface text-text backdrop-blur-md hover:border-border hover:bg-surface-raised',
-  ghost: 'text-muted hover:bg-hairline hover:text-text',
-  danger: 'bg-danger/90 text-bg hover:bg-danger',
+    'border border-border/80 bg-surface-raised text-text hover:bg-surface-hover hover:border-border active:scale-[0.97] shadow-xs',
+  ghost: 'text-primary-ink hover:bg-primary-subtle active:scale-[0.97]',
+  danger:
+    'border border-transparent bg-danger text-white hover:bg-danger/90 active:scale-[0.97] shadow-sm',
 }
+
 const sizes: Record<Size, string> = {
-  sm: 'h-8 px-3.5 text-body-sm',
-  md: 'h-10 px-5 text-body-sm',
-  lg: 'h-12 px-6 text-body',
+  sm: 'min-h-[36px] h-9 px-3.5 text-caption font-semibold rounded-full',
+  md: 'min-h-[44px] h-11 px-5 text-body-sm font-semibold rounded-xl',
+  lg: 'min-h-[48px] h-12 px-6 text-body font-semibold rounded-2xl',
 }
 
 export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
@@ -40,7 +43,7 @@ export function Button({
       type={type}
       disabled={disabled || loading}
       aria-busy={loading || undefined}
-      className={`inline-flex items-center justify-center gap-2 rounded-full font-medium tracking-[-0.005em] transition-all duration-[var(--motion-base)] ease-[var(--ease-standard)] active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-45 disabled:shadow-none ${variants[variant]} ${sizes[size]} ${className}`}
+      className={`inline-flex items-center justify-center gap-2 font-medium transition-all duration-[var(--motion-fast)] ease-[var(--ease-spring)] disabled:cursor-not-allowed disabled:opacity-45 ${variants[variant]} ${sizes[size]} ${className}`}
       {...rest}
     >
       {loading ? <Spinner className="size-4" /> : icon}

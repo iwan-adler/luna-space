@@ -36,6 +36,18 @@ export function formatDateOnly(value: DateOnly, options: { weekday?: boolean } =
   }).format(dateOnlyToUtcMs(value))
 }
 
+/** Converts "22:13" or "2026-11-21T22:13:00Z" to 12-hour format "10:13 PM". */
+export function format12HourTime(timeOrIso: string): string {
+  if (!timeOrIso) return ''
+  const m = /(\d{1,2}):(\d{2})/.exec(timeOrIso)
+  if (!m || !m[1] || !m[2]) return timeOrIso
+  const h = parseInt(m[1], 10)
+  const min = m[2]
+  const period = h >= 12 ? 'PM' : 'AM'
+  const h12 = h % 12 || 12
+  return `${h12}:${min} ${period}`
+}
+
 function partsIn(instant: Date, timeZone: string) {
   const parts = new Intl.DateTimeFormat('en-US', {
     timeZone,

@@ -1,5 +1,5 @@
 import { SkeletonList } from '@/components/ui/Skeleton'
-import { ArrowLeft, Lock, Pin, PinOff, Plus, Search, Trash2, Users } from 'lucide-react'
+import { ArrowLeft, Lock, Pin, PinOff, Plus, Trash2, Users } from 'lucide-react'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router'
 import { EmptyState } from '@/components/patterns/EmptyState'
@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/Button'
 import { Alert } from '@/components/ui/Card'
 import { Dialog } from '@/components/ui/Dialog'
 import { PageSpinner } from '@/components/ui/Spinner'
+import { SearchInput } from '@/components/ui/SearchInput'
 import { useToast } from '@/components/ui/Toast'
 import { useQueryClient } from '@tanstack/react-query'
 import { useAuth } from '@/features/auth'
@@ -28,13 +29,20 @@ import { toggleTask } from './tasks'
 
 /** /notes and /notes/:id — the shared notepad (FR-VAULT-02, 05, 06). */
 export function NotesPage() {
-  const { id = null } = useParams()
+  const { id: rawId } = useParams()
+  const id = rawId && rawId !== 'undefined' && rawId !== 'null' ? rawId : null
   const qc = useQueryClient()
   const [q, setQ] = useState('')
   const notes = useNotes(q)
   const create = useCreateNote()
   const navigate = useNavigate()
   const tz = useViewerTimeZone()
+
+  useEffect(() => {
+    if (rawId === 'undefined' || rawId === 'null') {
+      void navigate('/notes', { replace: true })
+    }
+  }, [rawId, navigate])
 
   const onRemoteChange = useCallback(
     (changed: string) => void qc.invalidateQueries({ queryKey: noteKeys.one(changed) }),
@@ -43,7 +51,15 @@ export function NotesPage() {
   useNotesRealtime(onRemoteChange)
 
   const newNote = () =>
-    create.mutate({}, { onSuccess: (newId) => void navigate(`/notes/${newId}`) })
+    create.mutate(
+      {},
+      {
+        onSuccess: (newId) => {
+          if (newId) void navigate(`/notes/${newId}`)
+          else void navigate('/notes')
+        },
+      },
+    )
 
   return (
     <section aria-labelledby="notes-title" className="space-y-5">
@@ -62,20 +78,12 @@ export function NotesPage() {
 
       <div className="grid gap-4 lg:grid-cols-[19rem_minmax(0,1fr)]">
         <aside className={`space-y-3 ${id ? 'hidden lg:block' : ''}`}>
-          <label className="relative block">
-            <span className="sr-only">Search notes</span>
-            <Search
-              className="pointer-events-none absolute top-1/2 left-3.5 size-4 -translate-y-1/2 text-muted"
-              aria-hidden
-            />
-            <input
-              type="search"
-              value={q}
-              onChange={(e) => setQ(e.target.value)}
-              placeholder="Search notes"
-              className="w-full rounded-full border border-border bg-surface py-2 pr-4 pl-10 text-body-sm placeholder:text-muted/70"
-            />
-          </label>
+          <SearchInput
+            value={q}
+            onChange={(e) => setQ(e.target.value)}
+            placeholder="Search notes"
+            className="!h-10 text-body-sm"
+          />
           {notes.isPending ? (
             <SkeletonList label="Loading notes" variant="card" rows={3} />
           ) : notes.error ? (
@@ -364,7 +372,7 @@ function NoteForm({ id, note: n }: { id: string; note: Note }) {
           maxLength={200000}
           onChange={(e) => edit({ body: e.target.value })}
           placeholder={'Write here. Markdown works: # heading, **bold**, - list, - [ ] to-do'}
-          className="min-h-[55dvh] w-full resize-y rounded-[14px] border border-hairline bg-transparent p-4 font-mono text-body-sm leading-6 outline-none focus-visible:border-primary/50"
+          className="min-h-[55dvh] w-full resize-y rounded-[14px] border border-hairline bg-transparent p-4 font-sans text-body-sm leading-6 outline-none focus-visible:border-primary/50"
         />
       ) : (
         <div

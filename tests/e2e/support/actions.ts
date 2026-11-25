@@ -1,4 +1,4 @@
-import { expect, type Page } from '@playwright/test'
+import { expect, type Locator, type Page } from '@playwright/test'
 import type { TestUser } from './backend'
 
 export async function signIn(page: Page, user: TestUser) {
@@ -25,4 +25,32 @@ export async function acceptInvite(page: Page, inviteUrl: string, user: TestUser
   await page.getByRole('button', { name: 'Sign in to accept' }).click()
   await signIn(page, user)
   await page.getByRole('button', { name: 'Join workspace' }).click()
+}
+
+/**
+ * Picks an option in a dropdown, native <select> or the custom combobox (ADR 0023). `choice` is
+ * the option's value, or `{ label }` for its visible text.
+ */
+export async function choose(
+  scope: Page | Locator,
+  name: string,
+  choice: string | { label: string },
+) {
+  const box = scope.getByRole('combobox', { name, exact: true })
+  if ((await box.evaluate((el) => el.tagName)) === 'SELECT') {
+    await box.selectOption(choice)
+    return
+  }
+  await box.click()
+  const list = scope.getByRole('listbox', { name, exact: true })
+  const option =
+    typeof choice === 'string'
+      ? list.locator(`[role="option"][data-value="${choice}"]`)
+      : list.getByRole('option', { name: choice.label, exact: true })
+  await option.click()
+}
+
+/** The value a dropdown currently holds. */
+export function dropdown(scope: Page | Locator, name: string) {
+  return scope.getByRole('combobox', { name, exact: true })
 }

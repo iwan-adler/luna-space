@@ -3,6 +3,7 @@ import { Crown, LogOut, UserMinus } from 'lucide-react'
 import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
+import { Avatar } from '@/components/ui/Avatar'
 import { Button } from '@/components/ui/Button'
 import { Alert, Card } from '@/components/ui/Card'
 import { Dialog } from '@/components/ui/Dialog'
@@ -67,7 +68,7 @@ export function WorkspaceSettingsPage() {
           onSubmit={form.handleSubmit((v) =>
             update.mutate(
               { name: v.name, emoji: v.emoji },
-              { onSuccess: () => toast.show('Workspace updated', 'success') },
+              { onSuccess: () => toast.show('Workspace settings saved', 'success') },
             ),
           )}
         >
@@ -99,17 +100,20 @@ export function WorkspaceSettingsPage() {
       </Card>
 
       <Card>
-        <div className="mb-3 flex items-center justify-between gap-3">
-          <h2 className="text-h3 font-semibold">
-            Members{' '}
-            <span className="text-body-sm font-normal text-muted">
-              {count} of {ws.maxMembers}
+        <div className="mb-4 flex items-center justify-between gap-3">
+          <div className="flex items-center gap-2.5">
+            <h2 className="text-h2 font-semibold text-text">Members</h2>
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-border bg-surface-raised px-3 py-0.5 text-body font-semibold text-text">
+              <span className="text-primary-ink font-bold">{count}</span>
+              <span className="text-muted text-caption font-medium">of</span>
+              <span className="font-bold">{ws.maxMembers}</span>
             </span>
-          </h2>
+          </div>
           {isOwner ? (
             <div className="w-36">
               <SelectField
                 label="Member limit"
+                align="right"
                 value={String(ws.maxMembers)}
                 onChange={(e) =>
                   update.mutate(
@@ -133,9 +137,7 @@ export function WorkspaceSettingsPage() {
           <ul className="divide-y divide-hairline" data-testid="member-list">
             {members.data.map((m) => (
               <li key={m.userId} className="flex items-center gap-3 py-2.5">
-                <span className="icon-bubble size-9 text-body-sm font-semibold" aria-hidden>
-                  {m.displayName.slice(0, 1).toUpperCase()}
-                </span>
+                <Avatar src={m.avatarPath} name={m.displayName} size="sm" />
                 <span className="min-w-0 flex-1">
                   <span className="flex items-center gap-1.5 font-medium">
                     <ProfileCard userId={m.userId} label={m.displayName}>

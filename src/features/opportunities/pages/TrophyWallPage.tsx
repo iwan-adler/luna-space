@@ -6,7 +6,8 @@ import { Alert } from '@/components/ui/Card'
 import { SkeletonList } from '@/components/ui/Skeleton'
 import { formatDateTime } from '@/lib/format'
 import { gradientFor, initials } from '@/lib/visuals'
-import { TYPE_HUE, TYPE_LABELS } from '../constants'
+import { TYPE_LABELS } from '../constants'
+
 import { useOpportunities, useViewerTimeZone } from '../hooks'
 
 /**
@@ -57,16 +58,9 @@ export function TrophyWallPage() {
                 <li key={o.id} className="rise" style={{ ['--i' as string]: i }}>
                   <Link
                     to={`/opportunities/${o.id}`}
-                    className="panel panel-glow relative block overflow-hidden p-6 text-center"
+                    className="panel relative block overflow-hidden p-6 text-center"
                   >
-                    <div
-                      aria-hidden
-                      className="pointer-events-none absolute inset-x-0 -top-16 mx-auto size-48 rounded-full blur-2xl"
-                      style={{
-                        background: `radial-gradient(circle, ${TYPE_HUE[o.type] ?? '#ffd98a'}66, transparent 70%)`,
-                      }}
-                    />
-                    <span className="relative mx-auto grid size-16 place-items-center rounded-full bg-[linear-gradient(160deg,#ffe7a8,#e0a440)] text-[#5a3a08] shadow-[0_0_28px_2px_rgb(255_210_120/0.55)]">
+                    <span className="relative mx-auto grid size-12 place-items-center rounded-md bg-primary-subtle text-primary-ink">
                       <Trophy className="size-8" aria-hidden />
                     </span>
                     <p className="relative mt-4 text-h3 font-semibold">{o.title}</p>

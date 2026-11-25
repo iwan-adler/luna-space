@@ -3,11 +3,13 @@ import {
   type InputHTMLAttributes,
   type ReactNode,
   type SelectHTMLAttributes,
+  type TextareaHTMLAttributes,
   type Ref,
 } from 'react'
+import { CustomSelect } from './CustomSelect'
 
 const control =
-  'w-full rounded-[12px] border bg-surface-raised px-3.5 py-2.5 text-body text-text placeholder:text-muted/70 transition-colors outline-none focus-visible:border-primary/60 focus-visible:ring-4 focus-visible:ring-primary/10 aria-[invalid=true]:border-danger/70'
+  'w-full min-h-[44px] rounded-xl border border-hairline bg-surface px-3.5 py-2.5 text-body text-text placeholder:text-muted/60 transition-all outline-none focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-primary/20 aria-[invalid=true]:border-danger'
 
 interface FieldShellProps {
   label: string
@@ -58,7 +60,7 @@ export function TextField({ label, error, hint, className = '', ref, ...rest }: 
           ref={ref}
           aria-invalid={error ? true : undefined}
           aria-describedby={describedBy}
-          className={`${control} border-hairline ${className}`}
+          className={`${control} ${className}`}
           {...rest}
         />
       )}
@@ -66,12 +68,45 @@ export function TextField({ label, error, hint, className = '', ref, ...rest }: 
   )
 }
 
-interface SelectFieldProps extends SelectHTMLAttributes<HTMLSelectElement> {
+export interface TextAreaFieldProps extends TextareaHTMLAttributes<HTMLTextAreaElement> {
+  label: string
+  error?: string | undefined
+  hint?: ReactNode
+  ref?: Ref<HTMLTextAreaElement>
+}
+
+export function TextAreaField({
+  label,
+  error,
+  hint,
+  className = '',
+  ref,
+  ...rest
+}: TextAreaFieldProps) {
+  return (
+    <FieldShell label={label} error={error} hint={hint}>
+      {({ id, describedBy }) => (
+        <textarea
+          id={id}
+          ref={ref}
+          aria-invalid={error ? true : undefined}
+          aria-describedby={describedBy}
+          className={`w-full min-h-[96px] rounded-xl border border-hairline bg-surface px-3.5 py-2.5 text-body text-text placeholder:text-muted/60 transition-all outline-none focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-primary/20 aria-[invalid=true]:border-danger resize-y ${className}`}
+          {...rest}
+        />
+      )}
+    </FieldShell>
+  )
+}
+
+interface SelectFieldProps extends Omit<SelectHTMLAttributes<HTMLSelectElement>, 'onChange'> {
   label: string
   error?: string | undefined
   hint?: ReactNode
   ref?: Ref<HTMLSelectElement>
   options: { value: string; label: string }[]
+  align?: 'left' | 'right'
+  onChange?: (e: React.ChangeEvent<HTMLSelectElement>) => void
 }
 
 export function SelectField({
@@ -80,26 +115,40 @@ export function SelectField({
   hint,
   options,
   className = '',
-  ref,
-  ...rest
+  align = 'left',
+  value,
+  onChange,
+  disabled,
+  name,
 }: SelectFieldProps) {
+  const strValue = String(value ?? options[0]?.value ?? '')
   return (
     <FieldShell label={label} error={error} hint={hint}>
       {({ id, describedBy }) => (
-        <select
-          id={id}
-          ref={ref}
-          aria-invalid={error ? true : undefined}
-          aria-describedby={describedBy}
-          className={`${control} border-hairline ${className}`}
-          {...rest}
-        >
-          {options.map((o) => (
-            <option key={o.value} value={o.value}>
-              {o.label}
-            </option>
-          ))}
-        </select>
+        <div className={`relative ${className}`}>
+          <CustomSelect
+            id={id}
+            ariaDescribedBy={describedBy}
+            invalid={Boolean(error)}
+            ariaLabel={label}
+            value={strValue}
+            disabled={disabled}
+            align={align}
+            options={options}
+            onChange={(val) => {
+              if (onChange) {
+                const syntheticEvent = {
+                  target: { value: val, name },
+                  currentTarget: { value: val, name },
+                  preventDefault: () => {},
+                  stopPropagation: () => {},
+                } as unknown as React.ChangeEvent<HTMLSelectElement>
+                onChange(syntheticEvent)
+              }
+            }}
+            buttonClassName="w-full min-h-[44px] flex items-center justify-between gap-2 rounded-xl border border-hairline bg-surface px-3.5 py-2.5 text-body text-text transition-all outline-none hover:border-border-hover focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-primary/20 disabled:opacity-50"
+          />
+        </div>
       )}
     </FieldShell>
   )

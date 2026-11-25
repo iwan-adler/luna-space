@@ -64,7 +64,7 @@ export function OnboardingPage() {
         ) : null}
         {step === 3 && workspaceId ? (
           <div className="space-y-4">
-            <h1 className="font-display text-h1">Invite your people</h1>
+            <h1 className="font-sans text-h1">Invite your people</h1>
             <p className="text-body-sm text-muted">
               Send this link to the friends you build with. Anyone with it can join until the
               workspace is full or the link expires in 7 days. You can also do this later in
@@ -107,7 +107,7 @@ function ProfileStep({
         update.mutate({ display_name: v.displayName, timezone: v.timezone }, { onSuccess: onDone }),
       )}
     >
-      <h1 className="font-display text-h1">Welcome! Tell us about you</h1>
+      <h1 className="font-sans text-h1">Welcome! Tell us about you</h1>
       {update.error ? <Alert tone="danger">{update.error.message}</Alert> : null}
       <TextField
         label="Your name"
@@ -136,7 +136,7 @@ function WorkspaceStep({ onDone }: { onDone: (workspaceId: string) => void }) {
       className="space-y-4"
       onSubmit={form.handleSubmit((v) => create.mutate(v.name, { onSuccess: onDone }))}
     >
-      <h1 className="font-display text-h1">Name your workspace</h1>
+      <h1 className="font-sans text-h1">Name your workspace</h1>
       <p className="text-body-sm text-muted">
         A private space for you and the people you build with. You can rename it later, and create
         more workspaces for other groups of friends.

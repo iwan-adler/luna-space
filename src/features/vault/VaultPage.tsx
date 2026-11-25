@@ -136,7 +136,7 @@ export function VaultPage() {
           onClick={() =>
             createNote.mutate(
               { folderId: tag ? null : folderId },
-              { onSuccess: (id) => void navigate(`/notes/${id}`) },
+              { onSuccess: (id) => void navigate(id ? `/notes/${id}` : '/notes') },
             )
           }
         >
@@ -694,7 +694,7 @@ function ItemMenu({
         <Menu.Content
           align="end"
           sideOffset={6}
-          className="glass z-50 min-w-44 rounded-2xl border border-hairline p-1.5 shadow-3"
+          className="z-50 min-w-44 rounded-xl border border-border bg-surface-raised p-1.5 shadow-2xl backdrop-blur-none"
         >
           <Menu.Item className={item} onSelect={onEdit}>
             <Pencil className="size-4" aria-hidden /> Edit, tag or move

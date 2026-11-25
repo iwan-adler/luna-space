@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useEffect } from 'react'
 import { useAuth } from '@/features/auth'
+import { useActiveLiveRooms } from './liveRooms'
 import { useCurrentWorkspace } from '@/features/workspace'
 import { toAppError } from '@/lib/errors'
 import { requireSupabase } from '@/lib/supabase'
@@ -434,4 +435,9 @@ export function useTaskProgress() {
       return map
     },
   })
+}
+
+/** Whether any meeting in the workspace is live right now (ADR 0023). */
+export function useActiveMeeting(): boolean {
+  return useActiveLiveRooms().length > 0
 }

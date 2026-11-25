@@ -1,4 +1,6 @@
 import { useId } from 'react'
+import { CustomSelect } from '@/components/ui/CustomSelect'
+import { Switch } from '@/components/ui/Switch'
 import { controlClass } from '@/components/ui/styles'
 import { timeZoneOptions } from '@/lib/timezones'
 
@@ -40,14 +42,11 @@ export function DateTimeInput({
           onChange={(e) => onChange({ ...value, date: e.target.value })}
         />
         {value.date ? (
-          <label className="flex items-center gap-1 text-caption text-muted">
-            <input
-              type="checkbox"
-              checked={value.hasTime}
-              onChange={(e) => onChange({ ...value, hasTime: e.target.checked })}
-            />
-            Specific time
-          </label>
+          <Switch
+            label="Specific time"
+            checked={value.hasTime}
+            onCheckedChange={(checked) => onChange({ ...value, hasTime: checked })}
+          />
         ) : null}
         {value.date && value.hasTime ? (
           <>
@@ -58,18 +57,13 @@ export function DateTimeInput({
               value={value.time}
               onChange={(e) => onChange({ ...value, time: e.target.value })}
             />
-            <select
-              aria-label={`${label} time zone`}
-              className={`${control} max-w-48`}
+            <CustomSelect
+              ariaLabel={`${label} time zone`}
+              className="max-w-48"
               value={value.timezone}
-              onChange={(e) => onChange({ ...value, timezone: e.target.value })}
-            >
-              {zones.map((z) => (
-                <option key={z.value} value={z.value}>
-                  {z.label}
-                </option>
-              ))}
-            </select>
+              onChange={(tz) => onChange({ ...value, timezone: tz })}
+              options={zones}
+            />
           </>
         ) : value.date ? (
           <span className="text-caption text-muted">All day</span>

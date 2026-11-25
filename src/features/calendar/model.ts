@@ -127,7 +127,9 @@ export function groupByDate(items: FeedItem[], viewerTz: string): Map<DateOnly, 
   for (const list of map.values())
     list.sort((a, b) => {
       if (a.allDay !== b.allDay) return a.allDay ? -1 : 1
-      return (itemTime(a, viewerTz) ?? '').localeCompare(itemTime(b, viewerTz) ?? '')
+      const timeA = a.startsAt ? utcIsoToZonedLocal(a.startsAt, viewerTz).slice(11) : ''
+      const timeB = b.startsAt ? utcIsoToZonedLocal(b.startsAt, viewerTz).slice(11) : ''
+      return timeA.localeCompare(timeB)
     })
   return map
 }

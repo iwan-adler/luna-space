@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test'
-import { acceptInvite, onboardWithInvite } from './support/actions'
+import { acceptInvite, choose, onboardWithInvite } from './support/actions'
 import { createTestUser, localBackend } from './support/backend'
 
 test.describe('profiles, stickers, polls and the team finder (ADR 0021)', () => {
@@ -20,9 +20,11 @@ test.describe('profiles, stickers, polls and the team finder (ADR 0021)', () => 
 
     // Ana fills in her bio, skills and links (pasted in messy forms).
     await a.goto('/settings/profile')
+    await a.getByLabel('GitHub username').fill('https://github.com/ana-dev')
+    await a.getByRole('button', { name: 'Save profile' }).click()
+    await expect(a.getByText('Profile updated').first()).toBeVisible()
     await a.getByLabel('Bio').fill('Builds lunar rovers on weekends')
     await a.getByLabel('Skills').fill('Robotics, React')
-    await a.getByLabel('GitHub').fill('https://github.com/ana-dev')
     await a.getByLabel('LinkedIn').fill('linkedin.com/in/ana-dev')
     await a.getByLabel('Website').fill('ana.dev')
     await a.getByLabel('Devpost').fill('@ana_dev')
@@ -81,9 +83,9 @@ test.describe('profiles, stickers, polls and the team finder (ADR 0021)', () => 
     await a.getByRole('button', { name: 'Save opportunity' }).click()
     await expect(a.getByRole('heading', { name: 'Rover Hack' })).toBeVisible()
     await a.goto('/teams')
-    await a.getByRole('button', { name: 'Post', exact: true }).click()
+    await a.getByRole('button', { name: 'Post to finder' }).click()
     await a.getByRole('radio', { name: 'We need people' }).click()
-    await a.getByLabel('Opportunity').selectOption({ label: 'Rover Hack' })
+    await choose(a, 'Opportunity', { label: 'Rover Hack' })
     await a.getByLabel('Skills you need').fill('UI design, ML')
     await a.getByLabel('A short note').fill('Online, this weekend')
     await a.getByRole('button', { name: 'Post', exact: true }).last().click()

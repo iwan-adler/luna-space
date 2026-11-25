@@ -1,143 +1,437 @@
 /*
- * Luna DS tokens — "Mauve" (ADR 0010, supersedes ADR 0007 "Aurora glass").
- * A framed dashboard: deep plum canvas, near-black cards with soft mauve glows, pill controls.
- * Dark is the default. Light applies with <html data-theme="light">, or with
- * data-theme="system" when the OS prefers light.
+ * Apple iOS Design Language Tokens
+ * Premium, clean, minimal aesthetic with full Light and Dark mode support.
  */
+
 :root {
+  /* iOS Typography Font Stack */
+  --font-sans:
+    -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'Inter', system-ui,
+    sans-serif;
+
+  /* Radii conforming to iOS standards: 16-24px on cards, 12-14px on buttons/inputs, pill for tags */
+  --radius-xs: 6px;
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 20px;
+  --radius-2xl: 24px;
+  --radius-pill: 9999px;
+  --radius-card: 20px;
+
+  /* iOS Spring Motion */
+  --motion-fast: 160ms;
+  --motion-base: 260ms;
+  --motion-slow: 350ms;
+  --ease-standard: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-spring: cubic-bezier(0.22, 1, 0.36, 1);
+
+  /* Default Dark Mode (Pure #000000 background, #1C1C1E cards, iOS 17/18 system dark) */
   color-scheme: dark;
+  --color-bg: #000000;
+  --color-sidebar: #121214;
+  --color-surface: #1c1c1e;
+  --color-surface-raised: #2c2c2e;
+  --color-surface-hover: #3a3a3c;
+  --color-border: rgba(255, 255, 255, 0.12);
+  --color-border-hover: rgba(255, 255, 255, 0.22);
+  --color-hairline: rgba(255, 255, 255, 0.08);
 
-  /* Canvas, frame and surfaces */
-  --color-bg: #120e12;
-  --page-glow: radial-gradient(1200px 720px at 50% -12%, #3b2e37 0%, transparent 70%);
-  --frame-fill: linear-gradient(165deg, #4a3d46 0%, #2b2229 42%, #1a1519 100%);
-  --color-sidebar: #0b090b;
-  --color-surface: #0f0c0f;
-  --color-surface-raised: #1d181c;
-  --color-border: rgb(255 255 255 / 0.15);
-  --color-hairline: rgb(255 255 255 / 0.08);
+  --color-text: #ffffff;
+  --color-text-secondary: #a1a1aa;
+  --color-text-muted: #9a9aa0;
+  --color-text-dim: #48484a;
 
-  /* Text */
-  --color-text: #f5eff3;
-  --color-text-muted: #a99aa4;
+  /* Primary Button Tokens (Amber in both themes) */
+  --color-btn-primary: #f5a524;
+  --color-btn-primary-hover: #e0941f;
+  --color-on-btn-primary: #18181b;
+  --color-border-strong: rgba(255, 255, 255, 0.22);
 
-  /* Accents: dusty mauve, a soft pink highlight */
-  --color-primary: #d7a6c6;
-  --color-primary-hover: #e6bcd8;
-  --color-primary-subtle: rgb(215 166 198 / 0.14);
+  /* Primary Accent: iOS Blue (#0A84FF) */
+  --color-primary: #0a84ff;
+  /* Primary for text on tinted surfaces: always ≥ 4.5:1 (ADR 0023). */
+  --color-primary-ink: color-mix(in srgb, var(--color-primary) 75%, white);
+  --color-primary-hover: #409cff;
+  --color-primary-subtle: rgba(10, 132, 255, 0.16);
   --color-on-primary: #ffffff;
-  --color-accent: #bba5b5;
-  --color-highlight: #ebb6d8;
-  --color-rose: #f0a6c8;
+  --color-accent: #0a84ff;
+  --color-highlight: var(--color-primary);
+  --color-rose: #ff453a;
 
-  /* Semantic */
-  --color-success: #6fdc9a;
-  --color-info: #9cc3f5;
-  --color-warning: #f2c27a;
-  --color-danger: #f39aa8;
-  --color-neutral: #8c7f88;
+  --color-secondary-tint: rgba(10, 132, 255, 0.08);
 
-  /* Glows and gradients */
-  --glow-card: radial-gradient(120% 95% at 50% 125%, rgb(205 140 188 / 0.42), transparent 62%);
-  --glow-corner: radial-gradient(90% 80% at 85% 0%, rgb(205 140 188 / 0.22), transparent 60%);
-  --gradient-primary: linear-gradient(180deg, #b78ca8 0%, #7a5a6f 100%);
-  --glow-primary: 0 10px 28px -10px rgb(205 140 188 / 0.7);
-  --nav-active: linear-gradient(90deg, #8d6c82 0%, #59455a 100%);
-  --nav-active-glow:
-    inset 0 1px 0 rgb(255 255 255 / 0.14), 0 8px 24px -10px rgb(205 140 188 / 0.65);
-  --control-fill: rgb(0 0 0 / 0.38);
+  /* Status colors (Apple exact system palette) */
+  --color-success: #30d158;
+  --color-success-subtle: rgba(48, 209, 88, 0.15);
+  --color-warning: #ff9f0a;
+  --color-warning-subtle: rgba(255, 159, 10, 0.15);
+  --color-danger: #ff453a;
+  --color-danger-subtle: rgba(255, 69, 58, 0.15);
+  --color-info: #0a84ff;
+  --color-info-subtle: rgba(10, 132, 255, 0.15);
+  --color-neutral: #8e8e93;
 
-  /* Elevation */
-  --shadow-1: 0 1px 0 rgb(255 255 255 / 0.04) inset, 0 12px 32px rgb(0 0 0 / 0.35);
-  --shadow-2: 0 18px 44px rgb(0 0 0 / 0.5);
-  --shadow-3: 0 28px 70px rgb(0 0 0 / 0.62);
+  /* Soft layered shadows (Apple subtle low-opacity large-spread) */
+  --shadow-1: 0 2px 8px rgba(0, 0, 0, 0.18);
+  --shadow-2: 0 8px 32px rgba(0, 0, 0, 0.35);
+  --shadow-3: 0 16px 48px rgba(0, 0, 0, 0.45);
+  --shadow-card: 0 8px 32px rgba(0, 0, 0, 0.35);
 
-  /* Motion */
-  --motion-fast: 120ms;
-  --motion-base: 200ms;
-  --motion-slow: 320ms;
-  --ease-standard: cubic-bezier(0.2, 0.8, 0.2, 1);
+  /* Frosted Glass */
+  --glass-bg: rgba(28, 28, 30, 0.75);
+  --navbar-bg: rgba(0, 0, 0, 0.75);
+
+  /* Banner & Atmospheric Sky Tokens (Dark / Night Sky default) */
+  --banner-sky: linear-gradient(180deg, #080a12 0%, #0c101c 45%, #0e1322 100%);
+  --banner-sky-urgent: linear-gradient(180deg, #080a12 0%, #150f16 45%, #241116 100%);
+  --banner-celestial-glow: radial-gradient(
+    circle 85px at 85% 18%,
+    rgba(240, 168, 52, 0.16) 0%,
+    rgba(240, 168, 52, 0.06) 45%,
+    transparent 75%
+  );
+  --banner-cloud-fill-1: rgba(30, 38, 56, 0.65);
+  --banner-cloud-fill-2: rgba(22, 28, 44, 0.8);
+  --banner-cloud-fill-3: rgba(18, 22, 34, 0.9);
+  --banner-cloud-underside: #0c101a;
+  --banner-cloud-blur: 1.5px;
+  --banner-horizon-haze: linear-gradient(to top, rgba(0, 0, 0, 0.35) 0%, transparent 24px);
+  --banner-vignette: radial-gradient(120% 80% at 50% 0%, transparent 60%, rgba(0, 0, 0, 0.25) 100%);
+  --banner-border-bottom: 1px solid transparent;
+
+  /* Compatibility stubs */
+  --gradient-primary: var(--color-primary);
+  --glow-primary: none;
+  --glow-card: var(--color-surface);
+  --glow-corner: var(--color-surface);
+  --page-glow: none;
+  --frame-fill: var(--color-bg);
+  --control-fill: var(--color-surface);
+  --nav-active: var(--color-primary-subtle);
+  --nav-active-glow: none;
+  --sidebar-glass: var(--color-sidebar);
+  --frame-glass: var(--color-bg);
+  --moon-shade: var(--color-border);
+
+  /* Mobile navigation clearance */
+  --nav-bar-h: 4.5rem;
+  --nav-bottom-gap: 0.75rem;
+  --nav-h: calc(var(--nav-bar-h) + var(--nav-bottom-gap) + env(safe-area-inset-bottom, 0px));
 }
 
-/* Light: the same frame and pills on a pale mauve-grey canvas with white cards */
+@media (min-width: 1024px) {
+  :root {
+    --nav-h: 0px;
+  }
+}
+
+/* Explicit Light Mode */
+[data-theme='light'],
 :root[data-theme='light'] {
   color-scheme: light;
-  --color-bg: #e8e1e6;
-  --page-glow: radial-gradient(1200px 720px at 50% -12%, #f6eef3 0%, transparent 70%);
-  --frame-fill: linear-gradient(165deg, #faf6f9 0%, #efe7ed 45%, #e4dae1 100%);
+  --color-bg: #f5f5f7;
   --color-sidebar: #ffffff;
   --color-surface: #ffffff;
-  --color-surface-raised: #ffffff;
-  --color-border: rgb(70 35 60 / 0.16);
-  --color-hairline: rgb(70 35 60 / 0.09);
-  --color-text: #1f1620;
-  --color-text-muted: #6f616d;
-  --color-primary: #8c4d7b;
-  --color-primary-hover: #783f68;
-  --color-primary-subtle: rgb(140 77 123 / 0.1);
+  --color-surface-raised: #f0f0f3;
+  --color-surface-hover: #e5e5ea;
+  --color-border: rgba(0, 0, 0, 0.08);
+  --color-border-hover: rgba(0, 0, 0, 0.14);
+  --color-border-strong: rgba(0, 0, 0, 0.14);
+  --color-hairline: rgba(0, 0, 0, 0.06);
+
+  --color-text: #111113;
+  --color-text-secondary: #52525b;
+  --color-text-muted: #6b6b76;
+  --color-text-dim: #9ca3af;
+
+  --color-primary: #b45309;
+  /* Primary for text on tinted surfaces: always ≥ 4.5:1 (ADR 0023). */
+  --color-primary-ink: color-mix(in srgb, var(--color-primary) 75%, black);
+  --color-primary-hover: #92400e;
+  --color-primary-subtle: rgba(245, 165, 36, 0.14);
   --color-on-primary: #ffffff;
-  --color-accent: #7c6a77;
-  --color-highlight: #a3518a;
-  --color-rose: #b4427f;
-  --color-success: #1d8a5c;
-  --color-info: #2f62c4;
-  --color-warning: #b45f0a;
-  --color-danger: #c0364f;
-  --color-neutral: #998a96;
-  --glow-card: radial-gradient(120% 95% at 50% 125%, rgb(190 120 170 / 0.22), transparent 62%);
-  --glow-corner: radial-gradient(90% 80% at 85% 0%, rgb(190 120 170 / 0.14), transparent 60%);
-  --gradient-primary: linear-gradient(180deg, #a8698f 0%, #7c4a6b 100%);
-  --glow-primary: 0 10px 24px -12px rgb(140 77 123 / 0.6);
-  --nav-active: linear-gradient(90deg, rgb(140 77 123 / 0.2) 0%, rgb(140 77 123 / 0.07) 100%);
-  --nav-active-glow: inset 0 0 0 1px rgb(140 77 123 / 0.18);
-  --control-fill: #ffffff;
-  --shadow-1: 0 1px 2px rgb(60 30 55 / 0.05), 0 10px 28px rgb(60 30 55 / 0.07);
-  --shadow-2: 0 14px 36px rgb(60 30 55 / 0.13);
-  --shadow-3: 0 26px 64px rgb(60 30 55 / 0.2);
+  --color-accent: #b45309;
+  --color-highlight: #b45309;
+  --color-rose: #c62828;
+
+  --color-secondary-tint: rgba(245, 165, 36, 0.14);
+
+  --color-success: #15803d;
+  --color-success-subtle: rgba(21, 128, 61, 0.12);
+  --color-warning: #b45309;
+  --color-warning-subtle: rgba(245, 165, 36, 0.14);
+  --color-danger: #c62828;
+  --color-danger-subtle: rgba(255, 59, 48, 0.1);
+  --color-info: #0284c7;
+  --color-info-subtle: rgba(2, 132, 199, 0.12);
+  --color-neutral: #6b6b76;
+
+  --color-btn-primary: #f5a524;
+  --color-btn-primary-hover: #e0941f;
+  --color-on-btn-primary: #18181b;
+
+  --shadow-1: 0 1px 2px rgba(0, 0, 0, 0.04);
+  --shadow-2: 0 8px 24px rgba(0, 0, 0, 0.06);
+  --shadow-3: 0 16px 40px rgba(0, 0, 0, 0.08);
+  --shadow-card: 0 8px 24px rgba(0, 0, 0, 0.06);
+
+  --glass-bg: rgba(255, 255, 255, 0.85);
+  --navbar-bg: rgba(255, 255, 255, 0.85);
+
+  /* Banner & Atmospheric Sky Tokens (Light / Daytime Blue Sky) */
+  --banner-sky: linear-gradient(180deg, #4aa3f0 0%, #7cc0f7 55%, #cfe8fb 100%);
+  --banner-sky-urgent: linear-gradient(180deg, #4aa3f0 0%, #7cc0f7 40%, #ffd9a8 75%, #ffb27a 100%);
+  --banner-celestial-glow: radial-gradient(
+    circle 90px at 85% 18%,
+    rgba(255, 244, 214, 0.95) 0%,
+    rgba(255, 235, 175, 0.6) 35%,
+    rgba(255, 225, 150, 0.2) 65%,
+    transparent 100%
+  );
+  --banner-cloud-fill-1: rgba(255, 255, 255, 0.75);
+  --banner-cloud-fill-2: rgba(255, 255, 255, 0.88);
+  --banner-cloud-fill-3: rgba(255, 255, 255, 0.95);
+  --banner-cloud-underside: #e6f2fd;
+  --banner-cloud-blur: 1.5px;
+  --banner-horizon-haze: linear-gradient(
+    to top,
+    rgba(255, 255, 255, 0.9) 0%,
+    rgba(255, 255, 255, 0) 24px
+  );
+  --banner-vignette: radial-gradient(120% 80% at 50% 0%, transparent 70%, rgba(0, 0, 0, 0.04) 100%);
+  --banner-border-bottom: 1px solid rgba(0, 0, 0, 0.06);
 }
 
+/* Explicit Dark Mode */
+[data-theme='dark'] {
+  color-scheme: dark;
+  --color-bg: #000000;
+  --color-sidebar: #121214;
+  --color-surface: #1c1c1e;
+  --color-surface-raised: #2c2c2e;
+  --color-surface-hover: #3a3a3c;
+  --color-border: rgba(255, 255, 255, 0.12);
+  --color-border-hover: rgba(255, 255, 255, 0.22);
+  --color-hairline: rgba(255, 255, 255, 0.08);
+
+  --color-text: #ffffff;
+  --color-text-secondary: #a1a1aa;
+  --color-text-muted: #9a9aa0;
+  --color-text-dim: #48484a;
+
+  /* Primary Button Tokens (Amber in both themes) */
+  --color-btn-primary: #f5a524;
+  --color-btn-primary-hover: #e0941f;
+  --color-on-btn-primary: #18181b;
+  --color-border-strong: rgba(255, 255, 255, 0.22);
+
+  --color-primary: #0a84ff;
+  /* Primary for text on tinted surfaces: always ≥ 4.5:1 (ADR 0023). */
+  --color-primary-ink: color-mix(in srgb, var(--color-primary) 75%, white);
+  --color-primary-hover: #409cff;
+  --color-primary-subtle: rgba(10, 132, 255, 0.16);
+  --color-on-primary: #ffffff;
+  --color-accent: #0a84ff;
+  --color-highlight: var(--color-primary);
+  --color-rose: #ff453a;
+
+  --color-secondary-tint: rgba(10, 132, 255, 0.08);
+
+  --color-success: #30d158;
+  --color-success-subtle: rgba(48, 209, 88, 0.15);
+  --color-warning: #ff9f0a;
+  --color-warning-subtle: rgba(255, 159, 10, 0.15);
+  --color-danger: #ff453a;
+  --color-danger-subtle: rgba(255, 69, 58, 0.15);
+  --color-info: #0a84ff;
+  --color-info-subtle: rgba(10, 132, 255, 0.15);
+  --color-neutral: #8e8e93;
+
+  --shadow-1: 0 2px 8px rgba(0, 0, 0, 0.18);
+  --shadow-2: 0 8px 32px rgba(0, 0, 0, 0.35);
+  --shadow-3: 0 16px 48px rgba(0, 0, 0, 0.45);
+  --shadow-card: 0 8px 32px rgba(0, 0, 0, 0.35);
+
+  --glass-bg: rgba(28, 28, 30, 0.75);
+  --navbar-bg: rgba(0, 0, 0, 0.75);
+
+  /* Banner & Atmospheric Sky Tokens (Dark / Night Sky) */
+  --banner-sky: linear-gradient(180deg, #080a12 0%, #0c101c 45%, #0e1322 100%);
+  --banner-sky-urgent: linear-gradient(180deg, #080a12 0%, #150f16 45%, #241116 100%);
+  --banner-celestial-glow: radial-gradient(
+    circle 85px at 85% 18%,
+    rgba(240, 168, 52, 0.16) 0%,
+    rgba(240, 168, 52, 0.06) 45%,
+    transparent 75%
+  );
+  --banner-cloud-fill-1: rgba(30, 38, 56, 0.65);
+  --banner-cloud-fill-2: rgba(22, 28, 44, 0.8);
+  --banner-cloud-fill-3: rgba(18, 22, 34, 0.9);
+  --banner-cloud-underside: #0c101a;
+  --banner-cloud-blur: 1.5px;
+  --banner-horizon-haze: linear-gradient(to top, rgba(0, 0, 0, 0.35) 0%, transparent 24px);
+  --banner-vignette: radial-gradient(120% 80% at 50% 0%, transparent 60%, rgba(0, 0, 0, 0.25) 100%);
+  --banner-border-bottom: 1px solid transparent;
+}
+
+/* System preferences fallback */
 @media (prefers-color-scheme: light) {
   :root[data-theme='system'] {
     color-scheme: light;
-    --color-bg: #e8e1e6;
-    --page-glow: radial-gradient(1200px 720px at 50% -12%, #f6eef3 0%, transparent 70%);
-    --frame-fill: linear-gradient(165deg, #faf6f9 0%, #efe7ed 45%, #e4dae1 100%);
+    --color-bg: #f5f5f7;
     --color-sidebar: #ffffff;
     --color-surface: #ffffff;
-    --color-surface-raised: #ffffff;
-    --color-border: rgb(70 35 60 / 0.16);
-    --color-hairline: rgb(70 35 60 / 0.09);
-    --color-text: #1f1620;
-    --color-text-muted: #6f616d;
-    --color-primary: #8c4d7b;
-    --color-primary-hover: #783f68;
-    --color-primary-subtle: rgb(140 77 123 / 0.1);
+    --color-surface-raised: #f0f0f3;
+    --color-surface-hover: #e5e5ea;
+    --color-border: rgba(0, 0, 0, 0.08);
+    --color-border-hover: rgba(0, 0, 0, 0.14);
+    --color-border-strong: rgba(0, 0, 0, 0.14);
+    --color-hairline: rgba(0, 0, 0, 0.06);
+
+    --color-text: #111113;
+    --color-text-secondary: #52525b;
+    --color-text-muted: #6b6b76;
+    --color-text-dim: #9ca3af;
+
+    --color-primary: #b45309;
+    /* Primary for text on tinted surfaces: always ≥ 4.5:1 (ADR 0023). */
+    --color-primary-ink: color-mix(in srgb, var(--color-primary) 75%, black);
+    --color-primary-hover: #92400e;
+    --color-primary-subtle: rgba(245, 165, 36, 0.14);
     --color-on-primary: #ffffff;
-    --color-accent: #7c6a77;
-    --color-highlight: #a3518a;
-    --color-rose: #b4427f;
-    --color-success: #1d8a5c;
-    --color-info: #2f62c4;
-    --color-warning: #b45f0a;
-    --color-danger: #c0364f;
-    --color-neutral: #998a96;
-    --glow-card: radial-gradient(120% 95% at 50% 125%, rgb(190 120 170 / 0.22), transparent 62%);
-    --glow-corner: radial-gradient(90% 80% at 85% 0%, rgb(190 120 170 / 0.14), transparent 60%);
-    --gradient-primary: linear-gradient(180deg, #a8698f 0%, #7c4a6b 100%);
-    --glow-primary: 0 10px 24px -12px rgb(140 77 123 / 0.6);
-    --nav-active: linear-gradient(90deg, rgb(140 77 123 / 0.2) 0%, rgb(140 77 123 / 0.07) 100%);
-    --nav-active-glow: inset 0 0 0 1px rgb(140 77 123 / 0.18);
-    --control-fill: #ffffff;
-    --shadow-1: 0 1px 2px rgb(60 30 55 / 0.05), 0 10px 28px rgb(60 30 55 / 0.07);
-    --shadow-2: 0 14px 36px rgb(60 30 55 / 0.13);
-    --shadow-3: 0 26px 64px rgb(60 30 55 / 0.2);
+    --color-accent: #b45309;
+    --color-highlight: #b45309;
+    --color-rose: #c62828;
+
+    --color-secondary-tint: rgba(245, 165, 36, 0.14);
+
+    --color-success: #15803d;
+    --color-success-subtle: rgba(21, 128, 61, 0.12);
+    --color-warning: #b45309;
+    --color-warning-subtle: rgba(245, 165, 36, 0.14);
+    --color-danger: #c62828;
+    --color-danger-subtle: rgba(255, 59, 48, 0.1);
+    --color-info: #0284c7;
+    --color-info-subtle: rgba(2, 132, 199, 0.12);
+    --color-neutral: #6b6b76;
+
+    --color-btn-primary: #f5a524;
+    --color-btn-primary-hover: #e0941f;
+    --color-on-btn-primary: #18181b;
+
+    --shadow-1: 0 1px 2px rgba(0, 0, 0, 0.04);
+    --shadow-2: 0 8px 24px rgba(0, 0, 0, 0.06);
+    --shadow-3: 0 16px 40px rgba(0, 0, 0, 0.08);
+    --shadow-card: 0 8px 24px rgba(0, 0, 0, 0.06);
+
+    --glass-bg: rgba(255, 255, 255, 0.85);
+    --navbar-bg: rgba(255, 255, 255, 0.85);
+
+    /* Banner & Atmospheric Sky Tokens (Light / Daytime Blue Sky) */
+    --banner-sky: linear-gradient(180deg, #4aa3f0 0%, #7cc0f7 55%, #cfe8fb 100%);
+    --banner-sky-urgent: linear-gradient(
+      180deg,
+      #4aa3f0 0%,
+      #7cc0f7 40%,
+      #ffd9a8 75%,
+      #ffb27a 100%
+    );
+    --banner-celestial-glow: radial-gradient(
+      circle 90px at 85% 18%,
+      rgba(255, 244, 214, 0.95) 0%,
+      rgba(255, 235, 175, 0.6) 35%,
+      rgba(255, 225, 150, 0.2) 65%,
+      transparent 100%
+    );
+    --banner-cloud-fill-1: rgba(255, 255, 255, 0.75);
+    --banner-cloud-fill-2: rgba(255, 255, 255, 0.88);
+    --banner-cloud-fill-3: rgba(255, 255, 255, 0.95);
+    --banner-cloud-underside: #e6f2fd;
+    --banner-cloud-blur: 1.5px;
+    --banner-horizon-haze: linear-gradient(
+      to top,
+      rgba(255, 255, 255, 0.9) 0%,
+      rgba(255, 255, 255, 0) 24px
+    );
+    --banner-vignette: radial-gradient(
+      120% 80% at 50% 0%,
+      transparent 70%,
+      rgba(0, 0, 0, 0.04) 100%
+    );
+    --banner-border-bottom: 1px solid rgba(0, 0, 0, 0.06);
   }
 }
 
-@media (prefers-reduced-motion: reduce) {
-  :root {
-    --motion-fast: 0ms;
-    --motion-base: 0ms;
-    --motion-slow: 0ms;
-  }
+/* =====================================================================
+ * Lunar Accent Palettes
+ * Seamlessly switchable via data-palette on documentElement
+ * ===================================================================== */
+
+/* Palette 1: Moonlight Gold (Warm Amber / Default) */
+:root[data-palette='gold'] {
+  --color-primary: #f0a834;
+  --color-primary-hover: #ffb84d;
+  --color-primary-subtle: rgba(240, 168, 52, 0.16);
+  --color-on-primary: #0c0d10;
+  --color-accent: #f0a834;
+  --color-highlight: #f0a834;
+  --color-secondary-tint: rgba(240, 168, 52, 0.08);
+}
+[data-theme='light'][data-palette='gold'] {
+  --color-primary: #d97706;
+  --color-primary-hover: #b45309;
+  --color-primary-subtle: rgba(217, 119, 6, 0.12);
+  --color-on-primary: #ffffff;
+}
+
+/* Palette 2: Golden Pink / Rose Moon (Warm Blush) */
+:root[data-palette='rose-moon'] {
+  --color-primary: #f472b6;
+  --color-primary-hover: #fb7185;
+  --color-primary-subtle: rgba(244, 114, 182, 0.18);
+  --color-on-primary: #181116;
+  --color-accent: #fb7185;
+  --color-highlight: #f472b6;
+  --color-secondary-tint: rgba(244, 114, 182, 0.08);
+}
+[data-theme='light'][data-palette='rose-moon'] {
+  --color-primary: #db2777;
+  --color-primary-hover: #be185d;
+  --color-primary-subtle: rgba(219, 39, 119, 0.12);
+  --color-on-primary: #ffffff;
+}
+
+/* Palette 3: Lunar Red / Blood Moon (Eclipse Crimson) */
+:root[data-palette='lunar-red'] {
+  --color-primary: #f43f5e;
+  --color-primary-hover: #fb7185;
+  --color-primary-subtle: rgba(244, 63, 94, 0.18);
+  --color-on-primary: #ffffff;
+  --color-accent: #e11d48;
+  --color-highlight: #f43f5e;
+  --color-secondary-tint: rgba(244, 63, 94, 0.08);
+}
+[data-theme='light'][data-palette='lunar-red'] {
+  --color-primary: #e11d48;
+  --color-primary-hover: #be123c;
+  --color-primary-subtle: rgba(225, 29, 72, 0.12);
+  --color-on-primary: #ffffff;
+}
+
+/* Palette 4: Blue Moon (Electric Azure) */
+:root[data-palette='blue-moon'] {
+  --color-primary: #0a84ff;
+  --color-primary-hover: #409cff;
+  --color-primary-subtle: rgba(10, 132, 255, 0.16);
+  --color-on-primary: #ffffff;
+  --color-accent: #0a84ff;
+  --color-highlight: #0a84ff;
+  --color-secondary-tint: rgba(10, 132, 255, 0.08);
+}
+[data-theme='light'][data-palette='blue-moon'] {
+  --color-primary: #b45309;
+  --color-primary-hover: #92400e;
+  --color-primary-subtle: rgba(245, 165, 36, 0.14);
+  --color-on-primary: #ffffff;
 }

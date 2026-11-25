@@ -129,10 +129,9 @@ function ChecklistCard({
       <ul className="mt-4 space-y-1.5">
         {checklist.items.map((i) => (
           <li key={i.id}>
-            <label className="flex cursor-pointer items-start gap-2.5 rounded-[10px] px-1 py-1 text-body-sm hover:bg-hairline">
+            <label className="custom-checkbox flex cursor-pointer items-center rounded-[10px] px-1.5 py-1 text-body-sm hover:bg-hairline">
               <input
                 type="checkbox"
-                className="mt-0.5 size-4 accent-[var(--color-primary)]"
                 checked={i.is_done}
                 disabled={!perms.editTasks}
                 onChange={(e) => {
@@ -140,6 +139,7 @@ function ChecklistCard({
                   toggle.mutate({ id: i.id, done: e.target.checked })
                 }}
               />
+              <span className="checkmark" />
               <span className={i.is_done ? 'text-muted line-through' : ''}>{i.label}</span>
             </label>
           </li>
@@ -247,7 +247,7 @@ function TemplatePicker({
             onChange={(e) => setTemplateId(e.target.value)}
             options={options.map((t) => ({
               value: t.id,
-              label: `${t.title}${t.is_builtin ? '' : ' (saved)'} · ${Array.isArray((t.body as { items?: unknown[] }).items) ? (t.body as { items: unknown[] }).items.length : 0} items`,
+              label: `${t.title}${t.is_builtin ? '' : ' (saved)'} · ${Array.isArray((t.body as { items?: unknown[] } | null | undefined)?.items) ? (t.body as { items: unknown[] }).items.length : 0} items`,
             }))}
           />
         </div>

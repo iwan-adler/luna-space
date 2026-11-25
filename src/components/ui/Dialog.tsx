@@ -15,9 +15,13 @@ export function Dialog({ open, onOpenChange, title, description, children, foote
   return (
     <RadixDialog.Root open={open} onOpenChange={onOpenChange}>
       <RadixDialog.Portal>
-        <RadixDialog.Overlay className="fixed inset-0 z-40 bg-black/55 backdrop-blur-sm" />
-        <RadixDialog.Content className="fixed top-1/2 left-1/2 z-50 w-[min(92vw,28rem)] -translate-x-1/2 -translate-y-1/2 glass max-h-[90dvh] overflow-y-auto rounded-[22px] border border-hairline p-6 shadow-3">
-          <RadixDialog.Title className="text-h2">{title}</RadixDialog.Title>
+        <RadixDialog.Overlay className="fixed inset-0 z-40 bg-black/50 backdrop-blur-sm transition-opacity" />
+        <RadixDialog.Content className="fixed bottom-0 left-1/2 z-50 w-full max-w-lg -translate-x-1/2 max-h-[90dvh] overflow-y-auto rounded-t-[24px] border border-border bg-[var(--color-surface)] sm:bg-[var(--glass-bg)] p-6 shadow-2xl backdrop-blur-[20px] backdrop-saturate-[180%] sm:bottom-auto sm:top-1/2 sm:-translate-y-1/2 sm:w-[min(92vw,30rem)] sm:rounded-[24px] transition-all">
+          <div
+            className="mx-auto -mt-2 mb-4 h-1.5 w-12 rounded-full bg-muted/30 sm:hidden"
+            aria-hidden
+          />
+          <RadixDialog.Title className="text-h2 font-semibold text-text">{title}</RadixDialog.Title>
           {description ? (
             <RadixDialog.Description className="mt-1 text-body-sm text-muted">
               {description}

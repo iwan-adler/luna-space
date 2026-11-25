@@ -161,7 +161,7 @@ export function CalendarPage() {
       <div className="flex flex-wrap items-center gap-3">
         <div className="flex-1">
           <p className="eyebrow">Calendar</p>
-          <h1 id="calendar-title" className="font-display text-h1" data-testid="calendar-heading">
+          <h1 id="calendar-title" className="font-sans text-h1" data-testid="calendar-heading">
             {heading}
           </h1>
         </div>
@@ -320,7 +320,7 @@ export function CalendarPage() {
                 <div
                   key={d}
                   data-date={d}
-                  className={`group relative border-b border-l border-hairline p-1.5 first:border-l-0 [&:nth-child(7n+1)]:border-l-0 ${view === 'month' ? 'min-h-24 sm:min-h-28' : 'min-h-64'} ${outside ? 'opacity-45' : ''} ${d === today ? 'bg-primary/[0.07] shadow-[inset_0_0_0_1px_var(--color-primary-subtle)]' : isoWeekday(d) >= 6 ? 'bg-hairline/40' : ''}`}
+                  className={`group relative border-b border-l border-hairline p-1.5 first:border-l-0 [&:nth-child(7n+1)]:border-l-0 ${view === 'month' ? 'min-h-24 sm:min-h-28' : 'min-h-64'} ${outside ? 'bg-hairline/30' : ''} ${d === today ? 'bg-primary/[0.07] shadow-[inset_0_0_0_1px_var(--color-primary-subtle)]' : isoWeekday(d) >= 6 ? 'bg-hairline/40' : ''}`}
                 >
                   <button
                     type="button"

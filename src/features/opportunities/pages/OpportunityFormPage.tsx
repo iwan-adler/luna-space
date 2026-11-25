@@ -90,7 +90,7 @@ function OpportunityForm({
       aria-labelledby="opp-form-title"
     >
       <div className="flex flex-wrap items-center gap-3">
-        <h1 id="opp-form-title" className="flex-1 font-display text-h1">
+        <h1 id="opp-form-title" className="flex-1 font-sans text-h1">
           {id ? 'Edit opportunity' : 'Add opportunity'}
         </h1>
         <Link

@@ -1,3 +1,4 @@
+import { CustomSelect } from '@/components/ui/CustomSelect'
 import { useToast } from '@/components/ui/Toast'
 import { STATUS_GROUPS, STATUS_LABELS, type OpportunityStatus } from '../constants'
 import { useSetStatus } from '../hooks'
@@ -15,34 +16,32 @@ export function StatusSelect({
   const setStatus = useSetStatus()
   const toast = useToast()
   return (
-    <label className="inline-flex items-center gap-2 text-body-sm">
+    <div className="inline-flex items-center gap-2 text-body-sm">
       <span className={compact ? 'sr-only' : 'text-muted'}>Status</span>
-      <select
+      <CustomSelect
         value={status}
         disabled={setStatus.isPending}
-        onChange={(e) => {
-          // Capture now: the controlled select re-renders with the old value until the refetch lands.
-          const next = e.target.value as OpportunityStatus
+        align="right"
+        ariaLabel="Status"
+        buttonClassName="flex items-center justify-between gap-1.5 rounded-full border border-hairline bg-surface-raised px-3 py-1 text-caption font-medium text-text hover:border-border-hover hover:bg-surface focus:border-primary outline-none"
+        onChange={(next) => {
           setStatus.mutate(
-            { id, status: next },
+            { id, status: next as OpportunityStatus },
             {
-              onSuccess: () => toast.show(`Status: ${STATUS_LABELS[next]}`, 'success'),
+              onSuccess: () =>
+                toast.show(`Status: ${STATUS_LABELS[next as OpportunityStatus]}`, 'success'),
               onError: (err) => toast.show(err.message, 'error'),
             },
           )
         }}
-        className="rounded-full border border-hairline bg-surface-raised px-3 py-1 text-caption text-muted hover:text-text"
-      >
-        {STATUS_GROUPS.map((g) => (
-          <optgroup key={g.id} label={g.label}>
-            {g.statuses.map((s) => (
-              <option key={s} value={s}>
-                {STATUS_LABELS[s]}
-              </option>
-            ))}
-          </optgroup>
-        ))}
-      </select>
-    </label>
+        groups={STATUS_GROUPS.map((g) => ({
+          label: g.label,
+          options: g.statuses.map((s) => ({
+            value: s,
+            label: STATUS_LABELS[s],
+          })),
+        }))}
+      />
+    </div>
   )
 }

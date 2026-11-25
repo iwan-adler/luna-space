@@ -1,7 +1,9 @@
 import { useState } from 'react'
 import { Button } from '@/components/ui/Button'
+import { CustomSelect } from '@/components/ui/CustomSelect'
 import { Dialog } from '@/components/ui/Dialog'
 import { SelectField, TextField } from '@/components/ui/Field'
+import { Switch } from '@/components/ui/Switch'
 import { controlClass, inputClass } from '@/components/ui/styles'
 import { useToast } from '@/components/ui/Toast'
 import { addHoursLocal, utcIsoToZonedLocal, zonedLocalToUtcIso, type DateOnly } from '@/lib/dates'
@@ -251,15 +253,13 @@ export function EventDialog({
             }))}
           />
         </div>
-        <label className="flex items-center gap-2 text-body-sm">
-          <input
-            type="checkbox"
-            className="size-4 accent-[var(--color-primary)]"
+        <div className="py-1 border-y border-border/40">
+          <Switch
+            label="All day"
             checked={draft.allDay}
-            onChange={(e) => set({ allDay: e.target.checked })}
+            onCheckedChange={(checked) => set({ allDay: checked })}
           />
-          All day
-        </label>
+        </div>
         {draft.allDay ? (
           <div className="grid grid-cols-2 gap-3">
             <TextField
@@ -305,35 +305,31 @@ export function EventDialog({
               <label htmlFor="event-tz" className="block text-body-sm font-medium text-muted">
                 Time zone
               </label>
-              <select
-                id="event-tz"
-                className={`${controlClass} w-full`}
+              <CustomSelect
+                ariaLabel="Time zone"
                 value={draft.timezone}
-                onChange={(e) => set({ timezone: e.target.value })}
-              >
-                {timeZoneOptions(draft.timezone).map((z) => (
-                  <option key={z.value} value={z.value}>
-                    {z.label}
-                  </option>
-                ))}
-              </select>
+                onChange={(tz) => set({ timezone: tz })}
+                options={timeZoneOptions(draft.timezone)}
+                className="w-full"
+              />
             </div>
           </div>
         )}
         <fieldset className="space-y-2 rounded-[14px] border border-hairline p-3">
           <legend className="px-1 text-body-sm font-medium text-muted">Repeat</legend>
           <div className="flex flex-wrap items-center gap-2 text-body-sm">
-            <select
-              aria-label="Repeat"
-              className={controlClass}
+            <CustomSelect
+              ariaLabel="Repeat"
               value={draft.repeat}
-              onChange={(e) => set({ repeat: e.target.value as Draft['repeat'] })}
-            >
-              <option value="none">Does not repeat</option>
-              <option value="DAILY">Daily</option>
-              <option value="WEEKLY">Weekly</option>
-              <option value="MONTHLY">Monthly</option>
-            </select>
+              onChange={(val) => set({ repeat: val as Draft['repeat'] })}
+              options={[
+                { value: 'none', label: 'Does not repeat' },
+                { value: 'DAILY', label: 'Daily' },
+                { value: 'WEEKLY', label: 'Weekly' },
+                { value: 'MONTHLY', label: 'Monthly' },
+              ]}
+              className="min-w-44"
+            />
             {draft.repeat !== 'none' ? (
               <label className="flex items-center gap-2">
                 every
@@ -379,16 +375,17 @@ export function EventDialog({
           ) : null}
           {draft.repeat !== 'none' ? (
             <div className="flex flex-wrap items-center gap-2 text-body-sm">
-              <select
-                aria-label="Ends"
-                className={controlClass}
+              <CustomSelect
+                ariaLabel="Ends"
                 value={draft.ends}
-                onChange={(e) => set({ ends: e.target.value as Draft['ends'] })}
-              >
-                <option value="never">Never ends</option>
-                <option value="until">Ends on</option>
-                <option value="count">Ends after</option>
-              </select>
+                onChange={(val) => set({ ends: val as Draft['ends'] })}
+                options={[
+                  { value: 'never', label: 'Never ends' },
+                  { value: 'until', label: 'Ends on' },
+                  { value: 'count', label: 'Ends after' },
+                ]}
+                className="min-w-36"
+              />
               {draft.ends === 'until' ? (
                 <input
                   type="date"
@@ -444,15 +441,14 @@ export function EventDialog({
             className={inputClass}
           />
         </div>
-        <label className="flex items-center gap-2 text-body-sm">
-          <input
-            type="checkbox"
-            className="size-4 accent-[var(--color-primary)]"
+        <div className="py-1 border-t border-border/40">
+          <Switch
+            label="Private"
+            description="Only you can see this event"
             checked={draft.isPrivate}
-            onChange={(e) => set({ isPrivate: e.target.checked })}
+            onCheckedChange={(checked) => set({ isPrivate: checked })}
           />
-          Private (only you can see it)
-        </label>
+        </div>
         {error ? (
           <p role="alert" className="text-body-sm text-danger">
             {error}

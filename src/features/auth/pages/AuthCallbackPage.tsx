@@ -15,15 +15,15 @@ export function AuthCallbackPage() {
   if (errorDescription) {
     return (
       <div className="space-y-3">
-        <h1 className="font-display text-h1">Link not valid</h1>
+        <h1 className="font-sans text-h1">Link not valid</h1>
         <p className="text-body-sm text-muted">This link has expired or was already used.</p>
-        <Link to="/auth/sign-in" className="text-body-sm text-primary hover:underline">
+        <Link to="/auth/sign-in" className="text-body-sm text-primary-ink hover:underline">
           Back to sign in
         </Link>
       </div>
     )
   }
-  if (loading || !user) return <PageSpinner label="Signing you in" />
+  if (loading || !user) return <PageSpinner label="Signing you in" fullScreen />
 
   const next = params.get('next')
   const safeNext = next && next.startsWith('/') && !next.startsWith('//') ? next : null

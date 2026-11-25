@@ -2,12 +2,12 @@ import {
   ArrowLeft,
   Check,
   ExternalLink,
+  Flag,
   FolderKanban,
   GitBranch,
   NotebookPen,
   PartyPopper,
   Radio,
-  Rocket,
   Send,
   Trophy,
 } from 'lucide-react'
@@ -31,7 +31,7 @@ const pad = (n: number) => String(n).padStart(2, '0')
 
 function Unit({ value, label }: { value: number; label: string }) {
   return (
-    <div className="flex min-w-16 flex-col items-center rounded-[18px] border border-hairline bg-[var(--control-fill)] px-3 py-3 backdrop-blur-md sm:min-w-24 sm:py-4">
+    <div className="flex min-w-16 flex-col items-center rounded-md border border-border bg-surface px-3 py-3 sm:min-w-24 sm:py-4">
       <span className="stat-number text-[34px] leading-none sm:text-[54px]">{pad(value)}</span>
       <span className="mt-1.5 text-caption tracking-[0.18em] text-muted uppercase">{label}</span>
     </div>
@@ -119,9 +119,8 @@ export function MissionPage() {
 
       <section
         aria-labelledby="mission-title"
-        className="panel panel-glow rise relative overflow-hidden p-6 text-center sm:p-10"
+        className="panel relative overflow-hidden p-6 text-center sm:p-10"
       >
-        <div className="pointer-events-none absolute inset-x-0 -top-32 mx-auto size-96 rounded-full bg-[radial-gradient(circle,var(--aurora-1),transparent_65%)] blur-2xl" />
         <p className="eyebrow relative flex items-center justify-center gap-1.5 tracking-[0.2em] uppercase">
           {mission?.live ? (
             <>
@@ -129,7 +128,7 @@ export function MissionPage() {
             </>
           ) : (
             <>
-              <Rocket className="size-3.5" aria-hidden /> Mission control
+              <Flag className="size-3.5" aria-hidden /> Mission control
             </>
           )}
         </p>
@@ -141,11 +140,11 @@ export function MissionPage() {
         </h1>
         {won ? (
           <p className="relative mt-6 flex items-center justify-center gap-2 text-h2 text-highlight">
-            <Trophy className="size-6" aria-hidden /> You won. Legendary.
+            <Trophy className="size-6" aria-hidden /> Winner
           </p>
         ) : submitted ? (
           <p className="relative mt-6 flex items-center justify-center gap-2 text-h2 text-success">
-            <Check className="size-6" aria-hidden /> Submitted. Fingers crossed!
+            <Check className="size-6" aria-hidden /> Submitted. Awaiting results.
           </p>
         ) : c ? (
           <>
@@ -312,7 +311,7 @@ export function MissionPage() {
         </div>
 
         <div className="space-y-4">
-          <Panel title="Who's on what" icon={<Rocket className="size-3.5" aria-hidden />}>
+          <Panel title="Who's on what" icon={<Flag className="size-3.5" aria-hidden />}>
             {working?.length ? (
               <ul className="space-y-2">
                 {working.map(({ m, task }) => (
@@ -344,7 +343,7 @@ export function MissionPage() {
                       href={l.url}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="flex items-center gap-2 text-body-sm hover:text-primary"
+                      className="flex items-center gap-2 text-body-sm hover:text-primary-ink"
                     >
                       <ExternalLink className="size-3.5 text-muted" aria-hidden />
                       <span className="font-medium">{l.label}</span>

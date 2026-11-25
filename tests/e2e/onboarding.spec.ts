@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test'
-import { acceptInvite, onboardWithInvite } from './support/actions'
+import { acceptInvite, choose, onboardWithInvite } from './support/actions'
 import { createTestUser, localBackend } from './support/backend'
 
 // Critical journey 1 (Implementation Plan §11.2): A creates a workspace and invites friends with one
@@ -63,7 +63,7 @@ test.describe('workspace onboarding', () => {
     await expect(px.getByTestId('member-list')).toContainText('Yusuf')
     await expect(px.getByRole('heading', { name: 'Invite people' })).toBeVisible()
     // The owner lowers the limit to two: the workspace is full and invitations disappear.
-    await px.getByLabel('Member limit').selectOption('2')
+    await choose(px, 'Member limit', '2')
     await expect(px.getByText('This workspace is full (2 people).')).toBeVisible()
     await expect(px.getByRole('heading', { name: 'Invite people' })).toHaveCount(0)
   })

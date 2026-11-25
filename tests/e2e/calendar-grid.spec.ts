@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test'
-import { onboardWithInvite } from './support/actions'
+import { choose, onboardWithInvite } from './support/actions'
 import { createTestUser, localBackend } from './support/backend'
 
 /** Monday of a week well in the future, so nothing else is scheduled there. */
@@ -63,7 +63,7 @@ test.describe('calendar grid, repeats and clashes', () => {
     await page.getByRole('button', { name: 'New event' }).click()
     await page.getByLabel('Title').fill('Standup')
     await page.getByLabel('Starts').fill(`${monday}T15:00`)
-    await page.getByLabel('Repeat', { exact: true }).selectOption('WEEKLY')
+    await choose(page, 'Repeat', 'WEEKLY')
     await page.getByRole('button', { name: 'Tuesday' }).click()
     await page.getByRole('button', { name: 'Add event' }).click()
     await expect(page.getByRole('button', { name: /^Standup, 15:00/ })).toHaveCount(2)

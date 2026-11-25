@@ -397,11 +397,11 @@ export function TaskCardView({
         ) : null}
         {assignee ? (
           <span
-            title={`Assigned to ${assignee.displayName}`}
-            className="ml-auto grid size-6 place-items-center rounded-full bg-primary/15 text-caption font-semibold text-primary"
+            title={`Assigned to ${assignee.displayName || 'teammate'}`}
+            className="ml-auto grid size-6 place-items-center rounded-full bg-primary/15 text-caption font-semibold text-primary-ink"
           >
-            <span aria-hidden>{assignee.displayName.slice(0, 1).toUpperCase()}</span>
-            <span className="sr-only">Assigned to {assignee.displayName}</span>
+            <span aria-hidden>{(assignee.displayName || '?').slice(0, 1).toUpperCase()}</span>
+            <span className="sr-only">Assigned to {assignee.displayName || 'teammate'}</span>
           </span>
         ) : null}
       </div>

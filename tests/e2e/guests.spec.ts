@@ -26,8 +26,8 @@ test.describe('project guests (Phase 4b)', () => {
     await a.getByLabel('Add a task to To do').fill('Budget notes')
     await a.getByRole('button', { name: 'Add to To do' }).click()
     await a.getByTestId('column-todo').getByText('Budget notes').click()
-    await a.getByLabel('Visible to guests').click()
-    await expect(a.getByLabel('Visible to guests')).not.toBeChecked()
+    await a.getByRole('switch', { name: 'Visible to guests' }).click()
+    await expect(a.getByRole('switch', { name: 'Visible to guests' })).not.toBeChecked()
     await a.getByRole('button', { name: 'Close task' }).click()
 
     // A creates a collaborator invitation (FR-GUEST-01/02).

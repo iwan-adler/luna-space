@@ -31,7 +31,7 @@ export function Sticker({ id, size = 'lg' }: { id: string; size?: 'sm' | 'lg' })
         </span>
       </span>
       <span
-        className={`-mt-2.5 rounded-full border-2 border-white/90 px-2.5 py-0.5 font-extrabold tracking-tight text-[#2a1630] shadow-[0_4px_10px_-4px_rgb(0_0_0/0.5)] ${big ? 'text-[13px]' : 'text-[9px]'}`}
+        className={`-mt-2.5 rounded-full border-2 border-white/90 px-2.5 py-0.5 font-semibold tracking-tight text-[#2a1630] shadow-[0_4px_10px_-4px_rgb(0_0_0/0.5)] ${big ? 'text-[13px]' : 'text-[9px]'}`}
         style={{ background: `linear-gradient(90deg, ${s.from}, ${s.to})` }}
         aria-hidden
       >
@@ -64,7 +64,7 @@ export function StickerPicker({
           side="top"
           align="start"
           sideOffset={10}
-          className="glass z-50 w-[min(92vw,22rem)] rounded-[20px] border border-hairline p-3 shadow-3"
+          className="z-50 w-[min(92vw,22rem)] rounded-2xl border border-border bg-surface p-3 shadow-2xl backdrop-blur-none"
         >
           <Menu.Label className="mb-2 px-1 text-caption font-medium text-muted">
             Luna stickers
@@ -74,7 +74,7 @@ export function StickerPicker({
               <Menu.Item
                 key={s.id}
                 onSelect={() => onPick(s.id)}
-                className="grid cursor-pointer place-items-center rounded-[14px] py-1.5 outline-none data-[highlighted]:bg-hairline"
+                className="grid cursor-pointer place-items-center rounded-xl py-1.5 outline-none transition-colors hover:bg-surface-raised data-[highlighted]:bg-surface-raised"
                 aria-label={`Send sticker: ${s.caption}`}
               >
                 <Sticker id={s.id} size="sm" />

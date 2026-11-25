@@ -14,7 +14,7 @@ export function UpdatePrompt() {
   return (
     <div
       role="status"
-      className="glass fixed inset-x-4 bottom-[calc(88px+env(safe-area-inset-bottom))] z-50 mx-auto flex max-w-md items-center gap-3 rounded-[18px] border border-hairline px-4 py-3 shadow-3 lg:bottom-6"
+      className="fixed inset-x-4 bottom-[calc(88px+env(safe-area-inset-bottom))] z-50 mx-auto flex max-w-md items-center gap-3 rounded-2xl border border-border bg-surface px-4 py-3 shadow-2xl backdrop-blur-none lg:bottom-6"
       data-testid="update-prompt"
     >
       <span className="icon-bubble size-8 shrink-0">

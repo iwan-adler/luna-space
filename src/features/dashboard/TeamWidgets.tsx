@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
 import { CalendarCheck, CheckCheck, Flame, Send, UserPlus } from 'lucide-react'
 import { Link } from 'react-router'
+import { Avatar } from '@/components/ui/Avatar'
 import { Skeleton } from '@/components/ui/Skeleton'
 import { useAuth } from '@/features/auth'
 import { ProfileCard, useViewerTimeZone } from '@/features/profile'
@@ -14,36 +15,29 @@ export function TeamCard() {
   const { user } = useAuth()
   const { workspaceId } = useCurrentWorkspace()
   const members = useMembers(workspaceId)
-  const working = useQuery({
-    queryKey: ['dashboard', 'working-on', workspaceId],
-    refetchInterval: 60_000,
-    queryFn: async () => {
-      const { data, error } = await requireSupabase()
-        .from('tasks')
-        .select('id, title, assignee_id, project_id, updated_at')
-        .eq('status', 'in_progress')
-        .is('deleted_at', null)
-        .not('assignee_id', 'is', null)
-        .order('updated_at', { ascending: false })
-        .limit(200)
-      if (error) throw toAppError(error)
-      return data
-    },
-  })
   const others = members.data?.filter((m) => m.userId !== user?.id) ?? []
 
   return (
-    <section aria-labelledby="team-title" className="panel space-y-3 p-5" data-testid="team-card">
-      <div className="flex items-center justify-between">
-        <h2 id="team-title" className="text-body font-medium">
-          Your team
-        </h2>
+    <section
+      aria-labelledby="team-title"
+      className="panel rounded-2xl border border-border bg-surface p-4 sm:p-5 shadow-sm space-y-3.5"
+      data-testid="team-card"
+    >
+      <div className="flex items-center justify-between border-b border-border pb-3">
+        <div className="flex items-center gap-2">
+          <h2 id="team-title" className="text-body font-semibold text-text">
+            Your team
+          </h2>
+          <span className="inline-flex min-w-[22px] h-[21px] items-center justify-center rounded-full bg-primary/15 border border-primary/30 px-1.5 text-[11px] font-bold text-primary-ink shadow-xs">
+            {members.data?.length ?? 0}
+          </span>
+        </div>
         <Link
           to="/settings/workspace"
-          className="icon-btn size-8"
+          className="icon-btn size-8 rounded-lg hover:bg-surface-raised transition-colors"
           aria-label="Workspace members and invites"
         >
-          <UserPlus className="size-4" strokeWidth={1.75} aria-hidden />
+          <UserPlus className="size-4 text-muted hover:text-text" strokeWidth={1.75} aria-hidden />
         </Link>
       </div>
       {members.isPending ? (
@@ -53,50 +47,34 @@ export function TeamCard() {
         </div>
       ) : (
         <>
-          <ul className="space-y-2.5">
-            {members.data?.map((m) => {
-              const task = working.data?.find((t) => t.assignee_id === m.userId)
-              return (
-                <li key={m.userId} className="flex items-center gap-3">
-                  <span
-                    className="btn-primary grid size-9 shrink-0 place-items-center rounded-full text-body-sm font-semibold"
-                    aria-hidden
-                  >
-                    {m.displayName.slice(0, 1).toUpperCase()}
-                  </span>
+          <ul className="divide-y divide-border rounded-xl border border-border bg-surface-raised/40 overflow-hidden">
+            {members.data?.map((m) => (
+              <li
+                key={m.userId}
+                className="flex items-center justify-between gap-3 px-3.5 py-2.5 transition-colors hover:bg-surface-hover"
+              >
+                <div className="flex items-center gap-3 min-w-0">
+                  <Avatar src={m.avatarPath} name={m.displayName} size="sm" />
                   <span className="min-w-0 flex-1">
-                    <span className="block text-body-sm font-medium">
+                    <span className="block truncate text-body-sm font-medium text-text">
                       <ProfileCard userId={m.userId} label={m.displayName}>
-                        {m.userId === user?.id ? `${m.displayName} (you)` : m.displayName}
+                        {m.displayName}
                       </ProfileCard>
                     </span>
-                    <span className="block truncate text-caption text-muted">
-                      {task ? (
-                        <>
-                          Working on{' '}
-                          <Link
-                            to={task.project_id ? `/projects/${task.project_id}/board` : '/tasks'}
-                            className="text-text hover:underline"
-                          >
-                            {task.title}
-                          </Link>
-                        </>
-                      ) : (
-                        'Nothing in progress'
-                      )}
-                    </span>
                   </span>
-                </li>
-              )
-            })}
+                </div>
+              </li>
+            ))}
           </ul>
           {others.length === 0 ? (
-            <Link
-              to="/settings/workspace"
-              className="inline-flex items-center gap-2 text-body-sm text-muted hover:text-text"
-            >
-              <UserPlus className="size-4" strokeWidth={1.75} aria-hidden /> Invite your friends
-            </Link>
+            <div className="pt-1">
+              <Link
+                to="/settings/workspace"
+                className="inline-flex items-center gap-2 text-body-sm text-muted hover:text-text"
+              >
+                <UserPlus className="size-4" strokeWidth={1.75} aria-hidden /> Invite your friends
+              </Link>
+            </div>
           ) : null}
         </>
       )}

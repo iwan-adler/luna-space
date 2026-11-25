@@ -22,7 +22,7 @@ export function ResetPasswordPage() {
 
   return (
     <div className="space-y-4">
-      <h1 className="font-display text-h1">Reset password</h1>
+      <h1 className="font-sans text-h1">Reset password</h1>
       {sent ? (
         <Alert tone="success">
           If an account exists for that email, a reset link is on its way.
@@ -43,7 +43,7 @@ export function ResetPasswordPage() {
       )}
       <Link
         to="/auth/sign-in"
-        className="block text-center text-body-sm text-primary hover:underline"
+        className="block text-center text-body-sm text-primary-ink hover:underline"
       >
         Back to sign in
       </Link>

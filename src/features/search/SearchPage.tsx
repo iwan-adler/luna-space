@@ -1,7 +1,7 @@
-import { Search } from 'lucide-react'
 import { useState } from 'react'
 import { useSearchParams } from 'react-router'
 import { Alert } from '@/components/ui/Card'
+import { SearchInput } from '@/components/ui/SearchInput'
 import { Spinner } from '@/components/ui/Spinner'
 import { useDebounced, useSearch } from './hooks'
 import { KIND_LABEL, type SearchKind } from './model'
@@ -35,21 +35,13 @@ export function SearchPage() {
       <h1 id="search-title" className="text-h1">
         Search
       </h1>
-      <label className="relative block">
-        <span className="sr-only">Search everything</span>
-        <Search
-          className="pointer-events-none absolute top-1/2 left-4 size-5 -translate-y-1/2 text-muted"
-          aria-hidden
-        />
-        <input
-          type="search"
-          autoFocus
-          value={q}
-          onChange={(e) => change(e.target.value)}
-          placeholder="Notes, links, files, messages, opportunities, tasks…"
-          className="w-full rounded-full border border-border bg-surface py-3 pr-5 pl-12 text-body placeholder:text-muted/70"
-        />
-      </label>
+      <SearchInput
+        autoFocus
+        value={q}
+        onChange={(e) => change(e.target.value)}
+        placeholder="Notes, links, files, messages, opportunities, tasks…"
+        className="!h-12 !text-body"
+      />
       <div className="flex flex-wrap gap-1.5" role="group" aria-label="Show only">
         {[null, ...FILTERS].map((k) => (
           <button

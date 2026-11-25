@@ -20,7 +20,7 @@ test.describe('chat (Phase 6)', () => {
 
     // A writes; B (on Home) sees the unread badge, then the message.
     await a.goto('/chat')
-    await expect(a.getByRole('heading', { name: 'Ben' })).toBeVisible()
+    await expect(a.getByRole('heading', { level: 1, name: 'General' })).toBeVisible()
     await a.getByLabel('Message', { exact: true }).fill('Hi **Ben**, ready for the hackathon?')
     await a.keyboard.press('Enter')
     await expect(a.getByTestId('chat-messages')).toContainText('ready for the hackathon?')
@@ -29,7 +29,7 @@ test.describe('chat (Phase 6)', () => {
     const first = b.getByTestId('chat-message').filter({ hasText: 'ready for the hackathon?' })
     await expect(first).toBeVisible()
     await expect(first.locator('strong')).toHaveText('Ben')
-    await expect(b.getByTestId('partner-status')).toContainText('Online')
+    await expect(b.getByTestId('partner-status')).toContainText('2 online')
 
     // B replies with a quote and reacts; A sees both, and "Seen" under the first message.
     await first.hover()
@@ -40,7 +40,8 @@ test.describe('chat (Phase 6)', () => {
     await first.getByRole('button', { name: 'React' }).click()
     await b.getByRole('button', { name: 'React 🎉' }).click()
     const reply = a.getByTestId('chat-message').filter({ hasText: 'Let us pick a track' })
-    await expect(reply).toContainText('You: Hi Ben, ready for the hackathon?')
+    await expect(reply).toContainText('You')
+    await expect(reply).toContainText('Hi Ben, ready for the hackathon?')
     await expect(a.getByRole('button', { name: '🎉 1' })).toBeVisible()
     await expect(a.getByTestId('seen')).toBeVisible()
 

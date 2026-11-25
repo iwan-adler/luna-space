@@ -45,7 +45,7 @@ async function audit(page: Page, label: string) {
     (v) =>
       `${label}: ${v.id} (${v.impact}) — ${v.help}\n    ${v.nodes
         .slice(0, 3)
-        .map((n) => n.target.join(' '))
+        .map((n) => `${n.target.join(' ')} — ${n.any[0]?.message ?? n.failureSummary ?? ''}`)
         .join('\n    ')}`,
   )
   expect(report, report.join('\n')).toEqual([])

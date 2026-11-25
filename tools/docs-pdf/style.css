@@ -2,7 +2,7 @@
 @page{size:A4}
 *{box-sizing:border-box}
 html{-webkit-print-color-adjust:exact;print-color-adjust:exact}
-body{margin:0;font-family:'Segoe UI',Arial,sans-serif;font-size:9.6pt;line-height:1.5;color:var(--ink);background:#fff}
+body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","SF Pro Text","Inter",system-ui,"Segoe UI",Roboto,sans-serif;font-size:9.6pt;line-height:1.5;color:var(--ink);background:#fff}
 main{counter-reset:none}
 p{margin:0 0 6pt}
 a{color:var(--brand);text-decoration:none}

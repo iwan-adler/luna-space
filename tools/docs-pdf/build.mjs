@@ -98,7 +98,7 @@ mermaid.initialize({ startOnLoad:false, securityLevel:'loose', theme:'base',
   flowchart:{ htmlLabels:true, curve:'basis', nodeSpacing:28, rankSpacing:36, padding:8, useMaxWidth:true },
   sequence:{ useMaxWidth:true, mirrorActors:false, wrap:true, width:120, actorMargin:36, boxMargin:6, messageMargin:26, messageFontSize:12, actorFontSize:12, noteFontSize:12 },
   er:{ useMaxWidth:true, fontSize:11 },
-  themeVariables:{ fontFamily:'Segoe UI, Arial, sans-serif', fontSize:'13px', primaryColor:'#EEECFD', primaryBorderColor:'#5B4FE0', primaryTextColor:'#1B1D2E', lineColor:'#5E6178', secondaryColor:'#FDF5E2', tertiaryColor:'#F2F3F8', clusterBkg:'#F7F7FB', clusterBorder:'#C9C8E8', edgeLabelBackground:'#ffffff' } });
+  themeVariables:{ fontFamily:'-apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Inter", system-ui, "Segoe UI", Roboto, sans-serif', fontSize:'13px', primaryColor:'#EEECFD', primaryBorderColor:'#5B4FE0', primaryTextColor:'#1B1D2E', lineColor:'#5E6178', secondaryColor:'#FDF5E2', tertiaryColor:'#F2F3F8', clusterBkg:'#F7F7FB', clusterBorder:'#C9C8E8', edgeLabelBackground:'#ffffff' } });
 window.__done = false;
 mermaid.run({ querySelector: 'pre.mermaid' }).then(()=>{
   document.querySelectorAll('pre.mermaid svg').forEach(s=>{ const mw=parseFloat(s.style.maxWidth); if(mw){ s.setAttribute('width', mw); s.style.maxWidth=''; s.removeAttribute('height'); } });

@@ -20,7 +20,7 @@ test.describe('calendar sync link', () => {
     await page.goto(`/calendar?view=agenda&date=${day}`)
     await page.getByRole('button', { name: 'New event' }).click()
     await page.getByLabel('Title').fill('Demo day')
-    await page.getByLabel('All day').check()
+    await page.getByRole('switch', { name: 'All day' }).check()
     await page.getByLabel('Date', { exact: true }).fill(day)
     await page.getByRole('button', { name: 'Add event' }).click()
     await expect(page.getByText('Event added')).toBeVisible()
