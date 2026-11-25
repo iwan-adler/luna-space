@@ -1,6 +1,8 @@
 /* The offline page (public/offline.html): Mauve colours, no external resources. */
 :root {
-  --font-sans: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Inter", system-ui, "Segoe UI", Roboto, sans-serif;
+  --font-sans:
+    -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'Inter', system-ui,
+    'Segoe UI', Roboto, sans-serif;
   color-scheme: dark;
 }
 body {
