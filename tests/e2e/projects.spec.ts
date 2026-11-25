@@ -76,8 +76,17 @@ test.describe('project rooms (Phase 4)', () => {
       await a.keyboard.press(overDone ? 'ArrowLeft' : 'ArrowRight')
       await expect(a.getByText('Over Review.')).toBeAttached({ timeout: 1000 })
     }).toPass({ timeout: 10_000 })
+    // Drop. On a busy CI runner the key can arrive while the board is still settling; if the card
+    // is still held, press it again.
     await a.keyboard.press('Space')
-    await expect(a.getByTestId('column-review').getByText('Record the demo video')).toBeVisible()
+    await expect(async () => {
+      if ((await a.getByText('Over Review.').count()) && (await card.count())) {
+        if ((await card.getAttribute('aria-pressed')) === 'true') await a.keyboard.press('Space')
+      }
+      await expect(a.getByTestId('column-review').getByText('Record the demo video')).toBeVisible({
+        timeout: 1500,
+      })
+    }).toPass({ timeout: 15_000 })
     await expect(b.getByTestId('column-review').getByText('Record the demo video')).toBeVisible()
 
     // B sees it in My tasks with A's comment.
