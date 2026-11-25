@@ -5,7 +5,9 @@ import {
   ChevronRight,
   CornerUpLeft,
   FileText,
+  Globe,
   Hash,
+  Lock,
   MessageSquare,
   Paperclip,
   Pencil,
@@ -47,7 +49,9 @@ import {
   markChatRead,
   useChatRealtime,
   useEditMessage,
+  useChatUnreadDetail,
   useMessages,
+  type MessageTarget,
   usePresence,
   useTyping,
   useReadStates,
@@ -114,6 +118,20 @@ function useSavedMessages(userId?: string) {
   }
 
   return { notes, save }
+}
+
+/** Unread private messages from one person. */
+function UnreadDot({ count }: { count: number }) {
+  if (!count) return null
+  return (
+    <span
+      data-testid="dm-unread"
+      className="ml-1 grid min-w-5 shrink-0 place-items-center rounded-full bg-btn-primary px-1.5 text-[11px] font-semibold text-on-btn-primary"
+    >
+      {count}
+      <span className="sr-only"> unread</span>
+    </span>
+  )
 }
 
 /** Telegram-style Saved Messages bookmark avatar. */
@@ -424,15 +442,26 @@ export function ChatPage() {
     : others
   const showSavedInFrequent = !searchLower || 'saved messages'.includes(searchLower)
 
-  const messages = useMessages()
+  // The conversation: the team chat (null) or your direct messages with one person (ADR 0024).
+  const peer = selectedMember?.userId ?? null
+  const messages = useMessages(peer)
   const reads = useReadStates()
+  const unread = useChatUnreadDetail()
+  // Private or public for the next DM; back to private when you switch conversations.
+  const [dmPublic, setDmPublic] = useState(false)
+  const [dmPeerShown, setDmPeerShown] = useState(peer)
+  if (peer !== dmPeerShown) {
+    setDmPeerShown(peer)
+    setDmPublic(false)
+  }
+  const target: MessageTarget = peer ? { recipient: peer, isPrivate: !dmPublic } : null
   const rawPresence = usePresence()
   const online = useMemo(() => {
     const s = new Set(rawPresence)
     if (user?.id) s.add(user.id)
     return s
   }, [rawPresence, user])
-  const typing = useTyping()
+  const typing = useTyping(peer)
   const tz = useViewerTimeZone()
   useChatRealtime()
 
@@ -444,7 +473,9 @@ export function ChatPage() {
     [messages.data],
   )
   const byId = useMemo(() => new Map(list.map((m) => [m.id, m])), [list])
-  const latestMessage = list[list.length - 1]
+  // The General row previews the team chat, whichever conversation is open.
+  const teamMessages = useMessages(null)
+  const latestMessage = teamMessages.data?.pages[0]?.[0]
 
   const rows = useMemo(
     () =>
@@ -475,11 +506,17 @@ export function ChatPage() {
     [list, tz],
   )
 
-  const readAt = (uid: string) => reads.data?.find((r) => r.user_id === uid)?.last_read_at ?? null
+  // Read positions: in the team chat, each person's team position; in a DM, the other person's
+  // position in your conversation.
+  const readAt = (uid: string) =>
+    reads.data?.find(
+      (r) => r.user_id === uid && (peer ? r.peer_id === user?.id : r.peer_id === null),
+    )?.last_read_at ?? null
+  const readers = peer ? others.filter((o) => o.userId === peer) : others
   const lastMineSeen = [...list].reverse().find(
     (m) =>
       m.sender_id === user?.id &&
-      others.some((o) => {
+      readers.some((o) => {
         const at = readAt(o.userId)
         return at !== null && m.created_at <= at
       }),
@@ -500,15 +537,15 @@ export function ChatPage() {
   const newest = list[list.length - 1]
   useEffect(() => {
     if (!newest || document.visibilityState !== 'visible') return
-    void markChatRead(newest.id)
-  }, [newest])
+    void markChatRead(newest.id, peer)
+  }, [newest, peer])
   useEffect(() => {
     const onVisible = () => {
-      if (document.visibilityState === 'visible' && newest) void markChatRead(newest.id)
+      if (document.visibilityState === 'visible' && newest) void markChatRead(newest.id, peer)
     }
     document.addEventListener('visibilitychange', onVisible)
     return () => document.removeEventListener('visibilitychange', onVisible)
-  }, [newest])
+  }, [newest, peer])
 
   // Stay at the bottom as messages arrive, unless the person scrolled up to read.
   const scroller = useRef<HTMLDivElement>(null)
@@ -544,6 +581,12 @@ export function ChatPage() {
   // Routing view state: URL query param (?view=meet vs chat)
   const [searchParams, setSearchParams] = useSearchParams()
   const view: 'chat' | 'meet' = searchParams.get('view') === 'meet' ? 'meet' : 'chat'
+  const withParam = searchParams.get('with')
+  const [withHandled, setWithHandled] = useState<string | null>(null)
+  if (withParam && withParam !== withHandled && others.some((o) => o.userId === withParam)) {
+    setWithHandled(withParam)
+    setSelectedChat(withParam)
+  }
 
   const setView = useCallback(
     (nextView: 'chat' | 'meet') => {
@@ -980,6 +1023,7 @@ export function ChatPage() {
                         cutoutClass="ring-2 ring-surface"
                         className="w-full gap-2.5"
                       />
+                      <UnreadDot count={unread.data?.byPeer[m.userId] ?? 0} />
                     </button>
                     <button
                       type="button"
@@ -1032,6 +1076,7 @@ export function ChatPage() {
                         cutoutClass="ring-2 ring-surface"
                         className="w-full gap-2.5"
                       />
+                      <UnreadDot count={unread.data?.byPeer[m.userId] ?? 0} />
                     </button>
                     <button
                       type="button"
@@ -1288,13 +1333,10 @@ export function ChatPage() {
                     </p>
                   ) : null}
                   {selectedMember ? (
-                    <div
-                      role="note"
-                      className="mb-3 rounded-xl border border-warning/30 bg-warning-subtle p-3 text-caption text-text"
-                    >
-                      Private messages aren&apos;t available yet. Anything you send here goes to the
-                      team chat that everyone in {workspaceName} sees.
-                    </div>
+                    <p className="mb-3 flex items-center justify-center gap-1.5 text-center text-caption text-muted">
+                      <Lock className="size-3.5" aria-hidden />
+                      Private messages here are seen only by you and {selectedMember.displayName}.
+                    </p>
                   ) : null}
                   {rows.map(({ m, day, showDay, showSender, isConsecutive, isLastOfGroup }) => {
                     return (
@@ -1315,6 +1357,15 @@ export function ChatPage() {
                           replyName={(id) => nameOf(id)}
                           time={format12HourTime(utcIsoToZonedLocal(m.created_at, tz).slice(11))}
                           seen={m.id === lastMineSeen?.id ? seenLabel : null}
+                          audience={
+                            m.recipient_id
+                              ? peer
+                                ? m.is_private
+                                  ? 'Private'
+                                  : 'Public, also in team chat'
+                                : `To ${nameOf(m.recipient_id)}`
+                              : null
+                          }
                           sender={
                             showSender && m.sender_id !== user?.id ? nameOf(m.sender_id) : null
                           }
@@ -1343,6 +1394,9 @@ export function ChatPage() {
                 replyName={nameOf}
                 placeholder={isSaved ? 'Save a message, link or note...' : 'Write a message...'}
                 onCustomSubmit={isSaved ? (b) => saved.save(b) : undefined}
+                target={isSaved ? null : target}
+                peerName={selectedMember?.displayName ?? null}
+                onTogglePublic={setDmPublic}
                 onTyping={typing.notify}
                 typingLabel={
                   typing.typing.length === 0 || isSaved
@@ -1474,6 +1528,7 @@ function Bubble({
   replyName,
   time,
   seen,
+  audience = null,
   sender,
   myId,
   onReply,
@@ -1487,6 +1542,8 @@ function Bubble({
   replyName: (id: string | null) => string
   time: string
   seen: string | null
+  /** Who a direct message is for, or whether it is private (ADR 0024). */
+  audience?: string | null
   sender: string | null
   myId: string
   onReply: () => void
@@ -1700,13 +1757,24 @@ function Bubble({
         </div>
 
         {/* Step 4: Timestamp under LAST bubble of a group */}
-        {isLastOfGroup && (
+        {isLastOfGroup || audience ? (
           <div
             className={`mt-1 flex items-center gap-1 px-1 text-[11px] text-muted ${
               mine ? 'justify-end' : 'justify-start'
             }`}
           >
-            <span>{time}</span>
+            {audience ? (
+              <span data-testid="audience" className="inline-flex items-center gap-0.5">
+                {audience === 'Private' ? (
+                  <Lock className="size-3" aria-hidden />
+                ) : (
+                  <Globe className="size-3" aria-hidden />
+                )}
+                {audience}
+                {isLastOfGroup ? ' ·' : ''}
+              </span>
+            ) : null}
+            {isLastOfGroup ? <span>{time}</span> : null}
             {m.edited_at && !deleted ? <span>· edited</span> : null}
             {seen ? (
               <span data-testid="seen" className="inline-flex items-center gap-0.5">
@@ -1714,7 +1782,7 @@ function Bubble({
               </span>
             ) : null}
           </div>
-        )}
+        ) : null}
       </div>
     </div>
   )
@@ -1775,6 +1843,9 @@ function Composer({
   typingLabel,
   placeholder = 'Write a message...',
   onCustomSubmit,
+  target = null,
+  peerName = null,
+  onTogglePublic,
 }: {
   replyTo: Message | null
   editing: Message | null
@@ -1784,6 +1855,9 @@ function Composer({
   typingLabel: string | null
   placeholder?: string
   onCustomSubmit?: (body: string) => void
+  target?: MessageTarget
+  peerName?: string | null
+  onTogglePublic?: (on: boolean) => void
 }) {
   const send = useSendMessage()
   const sendSticker = useSendSticker()
@@ -1829,7 +1903,7 @@ function Composer({
     }
     if (file && file.size > 25 * 1024 * 1024)
       return toast.show('Files can be up to 25 MB.', 'error')
-    const draft = { body, replyTo: replyTo?.id ?? null, file }
+    const draft = { body, replyTo: replyTo?.id ?? null, file, to: target }
     setText('')
     setFile(null)
     onDone()
@@ -1845,6 +1919,43 @@ function Composer({
 
   return (
     <div className="w-full space-y-1.5">
+      {target && peerName && !editing ? (
+        <div className="flex items-center justify-between gap-2 px-1">
+          <div
+            role="radiogroup"
+            aria-label="Who can see this message"
+            className="inline-flex rounded-full border border-border bg-surface-raised p-0.5 text-caption"
+          >
+            {(
+              [
+                [true, 'Private', Lock],
+                [false, 'Public', Globe],
+              ] as const
+            ).map(([isPrivate, label, Icon]) => (
+              <button
+                key={label}
+                type="button"
+                role="radio"
+                aria-checked={target.isPrivate === isPrivate}
+                onClick={() => onTogglePublic?.(!isPrivate)}
+                className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 font-medium transition-colors ${
+                  target.isPrivate === isPrivate
+                    ? 'bg-primary-subtle text-primary-ink'
+                    : 'text-muted hover:text-text'
+                }`}
+              >
+                <Icon className="size-3.5" aria-hidden />
+                {label}
+              </button>
+            ))}
+          </div>
+          <span className="truncate text-caption text-muted" aria-live="polite">
+            {target.isPrivate
+              ? `Only you and ${peerName} will see it`
+              : `Everyone in the team chat will see it, addressed to ${peerName}`}
+          </span>
+        </div>
+      ) : null}
       {replyTo || editing ? (
         <div className="flex items-center gap-2 rounded-xl bg-surface-raised/90 border border-border/40 px-3 py-1.5 text-caption text-muted backdrop-blur-sm">
           <span className="min-w-0 flex-1 truncate text-xs">
@@ -1943,7 +2054,7 @@ function Composer({
                 disabled={sendSticker.isPending}
                 onPick={(id) =>
                   sendSticker.mutate(
-                    { id, replyTo: replyTo?.id ?? null },
+                    { id, replyTo: replyTo?.id ?? null, to: target },
                     {
                       onSuccess: () => onDone(),
                       onError: (e) => toast.show(e.message, 'error'),
@@ -1954,7 +2065,7 @@ function Composer({
             )}
           </div>
         )}
-        {polling ? <PollDialog key={polling} onClose={() => setPolling(0)} /> : null}
+        {polling ? <PollDialog key={polling} to={target} onClose={() => setPolling(0)} /> : null}
         <textarea
           ref={area}
           aria-label="Message"

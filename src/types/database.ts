@@ -173,14 +173,14 @@ isOneToOne: true
                   ]
                 },"chat_read_state": {
                   Row: {
-                    "last_read_at": string,"last_read_message_id": string | null,"user_id": string,"workspace_id": string
+                    "id": string,"last_read_at": string,"last_read_message_id": string | null,"peer_id": string | null,"user_id": string,"workspace_id": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "last_read_at"?: string,"last_read_message_id"?: string | null,"user_id": string,"workspace_id": string
+                    "id"?: string,"last_read_at"?: string,"last_read_message_id"?: string | null,"peer_id"?: string | null,"user_id": string,"workspace_id": string
                   }
                   Update: {
-                    "last_read_at"?: string,"last_read_message_id"?: string | null,"user_id"?: string,"workspace_id"?: string
+                    "id"?: string,"last_read_at"?: string,"last_read_message_id"?: string | null,"peer_id"?: string | null,"user_id"?: string,"workspace_id"?: string
                   }
                   Relationships: [
                     {
@@ -188,6 +188,12 @@ isOneToOne: true
       columns: ["last_read_message_id"]
 isOneToOne: false
       referencedRelation: "messages"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "chat_read_state_peer_id_fkey"
+      columns: ["peer_id"]
+isOneToOne: false
+      referencedRelation: "profiles"
       referencedColumns: ["id"]
     },{
       foreignKeyName: "chat_read_state_user_id_fkey"
@@ -467,14 +473,14 @@ isOneToOne: false
                   ]
                 },"messages": {
                   Row: {
-                    "body": string | null,"client_id": string | null,"created_at": string,"deleted_at": string | null,"edited_at": string | null,"id": string,"kind": string,"metadata": NonNullable<Json>,"project_id": string | null,"reply_to_id": string | null,"search": unknown,"sender_id": string | null,"workspace_id": string
+                    "body": string | null,"client_id": string | null,"created_at": string,"deleted_at": string | null,"edited_at": string | null,"id": string,"is_private": boolean,"kind": string,"metadata": NonNullable<Json>,"project_id": string | null,"recipient_id": string | null,"reply_to_id": string | null,"search": unknown,"sender_id": string | null,"workspace_id": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "body"?: string | null,"client_id"?: string | null,"created_at"?: string,"deleted_at"?: string | null,"edited_at"?: string | null,"id"?: string,"kind"?: string,"metadata"?: NonNullable<Json>,"project_id"?: string | null,"reply_to_id"?: string | null,"search"?: never,"sender_id"?: string | null,"workspace_id": string
+                    "body"?: string | null,"client_id"?: string | null,"created_at"?: string,"deleted_at"?: string | null,"edited_at"?: string | null,"id"?: string,"is_private"?: boolean,"kind"?: string,"metadata"?: NonNullable<Json>,"project_id"?: string | null,"recipient_id"?: string | null,"reply_to_id"?: string | null,"search"?: never,"sender_id"?: string | null,"workspace_id": string
                   }
                   Update: {
-                    "body"?: string | null,"client_id"?: string | null,"created_at"?: string,"deleted_at"?: string | null,"edited_at"?: string | null,"id"?: string,"kind"?: string,"metadata"?: NonNullable<Json>,"project_id"?: string | null,"reply_to_id"?: string | null,"search"?: never,"sender_id"?: string | null,"workspace_id"?: string
+                    "body"?: string | null,"client_id"?: string | null,"created_at"?: string,"deleted_at"?: string | null,"edited_at"?: string | null,"id"?: string,"is_private"?: boolean,"kind"?: string,"metadata"?: NonNullable<Json>,"project_id"?: string | null,"recipient_id"?: string | null,"reply_to_id"?: string | null,"search"?: never,"sender_id"?: string | null,"workspace_id"?: string
                   }
                   Relationships: [
                     {
@@ -483,6 +489,12 @@ isOneToOne: false
 isOneToOne: false
       referencedRelation: "projects"
       referencedColumns: ["id","workspace_id"]
+    },{
+      foreignKeyName: "messages_recipient_id_fkey"
+      columns: ["recipient_id"]
+isOneToOne: false
+      referencedRelation: "profiles"
+      referencedColumns: ["id"]
     },{
       foreignKeyName: "messages_reply_to_id_workspace_id_fkey"
       columns: ["reply_to_id","workspace_id"]
@@ -1374,7 +1386,7 @@ isOneToOne: false
 { Args: Record<PropertyKey, never>; Returns: number
                            },
 "mark_chat_read":
-{ Args: { "p_message": string }; Returns: undefined
+{ Args: { "p_message": string,"p_peer"?: string }; Returns: undefined
                            },
 "my_workspaces":
 { Args: Record<PropertyKey, never>; Returns: {
