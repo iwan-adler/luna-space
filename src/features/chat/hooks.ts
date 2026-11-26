@@ -27,27 +27,51 @@ export type ReadState = Tables['chat_read_state']['Row']
 
 const PAGE = 50
 const COLUMNS =
-  'id, workspace_id, sender_id, project_id, reply_to_id, kind, body, metadata, client_id, edited_at, deleted_at, created_at, reactions:message_reactions(user_id, emoji), files(id, file_name, mime_type, size_bytes, storage_path, upload_state, deleted_at), votes:poll_votes(user_id, option_index)'
+  'id, workspace_id, sender_id, recipient_id, is_private, project_id, reply_to_id, kind, body, metadata, client_id, edited_at, deleted_at, created_at, reactions:message_reactions(user_id, emoji), files(id, file_name, mime_type, size_bytes, storage_path, upload_state, deleted_at), votes:poll_votes(user_id, option_index)'
+
+/**
+ * Who a message goes to (ADR 0024): null is the team chat; otherwise one person, either
+ * privately (only the two of you) or publicly (also shown in the team chat).
+ */
+export type MessageTarget = { recipient: string; isPrivate: boolean } | null
+
+const NIL = '00000000-0000-0000-0000-000000000000'
 
 export const chatKeys = {
   all: ['chat'] as const,
-  messages: (ws: string) => ['chat', 'messages', ws] as const,
+  /** Every conversation of a workspace; add the peer for one conversation. */
+  messages: (ws: string, peer?: string | null) =>
+    peer === undefined
+      ? (['chat', 'messages', ws] as const)
+      : (['chat', 'messages', ws, peer ?? 'team'] as const),
   read: (ws: string) => ['chat', 'read', ws] as const,
   unread: (ws: string, uid: string | undefined) => ['chat', 'unread', ws, uid] as const,
 }
 
 const db = () => requireSupabase()
 
-/** Newest first, 50 per page; older pages load on demand (FR-CHAT-01). */
-export function useMessages() {
+/**
+ * One conversation, newest first, 50 per page; older pages load on demand (FR-CHAT-01).
+ * `peer` null is the team chat (team messages and public DMs); a user id is your direct
+ * conversation with that person (private and public). The database hides private messages
+ * between other people either way.
+ */
+export function useMessages(peer: string | null = null) {
   const { workspaceId } = useCurrentWorkspace()
+  const { user } = useAuth()
+  const me = user?.id ?? NIL
   return useInfiniteQuery({
-    queryKey: chatKeys.messages(workspaceId),
+    queryKey: chatKeys.messages(workspaceId, peer),
     initialPageParam: null as string | null,
     queryFn: async ({ pageParam }): Promise<Message[]> => {
       let q = db()
         .from('messages')
         .select(COLUMNS)
+        .or(
+          peer
+            ? `and(sender_id.eq.${me},recipient_id.eq.${peer}),and(sender_id.eq.${peer},recipient_id.eq.${me})`
+            : 'recipient_id.is.null,is_private.eq.false',
+        )
         .order('created_at', { ascending: false })
         .order('id', { ascending: false })
         .limit(PAGE)
@@ -72,43 +96,89 @@ export function useReadStates() {
   })
 }
 
-/** Messages from others after my last read position (nav badge). */
-export function useChatUnread() {
+export interface ChatUnread {
+  /** Unread in the team chat (team messages and public DMs). */
+  team: number
+  /** Unread private messages, by the person who sent them. */
+  byPeer: Record<string, number>
+  total: number
+}
+
+/** Unread messages from others, per conversation, after my read position in each. */
+export function useChatUnreadDetail() {
   const { workspaceId } = useCurrentWorkspace()
   const { user } = useAuth()
   return useQuery({
     queryKey: chatKeys.unread(workspaceId, user?.id),
     enabled: Boolean(user),
-    queryFn: async () => {
-      const { data: mine } = await db()
+    queryFn: async (): Promise<ChatUnread> => {
+      const me = user!.id
+      const { data: mine, error: readError } = await db()
         .from('chat_read_state')
-        .select('last_read_at')
-        .eq('user_id', user!.id)
-        .maybeSingle()
-      let q = db()
+        .select('peer_id, last_read_at')
+        .eq('user_id', me)
+      if (readError) throw toAppError(readError)
+      const readAt = new Map((mine ?? []).map((r) => [r.peer_id ?? 'team', r.last_read_at]))
+
+      let teamQ = db()
         .from('messages')
         .select('id', { count: 'exact', head: true })
-        .neq('sender_id', user!.id)
+        .neq('sender_id', me)
         .is('deleted_at', null)
-      if (mine?.last_read_at) q = q.gt('created_at', mine.last_read_at)
-      const { count, error } = await q
+        .or('recipient_id.is.null,is_private.eq.false')
+      const teamRead = readAt.get('team')
+      if (teamRead) teamQ = teamQ.gt('created_at', teamRead)
+      const { count, error } = await teamQ
       if (error) throw toAppError(error)
-      return count ?? 0
+
+      const { data: dms, error: dmError } = await db()
+        .from('messages')
+        .select('sender_id, created_at')
+        .eq('recipient_id', me)
+        .eq('is_private', true)
+        .is('deleted_at', null)
+        .order('created_at', { ascending: false })
+        .limit(500)
+      if (dmError) throw toAppError(dmError)
+      const byPeer: Record<string, number> = {}
+      for (const m of dms ?? []) {
+        if (!m.sender_id) continue
+        const seen = readAt.get(m.sender_id)
+        if (!seen || m.created_at > seen) byPeer[m.sender_id] = (byPeer[m.sender_id] ?? 0) + 1
+      }
+      const team = count ?? 0
+      return { team, byPeer, total: team + Object.values(byPeer).reduce((a, b) => a + b, 0) }
     },
   })
 }
+
+/** All unread messages for me (nav badge). */
+export function useChatUnread() {
+  const detail = useChatUnreadDetail()
+  return { ...detail, data: detail.data?.total }
+}
+
+/** Columns for a message's recipient. */
+const toColumns = (to: MessageTarget) =>
+  to ? { recipient_id: to.recipient, is_private: to.isPrivate } : {}
 
 export function useSendMessage() {
   const qc = useQueryClient()
   const { user } = useAuth()
   const { workspaceId } = useCurrentWorkspace()
   return useMutation({
-    mutationFn: async (args: { body: string; replyTo: string | null; file: File | null }) => {
+    mutationFn: async (args: {
+      body: string
+      replyTo: string | null
+      file: File | null
+      to?: MessageTarget
+    }) => {
       const { data, error } = await db()
         .from('messages')
         .insert({
           workspace_id: workspaceId,
           sender_id: user!.id,
+          ...toColumns(args.to ?? null),
           kind: args.file ? 'file' : 'text',
           body: args.body.trim() || null,
           reply_to_id: args.replyTo,
@@ -132,12 +202,13 @@ export function useSendSticker() {
   const { user } = useAuth()
   const { workspaceId } = useCurrentWorkspace()
   return useMutation({
-    mutationFn: async (args: { id: string; replyTo: string | null }) => {
+    mutationFn: async (args: { id: string; replyTo: string | null; to?: MessageTarget }) => {
       const { error } = await db()
         .from('messages')
         .insert({
           workspace_id: workspaceId,
           sender_id: user!.id,
+          ...toColumns(args.to ?? null),
           kind: 'sticker',
           body: null,
           metadata: { sticker: args.id },
@@ -158,12 +229,18 @@ export function useSendPoll() {
   const { user } = useAuth()
   const { workspaceId } = useCurrentWorkspace()
   return useMutation({
-    mutationFn: async (args: { question: string; options: string[]; multi: boolean }) => {
+    mutationFn: async (args: {
+      question: string
+      options: string[]
+      multi: boolean
+      to?: MessageTarget
+    }) => {
       const { error } = await db()
         .from('messages')
         .insert({
           workspace_id: workspaceId,
           sender_id: user!.id,
+          ...toColumns(args.to ?? null),
           kind: 'poll',
           body: null,
           metadata: { question: args.question, options: args.options, multi: args.multi },
@@ -272,8 +349,9 @@ export function useToggleReaction() {
   })
 }
 
-export async function markChatRead(messageId: string) {
-  await db().rpc('mark_chat_read', { p_message: messageId })
+/** Marks a conversation (the team chat, or your DMs with `peer`) read up to a message. */
+export async function markChatRead(messageId: string, peer: string | null = null) {
+  await db().rpc('mark_chat_read', { p_message: messageId, ...(peer ? { p_peer: peer } : {}) })
 }
 
 /** Live messages, reactions and read receipts (FR-CHAT-01, 06). */
@@ -390,7 +468,7 @@ export function usePresence(): Set<string> {
  * "Ana is typing…" through a Realtime broadcast (nothing is stored). Only user ids travel;
  * names come from the member list. Returns who is typing and a throttled notifier.
  */
-export function useTyping(): { typing: string[]; notify: () => void } {
+export function useTyping(peer: string | null = null): { typing: string[]; notify: () => void } {
   const { workspaceId } = useCurrentWorkspace()
   const { user } = useAuth()
   const [until, setUntil] = useState<Record<string, number>>({})
@@ -404,8 +482,11 @@ export function useTyping(): { typing: string[]; notify: () => void } {
       config: { private: true, broadcast: { self: false } },
     })
     ch.on('broadcast', { event: 'typing' }, ({ payload }) => {
-      const id = (payload as { user_id?: string }).user_id
-      if (id && id !== user.id) setUntil((u) => ({ ...u, [id]: Date.now() + 4000 }))
+      const p = payload as { user_id?: string; to?: string | null }
+      const id = p.user_id
+      // Team chat: typing with no recipient; a DM: that person typing to me.
+      const here = peer ? id === peer && p.to === user.id : !p.to
+      if (id && id !== user.id && here) setUntil((u) => ({ ...u, [id]: Date.now() + 4000 }))
     }).subscribe()
     channel.current = ch
     const tick = window.setInterval(() => setNow(Date.now()), 1000)
@@ -414,12 +495,16 @@ export function useTyping(): { typing: string[]; notify: () => void } {
       void client.removeChannel(ch)
       channel.current = null
     }
-  }, [workspaceId, user])
+  }, [workspaceId, user, peer])
   const notify = () => {
     const t = Date.now()
     if (!channel.current || !user || t - lastSent.current < 2500) return
     lastSent.current = t
-    void channel.current.send({ type: 'broadcast', event: 'typing', payload: { user_id: user.id } })
+    void channel.current.send({
+      type: 'broadcast',
+      event: 'typing',
+      payload: { user_id: user.id, to: peer },
+    })
   }
   return { typing: Object.keys(until).filter((id) => until[id]! > now), notify }
 }

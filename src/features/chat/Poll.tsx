@@ -6,7 +6,7 @@ import { Dialog } from '@/components/ui/Dialog'
 import { TextField } from '@/components/ui/Field'
 import { Switch } from '@/components/ui/Switch'
 import { useToast } from '@/components/ui/Toast'
-import { useSendPoll, useVote, type Message } from './hooks'
+import { useSendPoll, useVote, type Message, type MessageTarget } from './hooks'
 import { pollOf } from './polls'
 
 /** A poll inside a chat message: tap an option to vote; bars and names update live. */
@@ -79,7 +79,7 @@ export function PollCard({
 }
 
 /** Composer dialog to start a poll. Mount with a key to reset. */
-export function PollDialog({ onClose }: { onClose: () => void }) {
+export function PollDialog({ onClose, to = null }: { onClose: () => void; to?: MessageTarget }) {
   const send = useSendPoll()
   const toast = useToast()
   const [question, setQuestion] = useState('')
@@ -92,7 +92,7 @@ export function PollDialog({ onClose }: { onClose: () => void }) {
     e.preventDefault()
     if (!valid) return
     send.mutate(
-      { question: question.trim(), options: filled.map((o) => o.slice(0, 100)), multi },
+      { question: question.trim(), options: filled.map((o) => o.slice(0, 100)), multi, to },
       { onSuccess: () => (toast.show('Poll sent', 'success'), onClose()) },
     )
   }
