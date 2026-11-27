@@ -160,7 +160,7 @@ export function HomePage() {
         </div>
       </div>
 
-      {/* Hackathon Radar (Curated web feed of upcoming hackathons) */}
+      {/* Hackathon Radar: the team's open hackathons, soonest deadline first */}
       <div className="rise" style={{ '--i': 9 } as CSSProperties}>
         <HackathonRadar />
       </div>

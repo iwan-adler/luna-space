@@ -49,3 +49,7 @@ browser-only demo: a fake signed-in user, a local data store instead of Supabase
   a renamed chat title are kept in this browser only, and say so.
 - One presence channel per workspace is shared by every component that shows who is online
   (supabase-js returns one channel per topic, which can be subscribed only once).
+- **Hackathon Radar shows the team's own hackathons** (amended 2026-11-27). It first shipped as
+  a fixed list of mid-2026 events, which had all ended. It now lists the workspace's open
+  hackathons, coding competitions and innovation challenges (not closed, not past their last
+  deadline), soonest deadline first, up to four, with a link to add one and to Devpost.

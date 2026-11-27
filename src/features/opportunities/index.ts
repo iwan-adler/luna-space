@@ -1,4 +1,5 @@
 export { useOpportunities, useOpportunity, useSetStatus, useViewerTimeZone } from './hooks'
 export type { Opportunity } from './model'
-export { nextDeadline as nextDeadlineOf } from './model'
+export { nextDeadline as nextDeadlineOf, teamSizeLabel } from './model'
+export { CLOSED_STATUSES, MODE_LABELS, STATUS_LABELS } from './constants'
 export { PipelineStrip } from './components/PipelineStrip'

@@ -1,65 +1,33 @@
-import { Calendar, ExternalLink, Sparkles, Trophy } from 'lucide-react'
+import { Calendar, ExternalLink, Plus, Sparkles, Trophy } from 'lucide-react'
+import { useMemo } from 'react'
+import { Link } from 'react-router'
+import { Skeleton } from '@/components/ui/Skeleton'
+import {
+  MODE_LABELS,
+  STATUS_LABELS,
+  teamSizeLabel,
+  useOpportunities,
+  useViewerTimeZone,
+} from '@/features/opportunities'
+import { radarPicks } from './radar'
 
-interface HackathonNewsItem {
-  id: string
-  title: string
-  organizer: string
-  prizePool: string
-  dates: string
-  tags: string[]
-  url: string
-  highlight?: boolean
+const DEADLINE_LABELS: Record<string, string> = {
+  registration_deadline: 'Registration closes',
+  submission_deadline: 'Submissions close',
 }
 
-const CURATED_HACKATHONS: HackathonNewsItem[] = [
-  {
-    id: 'ethglobal-cannes',
-    title: 'ETHGlobal Cannes 2026',
-    organizer: 'ETHGlobal',
-    prizePool: '$125,000',
-    dates: 'Jul 10 – Jul 12, 2026',
-    tags: ['Web3', 'Autonomous Agents', 'Smart Contracts'],
-    url: 'https://ethglobal.com',
-    highlight: true,
-  },
-  {
-    id: 'google-deepmind-agents',
-    title: 'Global Autonomous Agents Hackathon',
-    organizer: 'Google DeepMind & Devpost',
-    prizePool: '$75,000',
-    dates: 'Jun 1 – Jun 21, 2026',
-    tags: ['AI Agents', 'Tool Calling', 'Open Source'],
-    url: 'https://devpost.com',
-    highlight: true,
-  },
-  {
-    id: 'solana-renaissance',
-    title: 'Solana Renaissance Buildathon',
-    organizer: 'Solana Foundation',
-    prizePool: '$1,000,000',
-    dates: 'May 15 – Jun 05, 2026',
-    tags: ['DePIN', 'High-Speed Infra', 'Payments'],
-    url: 'https://solana.com',
-  },
-  {
-    id: 'mlh-global-week',
-    title: 'MLH Global Hack Week: Summer Sprint',
-    organizer: 'Major League Hacking',
-    prizePool: 'Swag & Grants',
-    dates: 'Jun 25 – Jul 02, 2026',
-    tags: ['Beginner Friendly', 'Fullstack', 'Hardware'],
-    url: 'https://mlh.io',
-  },
-]
-
 /**
- * Hackathon Radar: Curated news & upcoming hackathons stream from the web.
- * Fulfills the "Instagram for Hackathons" discovery feed requirement.
+ * Hackathon Radar: the team's own open hackathons and competitions, soonest deadline first.
+ * Built from the workspace's opportunities, so it is never stale (replaces a fixed list).
  */
 export function HackathonRadar() {
+  const opps = useOpportunities()
+  const tz = useViewerTimeZone()
+  const picks = useMemo(() => radarPicks(opps.data ?? [], tz), [opps.data, tz])
+
   return (
     <section aria-labelledby="radar-title" className="space-y-3">
-      <div className="flex items-baseline justify-between">
+      <div className="flex items-baseline justify-between gap-3">
         <div className="flex items-center gap-2">
           <Sparkles className="size-4 text-primary-ink" aria-hidden />
           <h2 id="radar-title" className="text-h2 font-semibold">
@@ -72,70 +40,107 @@ export function HackathonRadar() {
           rel="noreferrer"
           className="inline-flex items-center gap-1 text-body-sm text-muted transition-colors hover:text-text"
         >
-          More on the web <ExternalLink className="size-3.5" aria-hidden />
+          Find more on Devpost <ExternalLink className="size-3.5" aria-hidden />
         </a>
       </div>
 
-      <div className="grid gap-3 sm:grid-cols-2">
-        {CURATED_HACKATHONS.map((h) => (
-          <article
-            key={h.id}
-            className={`group relative flex flex-col justify-between overflow-hidden rounded-xl border p-4 transition-all ${
-              h.highlight
-                ? 'border-cyan-500/30 bg-surface shadow-sm hover:border-cyan-500/50 hover:bg-surface-raised'
-                : 'border-border bg-surface hover:border-border-hover hover:bg-surface-raised'
-            }`}
+      {opps.isPending && opps.fetchStatus === 'paused' ? (
+        <p className="panel p-5 text-body-sm text-muted">
+          You&apos;re offline. Your hackathons will appear when you reconnect.
+        </p>
+      ) : opps.isPending ? (
+        <div className="grid gap-3 sm:grid-cols-2" aria-label="Loading hackathons">
+          <Skeleton className="h-32 w-full" />
+          <Skeleton className="h-32 w-full" />
+        </div>
+      ) : opps.error ? (
+        <p className="panel p-5 text-body-sm text-danger">Couldn&apos;t load your hackathons.</p>
+      ) : picks.length === 0 ? (
+        <div
+          className="panel flex flex-wrap items-center justify-between gap-3 p-5"
+          data-testid="radar-empty"
+        >
+          <p className="text-body-sm text-muted">
+            No open hackathons yet. Paste a hackathon link and Luna fills in the details.
+          </p>
+          <Link
+            to="/opportunities/new"
+            className="btn-secondary inline-flex shrink-0 items-center gap-1.5 rounded-full px-4 py-1.5 text-body-sm font-medium"
           >
-            {h.highlight ? (
-              <div
-                aria-hidden
-                className="vibrant-container pointer-events-none absolute inset-0 opacity-[0.12] transition-opacity group-hover:opacity-[0.22]"
-              />
-            ) : null}
-            <div className="relative z-10 space-y-2">
-              <div className="flex items-start justify-between gap-2">
-                <span className="text-caption font-semibold tracking-wider text-muted uppercase">
-                  {h.organizer}
-                </span>
-                <span className="inline-flex items-center gap-1 rounded-md bg-surface-raised px-2 py-0.5 text-caption font-semibold text-primary-ink">
-                  <Trophy className="size-3" aria-hidden />
-                  {h.prizePool}
-                </span>
-              </div>
-
-              <h3 className="text-body font-semibold text-text group-hover:text-primary-ink transition-colors">
-                <a
-                  href={h.url}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="after:absolute after:inset-0"
+            <Plus className="size-4" aria-hidden />
+            Add a hackathon
+          </Link>
+        </div>
+      ) : (
+        <ul className="grid gap-3 sm:grid-cols-2" data-testid="radar">
+          {picks.map(({ opp, deadline }) => {
+            const soon = deadline != null && deadline.info.daysLeft <= 7
+            const team = teamSizeLabel(opp.team_min, opp.team_max)
+            const chips = [
+              opp.mode !== 'unknown' ? MODE_LABELS[opp.mode] : null,
+              team,
+              ...opp.tracks.slice(0, 2),
+            ].filter((c): c is string => Boolean(c))
+            return (
+              <li key={opp.id}>
+                <article
+                  className={`group relative flex h-full flex-col justify-between rounded-xl border p-4 transition-colors hover:bg-surface-raised ${
+                    soon ? 'border-primary/40 bg-primary-subtle' : 'border-border bg-surface'
+                  }`}
                 >
-                  {h.title}
-                </a>
-              </h3>
-
-              <div className="flex items-center gap-1.5 text-caption text-muted">
-                <Calendar className="size-3.5 shrink-0" aria-hidden />
-                <span>{h.dates}</span>
-              </div>
-            </div>
-
-            <div className="mt-3.5 flex flex-wrap items-center gap-1.5 pt-2 border-t border-border/50">
-              {h.tags.map((tag) => (
-                <span
-                  key={tag}
-                  className="rounded-md bg-surface-raised px-2 py-0.5 text-[11px] font-medium text-muted"
-                >
-                  {tag}
-                </span>
-              ))}
-              <span className="ml-auto inline-flex items-center gap-1 text-caption font-medium text-primary-ink opacity-0 group-hover:opacity-100 transition-opacity">
-                Explore <ExternalLink className="size-3" aria-hidden />
-              </span>
-            </div>
-          </article>
-        ))}
-      </div>
+                  <div className="space-y-2">
+                    <div className="flex items-start justify-between gap-2">
+                      <span className="truncate text-caption font-semibold tracking-wider text-muted uppercase">
+                        {opp.organizer ?? STATUS_LABELS[opp.status]}
+                      </span>
+                      {opp.prizes ? (
+                        <span
+                          className="inline-flex max-w-[50%] items-center gap-1 truncate rounded-md bg-surface-raised px-2 py-0.5 text-caption font-semibold text-primary-ink"
+                          title={opp.prizes}
+                        >
+                          <Trophy className="size-3 shrink-0" aria-hidden />
+                          <span className="truncate">{opp.prizes}</span>
+                        </span>
+                      ) : null}
+                    </div>
+                    <h3 className="text-body font-semibold text-text transition-colors group-hover:text-primary-ink">
+                      <Link
+                        to={`/opportunities/${opp.id}`}
+                        className="after:absolute after:inset-0"
+                      >
+                        {opp.title}
+                      </Link>
+                    </h3>
+                    <p className="flex items-center gap-1.5 text-caption text-muted">
+                      <Calendar className="size-3.5 shrink-0" aria-hidden />
+                      {deadline ? (
+                        <span className={soon ? 'font-medium text-text' : undefined}>
+                          {DEADLINE_LABELS[deadline.kind] ?? 'Deadline'} {deadline.info.relative}
+                        </span>
+                      ) : (
+                        <span>No deadline added yet</span>
+                      )}
+                    </p>
+                  </div>
+                  <div className="mt-3.5 flex flex-wrap items-center gap-1.5 border-t border-border/50 pt-2">
+                    <span className="rounded-md bg-surface-raised px-2 py-0.5 text-[11px] font-medium text-text">
+                      {STATUS_LABELS[opp.status]}
+                    </span>
+                    {chips.map((c) => (
+                      <span
+                        key={c}
+                        className="rounded-md bg-surface-raised px-2 py-0.5 text-[11px] font-medium text-muted"
+                      >
+                        {c}
+                      </span>
+                    ))}
+                  </div>
+                </article>
+              </li>
+            )
+          })}
+        </ul>
+      )}
     </section>
   )
 }
